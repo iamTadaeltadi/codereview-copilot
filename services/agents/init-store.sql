@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS store_migrations (
+    v INTEGER PRIMARY KEY
+);
