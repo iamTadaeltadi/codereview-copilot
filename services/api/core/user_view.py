@@ -1,0 +1,55 @@
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status,viewsets
+from rest_framework.permissions import IsAuthenticated
+
+from .models import (
+    Repository as DBRepository,
+)
+from .serializers import (
+    UserSerializer, 
+    GitHubRepositorySerializer, GitHubOrganizationSerializer
+)
+from .services import (
+    get_user_repos_from_github,
+    get_user_orgs_from_github,
+)
+import requests
+import logging
+logger = logging.getLogger(__name__)
+
+class CurrentUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+class UserRepositoriesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        current_user = request.user
+        if not current_user.github_access_token:
+            return Response({"detail": "GitHub access token not found for user."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            page = int(request.query_params.get('page', 1))
+            per_page = int(request.query_params.get('per_page', 30))
+
+            github_repos_list = get_user_repos_from_github(
+                current_user.github_access_token,
+                page=page,
+                per_page=per_page
+            )
+            
+            processed_repos = []
+            for gh_repo_data in github_repos_list:
+                # Check if this repo is registered in our system by GitHub native ID
+                db_repo = DBRepository.objects.filter(github_native_id=gh_repo_data['id']).first()
+                
+                # Use a temporary dict to build up the response for this repo
+                repo_info_to_return = gh_repo_data.copy() # Start with all GitHub data
+
+                if db_repo:
+                    repo_info_to_return['is_registered_in_system'] = True
