@@ -1,0 +1,66 @@
+import React, { useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../redux/store";
+import { fetchRepoDetailsAction } from "../../redux/actions/RepoAction";
+import { FiGitBranch, FiGitPullRequest, FiGitCommit, FiUsers, FiSettings, FiActivity, FiAlertCircle } from "react-icons/fi";
+
+const RepoOverview: React.FC = () => {
+  const { repoId } = useParams<{ repoId: string }>();
+  const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { currentRepo, status, error } = useSelector(
+    (state: RootState) => state.repos
+  );
+
+  useEffect(() => {
+    if (repoId) {
+      dispatch(fetchRepoDetailsAction(parseInt(repoId)));
+    }
+  }, [repoId, dispatch]);
+
+  if (status === "loading") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full border-2 border-blue-600 animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-12 h-12 rounded-full border-t-2 border-blue-600 animate-spin"></div>
+        </div>
+        <p className="text-gray-500 animate-pulse">Loading repository details...</p>
+      </div>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-sm border border-red-200">
+          <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+            <FiAlertCircle className="w-6 h-6 text-red-600" />
+          </div>
+          <h3 className="mt-4 text-lg font-medium text-center text-gray-900">Error Loading Repository</h3>
+          <p className="mt-2 text-sm text-center text-gray-500">{error}</p>
+          <button
+            onClick={() => dispatch(fetchRepoDetailsAction(parseInt(repoId!)))}
+            className="mt-4 w-full px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors duration-200"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentRepo) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+          <FiGitBranch className="w-8 h-8 text-gray-400" />
+        </div>
+        <h3 className="text-lg font-medium text-gray-900">Repository not found</h3>
+        <p className="text-sm text-gray-500">The repository you're looking for doesn't exist or you don't have access.</p>
+        <button
+          onClick={() => navigate('/repositories')}
+          className="mt-2 inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-colors duration-200"
+        >
+          View All Repositories
