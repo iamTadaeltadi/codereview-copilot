@@ -1,0 +1,45 @@
+volumes:
+    langgraph-data:
+        driver: local
+    checkpointer-data:
+        driver: local
+    store-data:
+        driver: local
+services:
+    langgraph-redis:
+        image: redis:6
+        healthcheck:
+            test: redis-cli ping
+            interval: 5s
+            timeout: 1s
+            retries: 5
+    langgraph-postgres:
+        image: postgres:16
+        ports:
+            - "5434:5432"
+        environment:
+            POSTGRES_DB: postgres
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        volumes:
+            - langgraph-data:/var/lib/postgresql/data
+        healthcheck:
+            test: pg_isready -U postgres
+            start_period: 10s
+            timeout: 1s
+            retries: 5
+            interval: 5s
+    checkpointer-postgres:
+        image: postgres:16
+        ports:
+            - "5435:5432"
+        environment:
+            POSTGRES_DB: checkpointer
+            POSTGRES_USER: langgraph
+            POSTGRES_PASSWORD: langgraph
+        volumes:
+            - checkpointer-data:/var/lib/postgresql/data
+            - ./init-checkpointer.sql:/docker-entrypoint-initdb.d/init-checkpointer.sql
+        healthcheck:
+            test: pg_isready -U langgraph -d checkpointer
+            start_period: 10s
