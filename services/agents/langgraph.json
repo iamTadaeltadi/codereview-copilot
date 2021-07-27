@@ -1,0 +1,9 @@
+{
+    "dependencies": ["./"],
+    "graphs": {
+      "review": "./parallel_review_pipeline.py:graph",
+      "feedback": "./feedback_pipeline.py:graph"
+    },
+    "env":"./.env"
+  }
+  
