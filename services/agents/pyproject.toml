@@ -1,0 +1,41 @@
+[tool.poetry]
+name = "agent-setup"
+version = "0.1.0"
+description = "A LangGraph agent system with persistent memory based on PostgreSQL and web search capabilities."
+authors = ["Tadael Shewarega <tadaelshewarega@users.noreply.github.com>"]
+license = "MIT"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = ">=3.11.0,<4.0"
+tree-sitter="0.21.3"
+tree-sitter-languages="1.10.2"
+grep-ast = "0.4.1"
+langchain = "0.3.25"
+langgraph = "^0.3.18"
+langgraph-api="^0.0.31"
+IPython = "8.31.0"
+langchain-community = "0.3.23"
+langchain-core = "0.3.58"
+langchain-openai = "0.3.11"
+langchain-text-splitters = "0.3.8"
+langsmith = "0.3.8"
+uvicorn = "0.34.0"
+aiohttp = "3.11.11"
+typing-inspect = "0.9.0"
+typing_extensions = "4.12.2"
+python-dotenv = "^1.0.1"
+requests = "^2.32.3"
+openai = "^1.58.1"
+networkx = "^3.2.1"
+gitpython = "^3.1.44"
+langgraph-cli = {extras = ["inmem"], version = "^0.1.77"}
+codecontext = {path = "../graph", develop = true}
+json-repair = "0.40.0"
+jmespath = ">=1.0.1,<2.0.0"
+psycopg = ">=3.2.7,<4.0.0"
+langgraph-checkpoint-postgres = ">=2.0.21,<3.0.0"
+langmem = ">=0.0.25,<0.0.26"
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
