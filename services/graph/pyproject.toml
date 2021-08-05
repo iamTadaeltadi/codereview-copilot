@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "codecontext"
+version = "0.1.0"
+description = "Repository graph construction and retrieval utilities for the AI code review platform."
+authors = ["Tadael Shewarega"]
+packages = [{ include = "codecontext" }]
+
+[tool.poetry.dependencies]
+python = ">=3.11,<4.0"
+tree-sitter = "0.21.3"
+tree-sitter-languages = "1.10.2"
+grep-ast = "0.4.1"
+networkx = "^3.2.1"
+pygments = "2.18.0"
+tqdm = "*"
+datasets = "*"
+openai = ">=1.58.1,<2.0.0"
+tiktoken = "0.7.0"
+libcst = "1.4.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
