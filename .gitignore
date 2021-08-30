@@ -1,0 +1,40 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+
+# Local databases and scheduler state
+*.sqlite3
+celerybeat-schedule.bak
+celerybeat-schedule.dat
+celerybeat-schedule.dir
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Coverage / logs
+.coverage
+coverage/
+htmlcov/
+*.log
+
+# OS / IDE
+.idea/
+.vscode/
+
+# Local compiled artifacts
+*.so
