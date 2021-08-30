@@ -1,0 +1,27 @@
+# Coverage configuration for the Django application.
+#
+# Scope is the Django API service (`services/api/core`) — the deployable
+# application package. The agent and graph services ship their own dependency
+# manifests and are exercised by their own test modules.
+[run]
+source =
+    services/api/core
+branch = False
+omit =
+    */migrations/*
+    */__pycache__/*
+    */tests/*
+    services/api/manage.py
+    services/api/core/tests.py
+    services/api/django_backend/*
+
+[report]
+show_missing = True
+skip_empty = True
+fail_under = 80
+exclude_also =
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    raise NotImplementedError
+    def __repr__
+    \.\.\.
