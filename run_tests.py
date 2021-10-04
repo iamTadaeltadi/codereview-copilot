@@ -39,3 +39,44 @@ def main() -> int:
     parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     parser.add_argument(
         "--suite",
+        "-s",
+        choices=("all", "backend", "python", "frontend"),
+        default="all",
+        help="Run a specific suite",
+    )
+    args = parser.parse_args()
+    python = _python_bin()
+    verbose_flag = ["-v", "2"] if args.verbose else []
+
+    if args.suite in {"all", "backend"}:
+        code = _run([python, "services/api/manage.py", "test", "core.tests", *verbose_flag])
+        if code != 0:
+            return code
+
+    if args.suite in {"all", "python"}:
+        code = _run(
+            [
+                python,
+                "-m",
+                "unittest",
+                "discover",
+                "-s",
+                "tests",
+                "-p",
+                "test_*.py",
+                *(["-v"] if args.verbose else []),
+            ]
+        )
+        if code != 0:
+            return code
+
+    if args.suite in {"all", "frontend"}:
+        code = subprocess.run(["npm", "test"], cwd=os.path.join(ROOT, "web")).returncode
+        if code != 0:
+            return code
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
