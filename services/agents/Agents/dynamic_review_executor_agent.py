@@ -44,3 +44,48 @@ class DynamicReviewExecutorAgent:
                             "vuln_state": {"issues": [], "tool_calls_made": [], "tool_call_count": 0},
                         })
                         reviews["error_analysis"][idx] = {
+                            "messages": result["messages"],
+                            "issues": result["issues"],
+                            "current_diff": diff,
+                            "total_tool_calls": result["total_tool_calls"],
+                            "tool_calls": result["bug_state"]["tool_calls_made"] + result["vuln_state"]["tool_calls_made"]
+                        }
+                current_review = {
+                    "syntax": [reviews["syntax"][idx]],
+                    "standards": [reviews["standards"][idx]],
+                    "error_analysis": [reviews["error_analysis"][idx]]
+                }
+                
+                # Generate a fix, applying any provided “fix” instruction
+                fix_section = instructions.get(file, {}).get("fix", {})
+                fix_instr = fix_section.get("instruction", "")
+                
+                # If a “final” instruction exists and current_review is missing any review sections,
+                # complete them from the original review using the proper index.
+                final_section = instructions.get(file, {}).get("final", {})
+                review_instr = final_section.get("instruction", "")
+                if review_instr or fix_instr:
+                    for section in ["syntax", "standards", "error_analysis"]:
+                        # Check if the current section is missing or its element is empty
+                        if not current_review.get(section) or not current_review[section][0]:
+                            orig_section = original_review["review"].get(section, [])
+                            if len(orig_section) > idx:
+                                current_review[section] = [orig_section[idx]]
+                fix_agent = CodeFixAgent(self.llm)
+                fixes[idx] = fix_agent.generate_fix(
+                    diff,
+                    current_review,
+                    repo_summary,
+                    additional_instructions=fix_instr
+                )
+
+                # Generate final review, applying any provided “final” instruction
+                reviewer = CodeReviewerAgent(self.llm, self.metrics)
+                final_reviews = reviewer.generate_review(
+                    current_review,
+                    repo_summary,
+                    additional_instructions=review_instr
+                )
+
+                reviews["final"][idx] = final_reviews[0]
+        return reviews,fixes
