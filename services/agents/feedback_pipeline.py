@@ -77,3 +77,82 @@ class FeedbackPipeline:
             # self.memory = PostgresSaver(self.pool_checkpoint)
             # self.memory.setup()
             # self.pool_store = ConnectionPool(conninfo=store_db,min_size=2,max_size=20,kwargs={"autocommit": False, "prepare_threshold": 0})
+            # self.store = PostgresStore(self.pool_store)
+            # self.store.setup()
+            # print("PostgresSaver initialized.")
+            self.memory = MemorySaver()
+            self.store = InMemoryStore()
+        except Exception as e:
+            print(f"FATAL: Failed to initialize PostgreSQL checkpointer: {e}")
+            raise
+        # Initialize LangMem tools with namespaces
+        self._initialize_memory_tools()
+        self.graph_app = self._build_graph()
+    def _initialize_memory_tools(self):
+        self.episodic_manage_tool = create_manage_memory_tool(
+            namespace=("episodic","{thread_id}"),
+            store=self.store
+        )
+        self.episodic_search_tool = create_search_memory_tool(
+            namespace=("episodic","{thread_id}"),
+            store=self.store
+        )
+        self.long_term_search_tool = create_search_memory_tool(
+            namespace=("long_term","{reviewer_id}","{user}","{repo}"),
+            store=self.store
+        )
+        self.long_term_manage_tool = create_manage_memory_tool(
+            namespace=("long_term","{reviewer_id}","{user}","{repo}"),
+            store=self.store
+    )
+    def _get_ltm_config(self, state: FeedbackState) -> dict:
+        return {
+            "configurable": {
+                "reviewer_id": state["reviewer_id"],
+                "user": state["user"],
+                "repo": state["repo"]
+            }
+        }
+    def _get_episodic_config(self, state: FeedbackState) -> dict:
+        return {
+            "configurable": {
+                "thread_id": state["thread_id"]
+            }
+        }
+    def close_pools(self):
+        closed_any = False
+        if hasattr(self, 'pool_checkpoint') and self.pool_checkpoint:
+            print("Closing PostgreSQL connection pool for Checkpointer.")
+            self.pool_checkpoint.close()
+            closed_any = True
+        if hasattr(self, 'pool_store') and self.pool_store:
+            print("Closing PostgreSQL connection pool for Key-Value Store.")
+            self.pool_store.close()
+            closed_any = True
+        if not closed_any:
+            print("No connection pools were found to close.")
+
+    def _build_graph(self):
+        builder = StateGraph(FeedbackState)
+        builder.add_node("preprocess", self.preprocess)
+        builder.add_node("guardrail_checker", self.guardrail_checker)
+        builder.add_node("sufficiency_checker", self.sufficiency_checker)
+        builder.add_node("plan_generator", self.plan_generator)
+        builder.add_node("instruction_generator", self.instruction_generator)
+        builder.add_node("dynamic_review_executor", self.dynamic_review_executor)
+        builder.add_node("review_integrator", self.review_integrator)
+        builder.add_node("chat_responder", self.chat_responder)
+        builder.add_node("log_memory", self.log_memory)
+        builder.set_entry_point("preprocess")
+        builder.add_edge("preprocess", "guardrail_checker")
+        builder.add_conditional_edges(
+            "guardrail_checker",
+            self.route_after_guardrail,
+            {"chat_responder": "chat_responder", "sufficiency_checker": "sufficiency_checker"}
+        )
+        builder.add_conditional_edges(
+            "sufficiency_checker",
+            self.route_after_sufficiency,
+            {"chat_responder": "chat_responder", "plan_generator": "plan_generator"}
+        )
+        builder.add_edge("plan_generator", "instruction_generator")
