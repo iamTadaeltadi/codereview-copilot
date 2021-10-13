@@ -64,3 +64,68 @@ class ParallelReviewPipeline:
             "CEREBRAS": Config.CEREBRAS,
             "OPENROUTER": Config.OPENROUTER
         }
+
+        selected_config = provider_map.get(provider, Config.CEREBRAS)
+        api_key = selected_config["api_key"]
+        api_base_url = selected_config["api_base_url"]
+        self.llm = CustomLLM(
+            openai_api_key=api_key,
+            model=model_name,
+            openai_api_base=api_base_url,
+            temperature=state["temperature"],
+            max_tokens=state["max_tokens"]
+        )
+        self.standards = state["standards"]
+        self.metrics = state["metrics"]
+        
+        repo_folder_path = None
+        diffs = []
+        
+        # Determine mode: local, commit, or PR
+        if files_content and supplied_diff:
+            # Local mode
+            print("--- Preprocessing: Local Mode ---")
+            if not isinstance(files_content, dict):
+                raise ValueError("For local mode, 'files' must be a dictionary of path:content.")
+            if not isinstance(supplied_diff, str):
+                 raise ValueError("For local mode, 'diff_str' must be a string of formatted diffs.")
+            
+            repo_folder_path = setup_local_repo_from_files(files_content)
+            diffs = DiffFormatter(supplied_diff).parse_and_format() # Assumes diff_list is in the format expected by DiffFormatter
+
+        elif commit_hash and user and repo:
+            # Commit mode
+            print(f"--- Preprocessing: Commit Mode (commit: {commit_hash}) ---")
+            
+            # Dynamically fetch the default branch
+            try:
+                default_branch_to_clone = get_repo_default_branch(user, repo, user_github_token)
+                print(f"Determined default branch for {user}/{repo}: {default_branch_to_clone}")
+            except Exception as e:
+                print(f"Error fetching default branch for {user}/{repo}: {e}. Falling back to 'main'.")
+                # Fallback or re-raise, depending on desired strictness
+                default_branch_to_clone = "main" # Or raise ValueError("Could not determine default branch and no fallback.")
+
+            repo_folder_path = clone_repo(user, repo, default_branch_to_clone, user_github_token, commit_hash=commit_hash)
+            
+            diffs = get_commit_diff(user, repo, commit_hash, user_github_token)
+            metadata_user = user
+            metadata_branch = f"commit-{commit_hash[:7]}"
+
+
+        elif pr_id and user and repo:
+            # PR mode
+            print(f"--- Preprocessing: PR Mode (PR: {pr_id}) ---")
+            # Pass user_github_token to these functions
+            diffs = get_pr_diff(user, repo, pr_id, user_github_token=user_github_token)
+            metadata = get_pr_metadata(user, repo, pr_id, user_github_token=user_github_token)
+            metadata_branch = metadata["head"]["ref"]
+            metadata_user = metadata["head"]["user"] # This is GitHub user from PR head
+            # Clone repo (pass user_github_token)
+            repo_folder_path = clone_repo(metadata_user, repo, metadata_branch, user_github_token=user_github_token)
+        else:
+            raise ValueError("Insufficient information for preprocessing. Provide PR details, commit details, or local files+diffs.")
+
+        if not repo_folder_path or not os.path.exists(repo_folder_path):
+             raise ValueError(f"Repository folder path not established or does not exist: {repo_folder_path}")
+
