@@ -68,3 +68,73 @@ class DiffFormatter:
                             "new_line_number": current_chunk["new_line"],
                         }
                     )
+                    current_chunk["new_line"] += 1
+                elif line.startswith("-"):
+                    current_chunk["changes"].append(
+                        {
+                            "type": "deletion",
+                            "content": line[1:],
+                            "old_line_number": current_chunk["old_line"],
+                        }
+                    )
+                    current_chunk["old_line"] += 1
+                elif line.startswith("\\"):
+                    # Handle "No newline at end of file" cases
+                    continue
+                else:  # Context line
+                    current_chunk["changes"].append(
+                        {
+                            "type": "context",
+                            "content": line[1:] if line.startswith(" ") else line,
+                            "old_line_number": current_chunk["old_line"],
+                            "new_line_number": current_chunk["new_line"],
+                        }
+                    )
+                    current_chunk["old_line"] += 1
+                    current_chunk["new_line"] += 1
+
+        if current_file:
+            self.formatted_files.append(current_file)
+
+        return self.format_for_agent()
+
+    def _extract_file_path(self, diff_header):
+        """Extract the file path from diff header line."""
+        parts = diff_header.split(" ")
+        path = parts[-1]
+        if path.startswith("a/") or path.startswith("b/"):
+            return path[2:]
+        return path
+
+    def _parse_chunk_header(self, header):
+        """Parse the @@ line to get the line numbers."""
+        # Example: @@ -1,7 +1,6 @@
+        parts = header.split(" ")
+        old_start = int(parts[1].split(",")[0].lstrip("-"))
+        new_start = int(parts[2].split(",")[0].lstrip("+"))
+
+        return {
+            "header": header,
+            "old_start": old_start,
+            "new_start": new_start,
+            "old_line": old_start,
+            "new_line": new_start,
+            "changes": [],
+        }
+
+    def format_for_agent(self):
+        """Format the parsed diff in a clear, AI-friendly format."""
+        formatted_output = []
+        final_output = []
+        id = 0
+        for file in self.formatted_files:
+            file_info = f"\nFile: {file['file_path']}\n"
+            if "metadata" in file:
+                file_info += f"Metadata: {file['metadata']}\n"
+            formatted_output.append(file_info)
+
+            for chunk in file["chunks"]:
+                formatted_output.append(f"\nChunk {chunk['header']}")
+                max_line_number_length = max(
+                    [
+                        len(str(change["new_line_number"]))
