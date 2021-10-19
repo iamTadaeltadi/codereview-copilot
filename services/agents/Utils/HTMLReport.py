@@ -63,3 +63,68 @@ def generate_html_report(review_data):
                             for category, score in file_data["ratings"].items()
                         )}
                     </div>
+                </div>
+            </div>
+
+            <!-- Critical Issues -->
+            <div class="card vulnerability mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Critical Issues</h6>
+                    {"".join(
+                        f"""<div class="issue-card">
+                            <div class="card-body p-3">
+                                <p class="card-text">{(issue)}</p>
+                            </div>
+                        </div>"""
+                        for issue in file_data["critical_issues"]
+                    )}
+                </div>
+            </div>
+
+            <!-- Syntax Issues -->
+            <div class="card syntax-issue mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Syntax Issues</h6>
+                    {"".join(
+                        f"""<div class="issue-card">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-2 text-muted">Line {issue["location"]}</h6>
+                                <p class="card-text">{issue["description"]}</p>
+                            </div>
+                        </div>"""
+                        for syntax in review_data["review"]["syntax"]
+                        for issue in syntax.get("issues",{})
+                        if issue and issue["file"] == file_data["file"]
+                    )}
+                </div>
+            </div>
+
+            <!-- Standards Issues -->
+            <div class="card standard-issue mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Standards Issues</h6>
+                    {"".join(
+                        f"""<div class="issue-card">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-2 text-muted">Line {issue["location"]}</h6>
+                                <p class="card-text">{issue["standard"]}</p>
+                            </div>
+                        </div>"""
+                        for standard in review_data["review"]["standards"]
+                        for issue in standard.get("issues",{})
+                        if issue and issue["file"] == file_data["file"]
+                    )}
+                </div>
+            </div>
+
+            <!-- Suggested Fixes -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h6 class="card-subtitle mb-2 text-muted">Suggested Fixes</h6>
+                    <div class="fixes" data-markdown="{html.escape(review_data['artifacts']['fixes'][index])}"></div>
+                </div>
+            </div>
+        </div>
+        '''
+        for index, file_data in enumerate(review_data["review"]['final'])
+    )
