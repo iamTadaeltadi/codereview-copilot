@@ -73,3 +73,77 @@ class ThreadAdmin(admin.ModelAdmin):
     search_fields = ('review__id', 'thread_id')
     list_filter = ('status', 'created_at')
     raw_id_fields = ('review',)
+
+    def review_info(self, obj):
+        return f"Review ID: {obj.review.id}"
+    review_info.short_description = 'Review'
+
+    def thread_id_short(self, obj):
+        if obj.thread_id:
+            return obj.thread_id[:12] + "..." if len(obj.thread_id) > 12 else obj.thread_id
+        return None
+    thread_id_short.short_description = 'Thread ID'
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('id', 'thread_info', 'user', 'type', 'comment_short', 'created_at')
+    search_fields = ('thread__id', 'user__username', 'comment')
+    list_filter = ('type', 'created_at')
+    raw_id_fields = ('thread', 'user', 'parent_comment')
+
+    def thread_info(self, obj):
+        return f"Thread ID: {obj.thread.id}"
+    thread_info.short_description = 'Thread'
+    
+    def comment_short(self, obj):
+        return obj.comment[:75] + '...' if len(obj.comment) > 75 else obj.comment
+    comment_short.short_description = 'Comment'
+
+@admin.register(LLMUsage)
+class LLMUsageAdmin(admin.ModelAdmin):
+    list_display = ('user', 'review_info', 'llm_model', 'input_tokens', 'output_tokens', 'cost', 'created_at')
+    search_fields = ('user__username', 'review__id', 'llm_model')
+    list_filter = ('llm_model', 'created_at')
+    raw_id_fields = ('user', 'review')
+
+    def review_info(self, obj):
+        if obj.review:
+            return f"Review ID: {obj.review.id}"
+        return "N/A"
+    review_info.short_description = 'Review'
+
+@admin.register(ReviewFeedback)
+class ReviewFeedbackAdmin(admin.ModelAdmin):
+    list_display = ('review_info', 'user', 'rating', 'feedback_short', 'created_at')
+    search_fields = ('review__id', 'user__username', 'feedback')
+    list_filter = ('rating', 'created_at')
+    raw_id_fields = ('review', 'user')
+
+    def review_info(self, obj):
+        return f"Review ID: {obj.review.id}"
+    review_info.short_description = 'Review'
+
+    def feedback_short(self, obj):
+        return obj.feedback[:75] + '...' if len(obj.feedback) > 75 else obj.feedback
+    feedback_short.short_description = 'Feedback'
+
+@admin.register(WebhookEventLog)
+class WebhookEventLogAdmin(admin.ModelAdmin):
+    list_display = ('id', 'event_type', 'status', 'created_at', 'error_message_short')
+    search_fields = ('event_type', 'error_message', 'payload') # Added payload to search
+    list_filter = ('event_type', 'status', 'created_at')
+    readonly_fields = ('payload_pretty', 'created_at', 'updated_at') # Make payload readable
+
+    def error_message_short(self, obj):
+        if obj.error_message:
+            return obj.error_message[:75] + '...' if len(obj.error_message) > 75 else obj.error_message
+        return None
+    error_message_short.short_description = 'Error Message'
+
+    def payload_pretty(self, instance):
+        import json
+        from django.utils.html import format_html
+        if instance.payload:
+            return format_html("<pre>{}</pre>", json.dumps(instance.payload, indent=2))
+        return None
+    payload_pretty.short_description = 'Payload (Formatted)'
