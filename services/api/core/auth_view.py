@@ -72,3 +72,77 @@ class GitHubCallbackView(APIView):
             
             # Ensure email is present, if not, try to get it or handle missing email
             user_email = github_user_info.get("email")
+            if not user_email:
+                # Potentially raise an error or redirect with a message if email is strictly required
+                # For now, we'll allow it to be null if not provided by GitHub or primary email not found
+                pass 
+
+            user, created = User.objects.update_or_create(
+                github_id=str(github_user_info["id"]),
+                defaults={
+                    'username': github_user_info["login"],
+                    'email': user_email,
+                    'github_access_token': github_token,
+                    # Ensure other required fields for User model are handled if any
+                }
+            )
+
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            # Redirect to frontend with token
+            frontend_url = f"{settings.FRONTEND_URL}/auth/callback?token={access_token}&refresh_token={str(refresh)}"
+            return HttpResponseRedirect(frontend_url)
+
+        except requests.exceptions.RequestException as e:
+            error_url = f"{settings.FRONTEND_URL}/auth/error?message={urllib.parse.quote(f'GitHub API error: {e}')}"
+            return HttpResponseRedirect(error_url)
+        except Exception as e:
+            error_url = f"{settings.FRONTEND_URL}/auth/error?message={urllib.parse.quote(f'An unexpected error occurred: {e}')}"
+            return HttpResponseRedirect(error_url)
+
+class GitHubExchangeAuthTokenView(APIView):
+    permission_classes = [AllowAny]
+
+    async def post(self, request, *args, **kwargs):
+        code = request.data.get('code')
+
+        if not code:
+            return Response({"detail": "Authorization code is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            github_token_data = await exchange_code_for_github_token(code)
+            if isinstance(github_token_data, str):
+                github_access_token = github_token_data
+            elif isinstance(github_token_data, dict) and 'access_token' in github_token_data:
+                github_access_token = github_token_data['access_token']
+            else:
+                raise ValueError("Invalid token data from GitHub service")
+                
+            github_user_info = await get_github_user_info(github_access_token)
+
+            user, created = await User.objects.aget_or_create(
+                github_id=str(github_user_info["id"]),
+                defaults={
+                    "username": github_user_info["login"],
+                    "email": github_user_info.get("email"),
+                    "github_access_token": github_access_token,
+                }
+            )
+
+            if not created:
+                user.username = github_user_info["login"]
+                user.email = github_user_info.get("email")
+                user.github_access_token = github_access_token
+                await user.asave()
+            
+            refresh = RefreshToken.for_user(user)
+            
+            return Response({
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh),
+                "token_type": "bearer"
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"detail": f"GitHub authentication failed: {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
