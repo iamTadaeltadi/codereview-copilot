@@ -73,3 +73,78 @@ class LangGraphClient:
                 "max_tokens": 32768,
                 "max_tool_calls": 7,
                 "user_github_token": github_token
+            }
+            
+            # Handle PR review
+            if not is_commit_review and 'base' in pr_data:
+                input_data.update({
+                    "user": pr_data.get('user', {}).get('login', ''),
+                    "repo": pr_data.get('base', {}).get('repo', {}).get('name', ''),
+                    "pr_id": pr_data.get("number", ""),
+                    "commit_hash": "",  # Empty for PR reviews
+                })
+            # Handle Commit review
+            else:
+                # For commit reviews (either from the event_data format or our custom format)
+                commit_data = pr_data.get('commit', {})
+                repo_name = pr_data.get('repository', {}).get('full_name', '')
+                
+                # Extract commit hash - handle different possible structures
+                commit_hash = ""
+                if isinstance(commit_data, dict):
+                    commit_hash = commit_data.get('sha', commit_data.get('id', ''))
+                elif 'commit_sha' in pr_data:
+                    commit_hash = pr_data.get('commit_sha', '')
+                    
+                input_data.update({
+                    "user": repo_name.split('/')[0],
+                    "repo": repo_name.split('/')[1],
+                    "pr_id": "",  # Empty for commit reviews
+                    "commit_hash": commit_hash,
+                })
+
+            # Start the review process
+            run = await self.client.runs.create(
+                thread_id=thread['thread_id'],
+                assistant_id=self.review_agent['assistant_id'],
+                input=input_data,
+                config={"recursion_limit": 99999999}
+            )
+
+            # Wait for the run to complete
+            completed_run = await self.client.runs.join(run_id=run['run_id'], thread_id=thread["thread_id"])
+
+            # Get the final state of the feedback
+            final_state = await self.client.threads.get_state(thread['thread_id'])
+            token_usage = {}
+            try:
+                time.sleep(5)  # Optional: wait a bit for the run to be fully processed
+                meta = self.langsmith_client.read_run(run_id=run['run_id'])
+                token_usage = {
+                    'input_tokens': meta.prompt_tokens,
+                    'output_tokens': meta.completion_tokens,
+                    'total_tokens': meta.total_tokens
+                }
+            except Exception as e_ls:
+                logger.error(f"Could not fetch token usage from Langsmith: {e_ls}")
+            return {
+                'thread_id': thread['thread_id'],
+                'run_id': run['run_id'],
+                'review_data': final_state['values'],
+                'token_usage': token_usage
+            }
+
+        except Exception as e:
+            logger.error(f"Error generating review: {str(e)}")
+            raise
+
+    async def handle_feedback(
+        self,
+        feedback: str,
+        thread_id: str,
+        user_id: str,
+        is_first_message:bool = False,
+        review_data: Optional[Dict[str, Any]] = None,
+        repo_settings: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Handle feedback for a review"""
