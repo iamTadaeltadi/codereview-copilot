@@ -39,3 +39,44 @@ class LLMUsageViewSet(viewsets.ReadOnlyModelViewSet):
         method returning a QuerySet of model instances.
         """
         base_queryset = self._get_base_llm_usage_queryset()
+
+        total_tokens = base_queryset.aggregate(
+            total_input=Sum('input_tokens', default=0),
+            total_output=Sum('output_tokens', default=0),
+            total_cost=Sum('cost', default=0.0)
+        )
+        
+        usage_by_model = list(base_queryset.values('llm_model').annotate(
+            total_input=Sum('input_tokens', default=0),
+            total_output=Sum('output_tokens', default=0),
+            total_cost=Sum('cost', default=0.0),
+            count=Count('id')
+        ).order_by('llm_model'))
+
+        # Ensure all parts of total_tokens are not None if the base_queryset is empty
+        total_usage_cleaned = {
+            'total_input': total_tokens['total_input'] or 0,
+            'total_output': total_tokens['total_output'] or 0,
+            'total_cost': total_tokens['total_cost'] or 0.0,
+        }
+
+        return {
+            'total_usage': total_usage_cleaned,
+            'usage_by_model': usage_by_model
+        }
+
+
+    def list(self, request, *args, **kwargs):
+        """
+        Overrides the default list action to return the summary data.
+        """
+        summary_data = self.get_queryset() # This now calls the method that returns the dictionary
+        return Response(summary_data)
+
+    @action(detail=False, methods=['get'])
+    def summary(self, request):
+        """
+        Custom action to return the summary. This is consistent with the list view.
+        """
+        summary_data = self.get_queryset() # Calls the method that returns the dictionary
+        return Response(summary_data)
