@@ -46,3 +46,50 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, help_text='Optional thread title or topic', max_length=255, null=True),
         ),
         migrations.AddField(
+            model_name='user',
+            name='avatar_url',
+            field=models.URLField(blank=True, max_length=500, null=True),
+        ),
+        migrations.AddField(
+            model_name='user',
+            name='is_ai_user',
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name='webhookeventlog',
+            name='event_id',
+            field=models.CharField(default='', help_text='GitHub event ID (X-GitHub-Delivery)', max_length=255, unique=True),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name='webhookeventlog',
+            name='headers',
+            field=models.JSONField(default=''),
+            preserve_default=False,
+        ),
+        migrations.AddField(
+            model_name='webhookeventlog',
+            name='processed_at',
+            field=models.DateTimeField(blank=True, null=True),
+        ),
+        migrations.AlterField(
+            model_name='review',
+            name='parent_review',
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='re_reviews', to='core.review'),
+        ),
+        migrations.AlterField(
+            model_name='review',
+            name='status',
+            field=models.CharField(choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('failed', 'Failed'), ('processing', 'Processing'), ('pending_analysis', 'Pending Analysis')], default='pending', max_length=20),
+        ),
+        migrations.AlterField(
+            model_name='webhookeventlog',
+            name='event_type',
+            field=models.CharField(help_text='e.g., pull_request, push', max_length=100),
+        ),
+        migrations.AlterField(
+            model_name='webhookeventlog',
+            name='status',
+            field=models.CharField(choices=[('received', 'Received'), ('processed', 'Processed'), ('failed', 'Failed')], default='received', max_length=20),
+        ),
+    ]
