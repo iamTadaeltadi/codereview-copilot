@@ -71,3 +71,75 @@ def get_github_user_info(github_token):
     # Attempt to get primary email if available
     email_data = requests.get(f"{GITHUB_API_USER_URL}/emails", headers=headers)
     if email_data.status_code == 200:
+        for email_entry in email_data.json():
+            if email_entry.get('primary') and email_entry.get('verified'):
+                user_data['email'] = email_entry['email']
+                break
+        if 'email' not in user_data and email_data.json(): # Fallback to first email if no primary
+             user_data['email'] = email_data.json()[0]['email']
+
+    return user_data
+
+def get_user_repos_from_github(github_token, page=1, per_page=30):
+    """Fetches user\'s repositories from GitHub API."""
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    params = {"per_page": per_page, "page": page, "sort": "updated", "direction": "desc"}
+    response = requests.get(f"{GITHUB_API_USER_URL}/repos", headers=headers, params=params)
+    response.raise_for_status()
+    return response.json()
+
+def get_user_orgs_from_github(github_token, page=1, per_page=30):
+    """Fetches user\'s organizations from GitHub API."""
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    params = {"per_page": per_page, "page": page}
+    response = requests.get(f"{GITHUB_API_USER_URL}/orgs", headers=headers, params=params)
+    response.raise_for_status()
+    return response.json()
+
+def get_all_repo_collaborators_from_github(owner_login: str, repo_name: str, github_token: str) -> list:
+    """Fetch all repository collaborators from GitHub, handling pagination."""
+    collaborators = []
+    page = 1
+    while True:
+        url = f"https://api.github.com/repos/{owner_login}/{repo_name}/collaborators?page={page}&per_page=100" # Max per_page is 100
+        headers = {
+            "Authorization": f"token {github_token}",
+            "Accept": "application/vnd.github.v3+json",
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        current_page_collaborators = response.json()
+        if not current_page_collaborators:
+            break
+        collaborators.extend(current_page_collaborators)
+        if len(current_page_collaborators) < 100: # Break if last page was not full
+            break
+        page += 1
+    return collaborators
+
+def get_repo_collaborators_from_github(github_token, owner_login, repo_name, page=1, per_page=30):
+    """Fetches repository collaborators from the GitHub API."""
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    params = {"per_page": per_page, "page": page}
+    url = f"https://api.github.com/repos/{owner_login}/{repo_name}/collaborators"
+    response = requests.get(url, headers=headers, params=params)
+    response.raise_for_status()
+    return response.json()
+
+def get_repository_commits_from_github(github_token: str, owner_login: str, repo_name: str, per_page: int = 30, page: int = 1):
+    """
+    Fetches commits for a specific repository from the GitHub API.
+    """
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
