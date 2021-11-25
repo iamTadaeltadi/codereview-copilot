@@ -76,3 +76,81 @@ class GitHubOrganizationSerializer(serializers.Serializer):
     description = serializers.CharField(allow_blank=True, allow_null=True, required=False)
 
 class GitHubCollaboratorSerializer(serializers.Serializer):
+    """Serializer for GitHub collaborator data from the GitHub API."""
+    login = serializers.CharField()
+    id = serializers.IntegerField()
+    avatar_url = serializers.URLField()
+    html_url = serializers.URLField()
+    type = serializers.CharField() # User or Organization
+    site_admin = serializers.BooleanField()
+    permissions = serializers.DictField(child=serializers.BooleanField()) # e.g. {"pull": true, "push": true, "admin": false}
+
+# New Serializers
+class PRSerializer(serializers.ModelSerializer):
+    repository_id = serializers.PrimaryKeyRelatedField(
+        queryset=DBRepository.objects.all(), source='repository', write_only=True
+    )
+    repository = RepositorySerializer(read_only=True) # For displaying repository details
+    source = serializers.CharField(read_only=True, required=False)
+    # Fields from GitHub API that are not directly on the model but useful for client
+    user_login = serializers.CharField(read_only=True, required=False)
+    user_avatar_url = serializers.URLField(read_only=True, required=False)
+    created_at_gh = serializers.DateTimeField(read_only=True, required=False)
+    updated_at_gh = serializers.DateTimeField(read_only=True, required=False)
+    closed_at_gh = serializers.DateTimeField(read_only=True, required=False, allow_null=True)
+    merged_at_gh = serializers.DateTimeField(read_only=True, required=False, allow_null=True)
+
+    class Meta:
+        model = PullRequest
+        fields = [
+            'id', 'repository', 'repository_id', # Standard fields
+            'pr_github_id', 'pr_number', 'title', 'body', 'author_github_id', 
+            'status', 'url', 'head_sha', 'base_sha', # Model fields
+            'user_login', 'user_avatar_url', # Additional GitHub data
+            'created_at_gh', 'updated_at_gh', 'closed_at_gh', 'merged_at_gh', # Additional GitHub data
+            'created_at', 'updated_at', # Timestamps from TimestampMixin
+            'source'
+        ]
+        read_only_fields = [
+            'id', 'repository', 'created_at', 'updated_at', 'source',
+            'user_login', 'user_avatar_url', 'created_at_gh', 'updated_at_gh', 
+            'closed_at_gh', 'merged_at_gh'
+        ]
+    def to_representation(self, instance):
+        """
+        Augment the representation with non-model fields from initial_data
+        when the serializer was initialized with `data=...`.
+        """
+        representation = super().to_representation(instance)
+
+        # `self.initial_data` holds the original data passed to `data=`
+        # `instance` here would be `validated_data` if initialized with `data=`
+        if hasattr(self, 'initial_data') and self.initial_data:
+            non_model_fields = [
+                'user_login', 'user_avatar_url', 'created_at_gh',
+                'updated_at_gh', 'closed_at_gh', 'merged_at_gh'
+            ]
+            for field_name in non_model_fields:
+                if field_name in self.initial_data:
+                    representation[field_name] = self.initial_data[field_name]
+        
+        # Set 'source' from context if provided, otherwise ensure it's present (e.g. as None)
+        # if not already set by super() from a model field (which it isn't for 'source').
+        if self.context.get('source'):
+            representation['source'] = self.context.get('source')
+        elif 'source' not in representation: # Default if not set by super and not in context
+            representation['source'] = None
+
+        return representation
+class CommitSerializer(serializers.ModelSerializer):
+    repository_id = serializers.PrimaryKeyRelatedField(
+        queryset=DBRepository.objects.all(), source='repository', write_only=True
+    )
+    repository = RepositorySerializer(read_only=True) # For displaying repository details
+    source = serializers.CharField(read_only=True, required=False)
+    # Fields from GitHub API that are not directly on the model but useful for client
+    author_name = serializers.CharField(read_only=True, required=False)
+    author_email = serializers.EmailField(read_only=True, required=False)
+    # author_date = serializers.DateTimeField(read_only=True, required=False) # Covered by model's timestamp
+    committer_name = serializers.CharField(read_only=True, required=False, allow_null=True)
+    committer_email = serializers.EmailField(read_only=True, required=False, allow_null=True)
