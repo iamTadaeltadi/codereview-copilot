@@ -77,3 +77,82 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
                     logger.info(f"Skipping AI review for PR action '{action}' on PR {pr.id}")
             except Repository.DoesNotExist:
                 logger.warning(f"Repository {repo_full_name} not found in DB. Cannot process PR event.")
+        
+        elif event_type == 'push':
+            logger.info("Push event received. Processing... ")
+            repo_data = event_data.get('repository', {})
+            repo_full_name = repo_data.get('full_name')
+            commits_data = event_data.get('commits', [])
+
+            if not repo_full_name or not commits_data:
+                logger.error(f"Missing repo_full_name or commits_data for push event. Data: {event_data}")
+                return
+            
+            try:
+                repo = Repository.objects.get(repo_name=repo_full_name)
+                for commit_payload in commits_data:
+                    commit_sha = commit_payload.get('id')
+                    if not commit_sha:
+                        logger.warning(f"Skipping commit with no SHA in push event: {commit_payload}")
+                        continue
+                    
+                    commit_author_github_id = str(commit_payload.get('author', {}).get('id') or commit_payload.get('author', {}).get('name'))
+                    commit_author_login = commit_payload.get('author', {}).get('username') or commit_payload.get('author', {}).get('name')
+
+                    db_commit, commit_created = Commit.objects.update_or_create(
+                        repository=repo,
+                        commit_hash=commit_sha,
+                        defaults={
+                            'author_github_id': commit_author_github_id,
+                            'message': commit_payload.get('message'),
+                            'timestamp': commit_payload.get('timestamp'),
+                            'url': commit_payload.get('url')
+                        }
+                    )
+                    if commit_created:
+                        logger.info(f"Commit {commit_sha:.7} for repo {repo_full_name} CREATED in DB.")
+                    else:
+                        logger.info(f"Commit {commit_sha:.7} for repo {repo_full_name} UPDATED in DB.")
+
+                    logger.info(f"Commit {db_commit.commit_hash[:7]} processed. AI review for standalone commits via push not auto-triggered by default.")
+
+            except Repository.DoesNotExist:
+                logger.warning(f"Repository {repo_full_name} not found in DB. Cannot process push event.")
+        else:
+            logger.info(f"Webhook event type '{event_type}' not configured for detailed processing.")
+
+    except Exception as e:
+        logger.error(f"Error in top-level process_webhook_event task: {str(e)}", exc_info=True)
+
+@shared_task(bind=True)
+def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_model_id: int,triggering_user_id: int = None) -> None:
+    logger.info(f"PROCESS_PR_REVIEW_TASK: Starting for PR ID {pr_model_id}, Repo ID {repository_id}")
+    review = None
+    
+    # Create a new event loop for this task execution
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    
+    try:
+        repo = Repository.objects.get(id=repository_id)
+        pr = PullRequest.objects.get(id=pr_model_id, repository=repo)
+
+        review, created = Review.objects.get_or_create(
+            repository=repo, pull_request=pr, status='pending',
+            defaults={'status': 'in_progress', 'review_data': {'message': 'Review picked up by Celery task.'}}
+        )
+        if not created and review.status == 'pending':
+            review.status = 'in_progress'
+            review.save(update_fields=['status'])
+        elif review.status != 'in_progress':
+            logger.warning(f"PROCESS_PR_REVIEW_TASK: Review {review.id} for PR {pr.id} is not 'pending' or 'in_progress' (current: {review.status}). Skipping.")
+            return
+
+        logger.info(f"PROCESS_PR_REVIEW_TASK: Processing review {review.id} for PR {pr.id}")
+
+        client = LangGraphClient()
+        # Run the async initialize method
+        loop.run_until_complete(client.initialize())
+        
+        if not client.review_agent:
+            logger.error("PROCESS_PR_REVIEW_TASK: LangGraph review agent not available after initialization.")
