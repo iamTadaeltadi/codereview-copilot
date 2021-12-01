@@ -79,3 +79,84 @@ class RepositoryApiTests(TestCase):
             repo_url="https://github.com/outsider-user/private-repo",
         )
         RepoCollaborator.objects.create(repository=shared_repo, user=self.collaborator, role="member")
+
+        self.client.force_authenticate(user=self.collaborator)
+        response = self.client.get("/api/v1/repositories/")
+
+        self.assertEqual(response.status_code, 200)
+        names = {item["repo_name"] for item in response.json()}
+        self.assertIn(shared_repo.repo_name, names)
+        self.assertNotIn(owned_repo.repo_name, names)
+        self.assertNotIn(hidden_repo.repo_name, names)
+
+    def test_regenerate_webhook_secret_rotates_secret(self):
+        repository = Repository.objects.create(
+            owner=self.owner,
+            repo_name="owner-user/rotating-repo",
+            repo_url="https://github.com/owner-user/rotating-repo",
+            webhook_secret="old-secret",
+        )
+        self.client.force_authenticate(user=self.owner)
+
+        response = self.client.post(f"/api/v1/repositories/{repository.id}/webhook/regenerate-secret/")
+
+        repository.refresh_from_db()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(repository.webhook_secret, "old-secret")
+
+    def test_by_github_id_returns_repository_for_authorized_collaborator(self):
+        repository = Repository.objects.create(
+            owner=self.owner,
+            github_native_id=999,
+            repo_name="owner-user/by-id-repo",
+            repo_url="https://github.com/owner-user/by-id-repo",
+        )
+        RepoCollaborator.objects.create(repository=repository, user=self.collaborator, role="member")
+        self.client.force_authenticate(user=self.collaborator)
+
+        response = self.client.get("/api/v1/repositories/by-github-id/999/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["repo_name"], repository.repo_name)
+
+
+class PermissionTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user_model = get_user_model()
+        self.owner = self.user_model.objects.create_user(github_id="4001", username="perm-owner", password="pw")
+        self.member = self.user_model.objects.create_user(
+            github_id="4002", username="perm-member", password="pw", github_access_token="token"
+        )
+        self.other = self.user_model.objects.create_user(github_id="4003", username="perm-other", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            repo_name="perm-owner/perm-repo",
+            repo_url="https://github.com/perm-owner/perm-repo",
+        )
+        self.pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="pr-perm-1",
+            pr_number=8,
+            title="Permission coverage",
+            author_github_id=self.owner.github_id,
+            status="open",
+            url="https://github.com/perm-owner/perm-repo/pull/8",
+        )
+        self.review = Review.objects.create(repository=self.repository, pull_request=self.pull_request)
+        self.thread = Thread.objects.create(review=self.review, thread_id="thread-1")
+
+    def test_is_repository_owner_allows_owner(self):
+        request = self.factory.get("/")
+        request.user = self.owner
+        self.assertTrue(IsRepositoryOwner().has_object_permission(request, None, self.repository))
+
+    def test_can_access_repository_allows_db_collaborator(self):
+        RepoCollaborator.objects.create(repository=self.repository, user=self.member, role="member")
+        request = self.factory.get("/")
+        request.user = self.member
+        self.assertTrue(CanAccessRepository().has_object_permission(request, None, self.repository))
+
+    @patch("core.permissions.get_repo_collaborators_from_github")
+    def test_can_access_repository_syncs_github_collaborator(self, mock_get_collabs):
+        mock_get_collabs.return_value = [
