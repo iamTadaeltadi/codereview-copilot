@@ -66,3 +66,71 @@ class GitHubWebhookHandler:
         commits = event_data.get('commits', [])
         
         try:
+            repo = await Repository.objects.aget(
+                repo_name=f"{repo_data['owner']['login']}/{repo_data['name']}"
+            )
+            
+            for commit_data in commits:
+                await Commit.objects.aupdate_or_create(
+                    repository=repo,
+                    commit_hash=commit_data['id'],
+                    defaults={
+                        'author_github_id': commit_data['author']['id'],
+                        'message': commit_data['message'],
+                        'url': commit_data['url'],
+                        'timestamp': commit_data['timestamp'],
+                    }
+                )
+
+        except Repository.DoesNotExist:
+            logger.info(f"Repository not registered: {repo_data['full_name']}")
+        except Exception as e:
+            logger.error(f"Error processing push event: {str(e)}")
+            raise
+
+    async def handle_member(self, event_data: Dict[str, Any]) -> None:
+        """Handle member events (collaborator changes)"""
+        action = event_data.get('action')
+        repo_data = event_data.get('repository', {})
+        member_data = event_data.get('member', {})
+        
+        try:
+            repo = await Repository.objects.aget(
+                repo_name=f"{repo_data['owner']['login']}/{repo_data['name']}"
+            )
+            
+            # Update collaborator status
+            if action == 'added':
+                # First get or create the user based on GitHub ID
+                user, _created = await User.objects.aget_or_create(
+                    github_id=str(member_data['id']),  # Convert to string since github_id is CharField
+                    defaults={
+                        'username': member_data['login'],
+                        'avatar_url': member_data.get('avatar_url')
+                    }
+                )
+                # Create or update collaborator with member role
+                await RepoCollaborator.objects.aupdate_or_create(
+                    repository=repo,
+                    user=user,
+                    defaults={
+                        'role': 'member'  # Default role for new collaborators
+                    }
+                )
+            elif action == 'removed':
+                # First get the user by GitHub ID
+                try:
+                    user = await User.objects.aget(github_id=str(member_data['id']))
+                    # Remove collaborator record
+                    await RepoCollaborator.objects.filter(
+                        repository=repo,
+                        user=user
+                    ).adelete()
+                except User.DoesNotExist:
+                    logger.warning(f"User with GitHub ID {member_data['id']} not found when removing collaborator")
+
+        except Repository.DoesNotExist:
+            logger.info(f"Repository not registered: {repo_data['full_name']}")
+        except Exception as e:
+            logger.error(f"Error processing member event: {str(e)}")
+            raise 
