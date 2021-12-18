@@ -44,3 +44,48 @@ def _bounded_neighbors(graph, node_id, max_nodes: int = 12):
             neighbors.append(candidate)
             if len(neighbors) >= max_nodes:
                 break
+    return neighbors
+
+
+def retrieve_node_context(graph, graph_path: str, node_query: str, max_neighbors: int = 12) -> dict:
+    if graph is None:
+        if not graph_path or not os.path.exists(graph_path):
+            raise FileNotFoundError(f"graph file not found: {graph_path}")
+        with open(graph_path, "rb") as handle:
+            graph = pickle.load(handle)
+
+    node_id = _find_target_node(graph, node_query)
+    if node_id is None:
+        return {
+            "query": node_query,
+            "found": False,
+            "node": None,
+            "neighbors": [],
+        }
+
+    node = graph.nodes[node_id]
+    neighbors = []
+    for neighbor_id in _bounded_neighbors(graph, node_id, max_neighbors):
+        neighbor = graph.nodes[neighbor_id]
+        neighbors.append(
+            {
+                "id": neighbor_id,
+                "name": neighbor.get("name"),
+                "type": neighbor.get("type"),
+                "relative_path": neighbor.get("relative_path"),
+            }
+        )
+
+    return {
+        "query": node_query,
+        "found": True,
+        "node": {
+            "id": node_id,
+            "name": node.get("name"),
+            "type": node.get("type"),
+            "relative_path": node.get("relative_path"),
+            "line_range": node.get("line_range"),
+            "metadata": node.get("metadata", {}),
+        },
+        "neighbors": neighbors,
+    }
