@@ -58,3 +58,63 @@ def fetch_file_content(owner, repo, branch, path):
     resp = requests.get(raw_url, headers=HEADERS)
     resp.raise_for_status()
     return resp.text
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: python online_script.py <github_repo_url> [branch]")
+        sys.exit(1)
+
+    repo_url = sys.argv[1]
+    owner, repo = extract_repo_details(repo_url)
+
+    # Get branch if provided, otherwise fetch default branch
+    branch = sys.argv[2] if len(sys.argv) >= 3 else get_default_branch(owner, repo)
+
+    print(f"Processing GitHub Repository: {owner}/{repo} (Branch: {branch})")
+
+    # 1) Get all files in the repo
+    all_paths = list_repo_files(owner, repo, branch)
+
+    # 2) Filter code files by extensions
+    valid_exts = {".py", ".js", ".java", ".c"}
+    code_paths = [p for p in all_paths if os.path.splitext(p)[1] in valid_exts]
+
+    # 3) Initialize CodeGraph
+    code_graph = CodeGraph(root=".")
+
+    all_tags = []
+
+    # 4) Fetch file content and parse
+    for path in code_paths:
+        try:
+            code_string = fetch_file_content(owner, repo, branch, path)
+        except requests.exceptions.HTTPError as e:
+            print(f"Error fetching content for {path}: {e}")
+            continue
+
+        rel_fname = path
+        file_tags = code_graph.parse_code_string(code_string, rel_fname)
+        all_tags.extend(file_tags)
+
+    # 5) Convert to graph structure
+    G = code_graph.tag_to_graph(all_tags)
+
+    # 6) Print graph statistics
+    print("---------------------------------")
+    print(f"Constructed code graph for: {repo_url} (branch: {branch})")
+    print(f"   Number of nodes: {len(G.nodes())}")
+    print(f"   Number of edges: {len(G.edges())}")
+    print("---------------------------------")
+
+    # 7) Generate metadata JSON
+    final_nodes = []
+    for node_id in G.nodes:
+        data = G.nodes[node_id]
+        node_type = data["type"]
+
+        out = {
+            "Node_id": node_id,
+            "Node_type": node_type,
+            "name": data["name"],
+            "filepath": data["relative_path"],
+            "start_line": data["line_range"][0],
