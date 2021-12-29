@@ -72,3 +72,77 @@ def files_that_import(G, target_file_node_id):
             results.append(src)
     return results
 
+def direct_dependencies_of_file(G, file_node_id):
+    """
+    Return the list of files that `file_node_id` directly imports.
+    """
+    results = []
+    for (_, dst, edge_data) in G.out_edges(file_node_id, data=True):
+        if edge_data.get("label") == "imports":
+            results.append(dst)
+    return results
+
+def transitive_dependencies_of_file(G, file_node_id):
+    """
+    Return *all* files that `file_node_id` imports (directly or transitively).
+    """
+    visited = set()
+    stack = [file_node_id]
+    while stack:
+        current = stack.pop()
+        for (_, nxt, edge_data) in G.out_edges(current, data=True):
+            if edge_data.get("label") == "imports" and nxt not in visited:
+                visited.add(nxt)
+                stack.append(nxt)
+    visited.discard(file_node_id)
+    return list(visited)
+
+# ----------------------------------------------------------------------
+# CLASS-LEVEL QUERIES
+# ----------------------------------------------------------------------
+
+def classes_that_inherit_from(G, parent_class_node_id):
+    """
+    Which classes inherit from the given class?
+    """
+    results = []
+    for (child, parent, edge_data) in G.edges(data=True):
+        if edge_data.get("label") == "inherits_from" and parent == parent_class_node_id:
+            results.append(child)
+    return results
+
+
+def methods_of_class(G, class_node_id):
+    """
+    What methods does a particular class define?
+    """
+    methods = []
+    for (_, succ, edge_data) in G.out_edges(class_node_id, data=True):
+        if edge_data.get("label") == "contains":
+            if G.nodes[succ]["type"] == "function":
+                # Check if this function’s metadata indicates that it belongs to this class.
+                if G.nodes[succ]["metadata"].get("parent_class") == G.nodes[class_node_id]["name"]:
+                    methods.append(succ)
+    return methods
+
+def parent_classes_of_class(G, class_node_id):
+    """
+    Which parent classes does a given class extend?
+    """
+    return G.nodes[class_node_id]["metadata"]["parent_classes"]
+
+# ----------------------------------------------------------------------
+# FUNCTION-LEVEL QUERIES
+# ----------------------------------------------------------------------
+
+def functions_called_by(G, func_node_id):
+    """
+    What functions does this function call?
+    """
+    called = []
+    for (_, dst, edge_data) in G.out_edges(func_node_id, data=True):
+        if edge_data.get("label") == "calls":
+            called.append(dst)
+    return called
+
+def functions_which_call(G, func_node_id):
