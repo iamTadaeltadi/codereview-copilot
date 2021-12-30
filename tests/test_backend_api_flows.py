@@ -74,3 +74,79 @@ class BackendApiFlowTests(unittest.TestCase):
             status="completed",
             review_data={"summary": "initial"},
         )
+        self.thread = Thread.objects.create(
+            review=self.review,
+            thread_id="thread-123",
+            created_by=self.owner,
+            title="Main thread",
+            status="open",
+        )
+        self.comment = Comment.objects.create(
+            thread=self.thread,
+            user=self.owner,
+            comment="Initial issue",
+            type="request",
+        )
+
+    def authenticate(self, user):
+        self.client.force_authenticate(user=user)
+
+    def test_review_history_requires_context_and_id(self):
+        self.authenticate(self.owner)
+        response = self.client.get("/api/v1/reviews/history/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("required", response.data["detail"])
+
+    def test_review_history_rejects_invalid_context(self):
+        self.authenticate(self.owner)
+        response = self.client.get("/api/v1/reviews/history/?context=branch&id=12")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("Invalid context", response.data["detail"])
+
+    def test_review_history_for_pull_request_returns_cleaned_payload(self):
+        self.authenticate(self.owner)
+        response = self.client.get(f"/api/v1/reviews/history/?context=pr&id={self.pull_request.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        record = response.data[0]
+        self.assertEqual(record["id"], self.review.id)
+        self.assertNotIn("repository", record)
+        self.assertNotIn("threads", record)
+        self.assertNotIn("thread_count", record)
+
+    def test_review_retrieve_includes_threads(self):
+        self.authenticate(self.owner)
+        response = self.client.get(f"/api/v1/reviews/{self.review.id}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data["threads"]), 1)
+        self.assertEqual(response.data["threads"][0]["thread_id"], self.thread.thread_id)
+
+    def test_review_feedback_returns_conflict_without_langgraph_thread(self):
+        self.authenticate(self.owner)
+        review_without_thread = Review.objects.create(
+            repository=self.repo,
+            pull_request=self.pull_request,
+            status="completed",
+        )
+        response = self.client.post(
+            f"/api/v1/reviews/{review_without_thread.id}/feedback/",
+            {"review": review_without_thread.id, "rating": 4, "feedback": "Please revise"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+    @patch("core.review_view.LangGraphService.handle_feedback")
+    def test_review_feedback_returns_feedback_data_and_token_usage(self, mock_handle_feedback):
+        self.authenticate(self.owner)
+        mock_handle_feedback.return_value = {
+            "feedback_data": {"status": "ok"},
+            "token_usage": {"input_tokens": 3, "output_tokens": 5},
+        }
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/feedback/",
+            {"review": self.review.id, "rating": 5, "feedback": "Looks good"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["feedback_data"]["status"], "ok")
+        self.assertEqual(response.data["token_usage"]["output_tokens"], 5)
