@@ -44,3 +44,48 @@ class LLMResponseParserTests(unittest.TestCase):
         result = LLMResponseParser.parse_response(content)
         self.assertEqual(result, {"fixed": True})
         mock_repair.assert_called_once()
+
+
+class DiffFormatterTests(unittest.TestCase):
+    def test_parse_and_format_preserves_additions_deletions_and_context(self):
+        diff_text = """diff --git a/src/app.py b/src/app.py
+index 1111111..2222222 100644
+@@ -1,2 +1,3 @@
+ def greet(name):
+-    return \"hi\"
++    message = f\"hi {name}\"
++    return message
+"""
+        formatter = DiffFormatter(diff_text)
+
+        result = formatter.parse_and_format()
+        structured = formatter.get_structured_diff()
+
+        self.assertEqual(result[0]["file_path"], "src/app.py")
+        changes = structured[0]["chunks"][0]["changes"]
+        self.assertEqual(changes[0]["type"], "context")
+        self.assertEqual(changes[1]["type"], "deletion")
+        self.assertEqual(changes[2]["type"], "addition")
+        self.assertIn("message = f\"hi {name}\"", result[0]["content"])
+
+    def test_extract_file_path_uses_new_side_path(self):
+        formatter = DiffFormatter("")
+        self.assertEqual(
+            formatter._extract_file_path("diff --git a/backend/core.py b/backend/core.py"),
+            "backend/core.py",
+        )
+
+
+class StorageTests(unittest.TestCase):
+    def test_save_graph_writes_pickle_file(self):
+        graph = {"nodes": [1, 2, 3]}
+        with tempfile.TemporaryDirectory() as tmpdir:
+            save_graph(tmpdir, graph)
+            graph_path = os.path.join(tmpdir, "graph.pkl")
+            self.assertTrue(os.path.exists(graph_path))
+            with open(graph_path, "rb") as handle:
+                self.assertEqual(pickle.load(handle), graph)
+
+
+if __name__ == "__main__":
+    unittest.main()
