@@ -43,3 +43,47 @@ class AgentPackageExportTests(unittest.TestCase):
         import Prompts  # noqa: F401
         import Tools  # noqa: F401
         import Utils  # noqa: F401
+
+
+@unittest.skipUnless(_AGENT_RUNTIME_AVAILABLE, "agent runtime deps not installed")
+class PromptTemplateTests(unittest.TestCase):
+    def test_prompt_templates_are_non_empty_strings(self):
+        from Prompts import prompts
+
+        for name in (
+            "STANDARD_CHECKER_PROMPT_TEMPLATE",
+            "SYNTAX_CHECKER_PROMPT_TEMPLATE",
+            "CODE_REVIEWER_PROMPT_TEMPLATE",
+            "CODE_FIX_PROMPT_TEMPLATE",
+            "GUARDRAIL_CHECKER_PROMPT_TEMPLATE",
+        ):
+            template = getattr(prompts, name)
+            self.assertIsInstance(template, str)
+            self.assertTrue(template.strip())
+
+    def test_code_summarizer_template_has_expected_placeholders(self):
+        from Prompts import prompts
+
+        self.assertIn("{file_path}", prompts.CODE_SUMMARIZER_PROMPT_TEMPLATE)
+        self.assertIn("{diff_content}", prompts.CODE_SUMMARIZER_PROMPT_TEMPLATE)
+
+
+@unittest.skipUnless(_AGENT_RUNTIME_AVAILABLE, "agent runtime deps not installed")
+class CustomLLMHelperTests(unittest.TestCase):
+    def test_generate_functions_description_formats_each_function(self):
+        from LLM.CustomLLM import CustomLLM
+
+        functions = [
+            {"name": "search", "description": "find things", "parameters": {"q": "string"}},
+            {"name": "fetch", "description": "get a node", "parameters": {"id": "int"}},
+        ]
+        # The helper does not touch instance state, so it can be called unbound.
+        description = CustomLLM._generate_functions_description(None, functions)
+
+        self.assertIn("Name: search", description)
+        self.assertIn("Description: find things", description)
+        self.assertIn("Name: fetch", description)
+
+
+if __name__ == "__main__":
+    unittest.main()
