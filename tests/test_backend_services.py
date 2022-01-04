@@ -73,3 +73,78 @@ class GitHubApiServiceTests(unittest.TestCase):
 
         result = services.get_github_user_info('token-123')
 
+        self.assertEqual(result['login'], 'tadael')
+        self.assertEqual(result['email'], 'primary@example.com')
+        self.assertEqual(mock_get.call_count, 2)
+
+    @patch('core.services.requests.get')
+    def test_get_all_repo_collaborators_handles_pagination(self, mock_get):
+        first_page = Mock()
+        first_page.raise_for_status.return_value = None
+        first_page.json.return_value = [{'id': i} for i in range(100)]
+
+        second_page = Mock()
+        second_page.raise_for_status.return_value = None
+        second_page.json.return_value = [{'id': 101}, {'id': 102}]
+
+        mock_get.side_effect = [first_page, second_page]
+
+        collaborators = services.get_all_repo_collaborators_from_github('owner', 'repo', 'token-123')
+
+        self.assertEqual(len(collaborators), 102)
+        self.assertEqual(collaborators[-1]['id'], 102)
+        self.assertEqual(mock_get.call_count, 2)
+
+    @patch('core.services.requests.get')
+    def test_get_user_repos_from_github_passes_pagination_params(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{'id': 1, 'full_name': 'owner/repo'}]
+        mock_get.return_value = response
+
+        result = services.get_user_repos_from_github('token-123', page=2, per_page=50)
+
+        self.assertEqual(result[0]['full_name'], 'owner/repo')
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['params']['page'], 2)
+        self.assertEqual(kwargs['params']['per_page'], 50)
+
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+class GitHubApiServiceEdgeCaseTests(unittest.TestCase):
+    @patch('core.services.requests.get')
+    def test_get_github_user_info_falls_back_to_first_email_when_no_primary_verified(self, mock_get):
+        user_response = Mock()
+        user_response.raise_for_status.return_value = None
+        user_response.json.return_value = {'id': 2, 'login': 'fallback-user'}
+
+        email_response = Mock()
+        email_response.status_code = 200
+        email_response.json.return_value = [
+            {'email': 'fallback@example.com', 'primary': False, 'verified': False}
+        ]
+        mock_get.side_effect = [user_response, email_response]
+
+        result = services.get_github_user_info('token-456')
+
+        self.assertEqual(result['email'], 'fallback@example.com')
+
+    @patch('core.services.requests.get')
+    def test_get_github_user_info_keeps_missing_email_when_email_lookup_fails(self, mock_get):
+        user_response = Mock()
+        user_response.raise_for_status.return_value = None
+        user_response.json.return_value = {'id': 3, 'login': 'no-email-user'}
+
+        email_response = Mock()
+        email_response.status_code = 403
+        email_response.json.return_value = []
+        mock_get.side_effect = [user_response, email_response]
+
+        result = services.get_github_user_info('token-789')
+
+        self.assertNotIn('email', result)
+
+    @patch('core.services.requests.get')
