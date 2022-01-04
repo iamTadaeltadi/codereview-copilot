@@ -51,3 +51,56 @@ class DiffFormatterTests(unittest.TestCase):
         }
         self.assertIn("addition", change_types)
         self.assertIn("deletion", change_types)
+        self.assertIn("context", change_types)
+
+    def test_extract_file_path_strips_prefixes(self):
+        formatter = DiffFormatter("")
+        self.assertEqual(
+            formatter._extract_file_path("diff --git a/src/app.py b/src/app.py"),
+            "src/app.py",
+        )
+
+    def test_parse_chunk_header_extracts_line_numbers(self):
+        formatter = DiffFormatter("")
+        chunk = formatter._parse_chunk_header("@@ -10,5 +12,6 @@")
+        self.assertEqual(chunk["old_start"], 10)
+        self.assertEqual(chunk["new_start"], 12)
+        self.assertEqual(chunk["changes"], [])
+
+
+@unittest.skipUnless(_DIFFFORMATTER_AVAILABLE, "agent runtime deps not installed")
+class GetRepoDefaultBranchTests(unittest.TestCase):
+    @patch("Utils.DiffFormatter.requests.get")
+    def test_returns_default_branch(self, mock_get):
+        response = MagicMock()
+        response.json.return_value = {"default_branch": "main"}
+        response.raise_for_status.return_value = None
+        mock_get.return_value = response
+
+        self.assertEqual(get_repo_default_branch("octo", "repo"), "main")
+
+    @patch("Utils.DiffFormatter.requests.get")
+    def test_includes_authorization_header_when_token_present(self, mock_get):
+        response = MagicMock()
+        response.json.return_value = {"default_branch": "develop"}
+        response.raise_for_status.return_value = None
+        mock_get.return_value = response
+
+        get_repo_default_branch("octo", "repo", user_github_token="tok")
+
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer tok")
+
+    @patch("Utils.DiffFormatter.requests.get")
+    def test_raises_when_default_branch_missing(self, mock_get):
+        response = MagicMock()
+        response.json.return_value = {}
+        response.raise_for_status.return_value = None
+        mock_get.return_value = response
+
+        with self.assertRaises(ValueError):
+            get_repo_default_branch("octo", "repo")
+
+
+if __name__ == "__main__":
+    unittest.main()
