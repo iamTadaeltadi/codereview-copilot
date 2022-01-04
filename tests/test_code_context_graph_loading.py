@@ -40,3 +40,44 @@ class FakeGraph:
                 'relative_path': 'src/module.py',
                 'line_range': [20, 24],
                 'metadata': {},
+            },
+        }
+        self.nodes = FakeNodeView(self._nodes)
+        self._pred = {'module.py::function::process': ['module.py::class::Processor']}
+        self._succ = {'module.py::function::process': ['module.py::function::helper']}
+
+    def predecessors(self, node_id):
+        return iter(self._pred.get(node_id, []))
+
+    def successors(self, node_id):
+        return iter(self._succ.get(node_id, []))
+
+
+class RetrieveNodeContextLoadingTests(unittest.TestCase):
+    def test_loads_graph_from_disk_when_graph_object_is_none(self):
+        graph = FakeGraph()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            graph_path = os.path.join(tmpdir, 'graph.pkl')
+            with open(graph_path, 'wb') as handle:
+                pickle.dump(graph, handle)
+
+            result = retrieve_node_context(None, graph_path, 'src/module.py::function::process')
+
+        self.assertTrue(result['found'])
+        self.assertEqual(result['node']['name'], 'process')
+
+    def test_limits_neighbors_to_requested_bound(self):
+        graph = FakeGraph()
+
+        result = retrieve_node_context(graph, '', 'src/module.py::function::process', max_neighbors=1)
+
+        self.assertTrue(result['found'])
+        self.assertEqual(len(result['neighbors']), 1)
+
+    def test_raises_for_missing_graph_file(self):
+        with self.assertRaises(FileNotFoundError):
+            retrieve_node_context(None, '/tmp/does-not-exist-graph.pkl', 'src/module.py::function::process')
+
+
+if __name__ == '__main__':
+    unittest.main()
