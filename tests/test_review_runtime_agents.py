@@ -79,3 +79,84 @@ class AgentWrapperTests(unittest.TestCase):
 
         result = module.CodeFixAgent(llm).generate_fix(
             {"file_path": "src/app.py", "content": "+ print('ok')"},
+            [{"issue": "bug"}],
+            {"repo": "summary"},
+            "follow-up",
+        )
+
+        self.assertEqual(result, "patch")
+        prompt = llm.invoke.call_args.args[0]
+        self.assertIn("src/app.py", prompt)
+        self.assertIn("follow-up", prompt)
+
+    def test_code_reviewer_agent_generates_reviews_for_each_issue_tuple(self):
+        module = load_module(
+            "code_reviewer_agent_module",
+            "agent_runtime/Agents/code_reviewer_agent.py",
+            {"Prompts": fake_prompts_module(), "Utils": base_utils_module()},
+        )
+        llm = Mock()
+        llm.invoke.side_effect = [
+            Response('{"file": "src/app.py", "summary": "ok"}'),
+            Response('{"file": "src/lib.py", "summary": "warn"}'),
+        ]
+
+        output = module.CodeReviewerAgent(llm, ["security", "clarity"]).generate_review(
+            {
+                "syntax": [{"file": "src/app.py"}, {"file": "src/lib.py"}],
+                "standards": [{"issues": []}, {"issues": ["naming"]}],
+                "error_analysis": [{"issues": {}}, {"issues": {"bug": []}}],
+            },
+            {"repo": "summary"},
+            "extra",
+        )
+
+        self.assertEqual(len(output), 2)
+        self.assertEqual(output[0]["file"], "src/app.py")
+        self.assertIn("security", llm.invoke.call_args_list[0].args[0])
+
+    def test_code_summarizer_agent_summarizes_and_merges_diffs(self):
+        module = load_module(
+            "code_summarizer_agent_module",
+            "agent_runtime/Agents/code_summarizer_agent.py",
+            {"Prompts": fake_prompts_module()},
+        )
+        llm = Mock()
+        llm.invoke.side_effect = [Response("sum-a"), Response("sum-b"), Response("merged")]
+        agent = module.CodeSummarizerAgent(llm)
+
+        summary = agent.summarize_pr(
+            [
+                {"file_path": "src/a.py", "content": "+ a"},
+                {"file_path": "src/b.py", "content": "+ b"},
+            ]
+        )
+
+        self.assertEqual(summary, "merged")
+        self.assertEqual(llm.invoke.call_count, 3)
+
+    def test_guardrail_standard_and_syntax_agents_parse_llm_output(self):
+        prompts = fake_prompts_module()
+        utils = base_utils_module()
+        guardrail_module = load_module(
+            "guardrail_agent_module",
+            "agent_runtime/Agents/guardrail_checker_agent.py",
+            {"Prompts": prompts, "Utils": utils},
+        )
+        standard_module = load_module(
+            "standard_agent_module",
+            "agent_runtime/Agents/standard_checker_agent.py",
+            {"Prompts": prompts, "Utils": utils},
+        )
+        syntax_module = load_module(
+            "syntax_agent_module",
+            "agent_runtime/Agents/syntax_checker_agent.py",
+            {"Prompts": prompts, "Utils": utils},
+        )
+
+        llm = Mock()
+        llm.invoke.side_effect = [
+            Response('{"classification": "relevant"}'),
+            Response('{"issues": ["snake_case"]}'),
+            Response('{"issues": ["indentation"]}'),
+        ]
