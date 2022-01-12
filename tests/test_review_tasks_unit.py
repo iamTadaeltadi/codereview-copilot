@@ -74,3 +74,79 @@ class ProcessWebhookEventTests(unittest.TestCase):
         repo.owner.id = 42
         repo_cls.objects.get.return_value = repo
         repo_cls.DoesNotExist = _exception_class("DoesNotExist")
+        pr = MagicMock(id=5)
+        pr_cls.objects.update_or_create.return_value = (pr, True)
+        review_cls.objects.get_or_create.return_value = (MagicMock(status="pending"), True)
+
+        review_tasks.process_webhook_event("pull_request", self._pr_event())
+
+        proc.delay.assert_called_once()
+
+    @patch("core.tasks.review_tasks.process_pr_review")
+    @patch("core.tasks.review_tasks.Review")
+    @patch("core.tasks.review_tasks.PullRequest")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_closed_pull_request_does_not_enqueue(self, repo_cls, pr_cls, review_cls, proc):
+        repo_cls.objects.get.return_value = MagicMock(id=1)
+        repo_cls.DoesNotExist = _exception_class("DoesNotExist")
+        pr_cls.objects.update_or_create.return_value = (MagicMock(id=5), False)
+
+        review_tasks.process_webhook_event("pull_request", self._pr_event(action="closed"))
+
+        proc.delay.assert_not_called()
+        review_cls.objects.get_or_create.assert_not_called()
+
+    @patch("core.tasks.review_tasks.Repository")
+    def test_unknown_repository_is_logged_and_skipped(self, repo_cls):
+        repo_cls.DoesNotExist = _exception_class("DoesNotExist")
+        repo_cls.objects.get.side_effect = repo_cls.DoesNotExist
+
+        # Should not raise.
+        review_tasks.process_webhook_event("pull_request", self._pr_event())
+
+    def test_missing_pull_request_data_returns_early(self):
+        review_tasks.process_webhook_event("pull_request", {"action": "opened"})
+
+    @patch("core.tasks.review_tasks.Commit")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_push_event_records_commits(self, repo_cls, commit_cls):
+        repo_cls.objects.get.return_value = MagicMock(id=1)
+        repo_cls.DoesNotExist = _exception_class("DoesNotExist")
+        commit_cls.objects.update_or_create.return_value = (MagicMock(commit_hash="abcdef1234567"), True)
+
+        event = {
+            "repository": {"full_name": "octo/repo"},
+            "commits": [
+                {
+                    "id": "abcdef1234567",
+                    "message": "fix",
+                    "timestamp": "2026-01-01T00:00:00Z",
+                    "url": "https://github.com/octo/repo/commit/abcdef1234567",
+                    "author": {"id": 3, "name": "Dev", "username": "dev"},
+                }
+            ],
+        }
+        review_tasks.process_webhook_event("push", event)
+
+        commit_cls.objects.update_or_create.assert_called_once()
+
+    def test_unconfigured_event_type_is_ignored(self):
+        # No patching needed; the branch only logs.
+        review_tasks.process_webhook_event("issues", {"action": "opened"})
+
+
+class ProcessPrReviewTests(unittest.TestCase):
+    def _review_result(self):
+        return {
+            "review_data": {"reviews": [{"file": "a.py"}], "final_result": "ok"},
+            "thread_id": "thread-1",
+            "token_usage": {"prompt_tokens": 100, "completion_tokens": 50},
+        }
+
+    @patch("core.tasks.review_tasks.GitHubService")
+    @patch("core.tasks.review_tasks.LLMUsage")
+    @patch("core.tasks.review_tasks.Thread")
+    @patch("core.tasks.review_tasks.User")
+    @patch("core.tasks.review_tasks.LangGraphClient")
+    @patch("core.tasks.review_tasks.Review")
+    @patch("core.tasks.review_tasks.PullRequest")
