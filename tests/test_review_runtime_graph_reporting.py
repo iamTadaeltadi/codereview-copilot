@@ -73,3 +73,78 @@ class FakeGraph:
             "src/app.py::file::app.py": {
                 "type": "file",
                 "name": "app.py",
+                "relative_path": "src/app.py",
+                "line_range": [1, 42],
+                "metadata": {"dependencies": ["src/lib.py::file::lib.py"], "total_lines": 42, "language": "python"},
+            },
+            "src/lib.py::file::lib.py": {
+                "type": "file",
+                "name": "lib.py",
+                "relative_path": "src/lib.py",
+                "line_range": [1, 10],
+                "metadata": {"dependencies": [], "total_lines": 10, "language": "python"},
+            },
+            "src/app.py::class::Service": {
+                "type": "class",
+                "name": "Service",
+                "relative_path": "src/app.py",
+                "line_range": [5, 25],
+                "metadata": {"parent_classes": [], "variables": ["client", "client"]},
+            },
+            "src/app.py::function::run": {
+                "type": "function",
+                "name": "run",
+                "relative_path": "src/app.py",
+                "line_range": [10, 18],
+                "metadata": {
+                    "parent_class": "Service",
+                    "calls": ["src/lib.py::function::helper"],
+                    "parameters": [{"name": "payload"}, {"name": "payload"}],
+                    "reads": {"config": {"DEBUG"}},
+                    "writes": {"cache": {"SET"}},
+                },
+            },
+            "src/lib.py::function::helper": {
+                "type": "function",
+                "name": "helper",
+                "relative_path": "src/lib.py",
+                "line_range": [1, 8],
+                "metadata": {"parent_class": None, "calls": [], "parameters": [], "reads": {}, "writes": {}},
+            },
+            "src/app.py::variable::client": {
+                "type": "variable",
+                "name": "client",
+                "relative_path": "src/app.py",
+                "line_range": [6, 6],
+                "metadata": {
+                    "accessed_by": {"src/app.py::function::run"},
+                    "modified_by": set(),
+                    "var_type": "HttpClient",
+                },
+            },
+        }
+        self.nodes = FakeNodeView(self._nodes)
+        self._successors = {"src/app.py::class::Service": ["src/app.py::function::run"]}
+        self.edges = [("a", "b"), ("b", "c")]
+
+    def successors(self, node_id):
+        return iter(self._successors.get(node_id, []))
+
+
+class GraphUtilityTests(unittest.TestCase):
+    def test_gather_files_filters_supported_code_extensions(self):
+        module = build_graph_module()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.makedirs(os.path.join(tmpdir, "src"), exist_ok=True)
+            Path(tmpdir, "src", "app.py").write_text("print('hi')\n", encoding="utf-8")
+            Path(tmpdir, "src", "helper.js").write_text("export const x = 1;\n", encoding="utf-8")
+            Path(tmpdir, "README.md").write_text("# Demo\n", encoding="utf-8")
+
+            all_paths, code_files = module.gather_files(tmpdir, {".py", ".js"})
+
+        self.assertIn("src/app.py", all_paths)
+        self.assertIn("src/helper.js", code_files)
+        self.assertNotIn("README.md", code_files)
+
+    def test_parse_code_files_collects_tags_and_skips_missing_files(self):
+        module = build_graph_module()
