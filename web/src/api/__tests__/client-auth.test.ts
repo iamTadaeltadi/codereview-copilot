@@ -53,3 +53,57 @@ describe('client and auth api', () => {
         create: vi.fn(() => client),
       },
     }))
+
+    await import('../client')
+
+    localStorage.setItem('authUser', '{bad-json')
+    const config = getRequestInterceptor()({})
+    expect(config.headers).toBeUndefined()
+    expect(localStorage.getItem('authUser')).toBeNull()
+  })
+
+  it('login exchanges credentials for token and normalized current user', async () => {
+    const { client } = createMocks()
+    client.post.mockResolvedValue({ data: { access: 'jwt-token' } })
+    client.get.mockResolvedValue({
+      data: {
+        id: 7,
+        username: '',
+        email: 'dev@example.com',
+        is_admin: 1,
+        github_id: '42',
+      },
+    })
+
+    vi.doMock('axios', () => ({
+      default: {
+        create: vi.fn(() => client),
+      },
+    }))
+
+    const authModule = await import('../AuthApi')
+    const result = await authModule.login({
+      email: 'dev@example.com',
+      password: 'secret',
+    })
+
+    expect(client.post).toHaveBeenCalledWith('/auth/token/', {
+      username: 'dev@example.com',
+      password: 'secret',
+    })
+    expect(client.get).toHaveBeenCalledWith('/user/', {
+      headers: { Authorization: 'Bearer jwt-token' },
+    })
+    expect(result).toEqual({
+      token: 'jwt-token',
+      user: {
+        id: 7,
+        username: 'dev@example.com',
+        email: 'dev@example.com',
+        isAdmin: true,
+        githubId: '42',
+      },
+    })
+    expect(authModule.getGitHubLoginUrl()).toBe('https://api.example.com/api/v1/auth/github/login/')
+  })
+})
