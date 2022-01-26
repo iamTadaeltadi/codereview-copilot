@@ -77,3 +77,82 @@ class GitHubWebhookHandlerTests(unittest.IsolatedAsyncioTestCase):
                 'number': 18,
                 'html_url': 'https://github.com/org/repo/pull/18',
                 'title': 'Close review',
+                'user': {'id': 55},
+                'state': 'closed',
+            },
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+        }
+
+        await handler.handle_pull_request(payload)
+
+        mock_delay.assert_not_called()
+
+    @patch('core.webhooks.handlers.process_webhook_event.delay')
+    @patch('core.webhooks.handlers.PullRequest.objects.aupdate_or_create', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_pull_request_queues_review_for_reopened_pr(self, mock_repo_get, mock_pr_update, mock_delay):
+        handler = GitHubWebhookHandler()
+        mock_repo_get.return_value = Mock()
+        mock_pr_update.return_value = (Mock(), False)
+        payload = {
+            'action': 'reopened',
+            'pull_request': {
+                'number': 19,
+                'html_url': 'https://github.com/org/repo/pull/19',
+                'title': 'Reopened review',
+                'user': {'id': 66},
+                'state': 'open',
+            },
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+        }
+
+        await handler.handle_pull_request(payload)
+
+        mock_delay.assert_called_once_with('pull_request', payload)
+
+    @patch('core.webhooks.handlers.logger')
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock, side_effect=Exception('missing repo'))
+    async def test_handle_pull_request_logs_processing_errors(self, _mock_repo_get, mock_logger):
+        handler = GitHubWebhookHandler()
+        payload = {
+            'action': 'opened',
+            'pull_request': {'number': 20, 'html_url': 'url', 'title': 'PR', 'user': {'id': 1}, 'state': 'open'},
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+        }
+
+        with self.assertRaises(Exception):
+            await handler.handle_pull_request(payload)
+
+        self.assertTrue(mock_logger.error.called)
+
+    @patch('core.webhooks.handlers.Commit.objects.aupdate_or_create', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_push_updates_each_commit(self, mock_repo_get, mock_commit_update):
+        handler = GitHubWebhookHandler()
+        mock_repo_get.return_value = Mock()
+        payload = {
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+            'commits': [
+                {'id': 'abc', 'author': {'id': 1}, 'message': 'First', 'url': 'https://github.com/org/repo/commit/abc', 'timestamp': '2026-05-19T10:00:00Z'},
+                {'id': 'def', 'author': {'id': 2}, 'message': 'Second', 'url': 'https://github.com/org/repo/commit/def', 'timestamp': '2026-05-19T11:00:00Z'},
+            ],
+        }
+
+        await handler.handle_push(payload)
+
+        self.assertEqual(mock_commit_update.await_count, 2)
+
+    @patch('core.webhooks.handlers.logger')
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock, side_effect=Exception('missing repo'))
+    async def test_handle_push_logs_processing_errors(self, _mock_repo_get, mock_logger):
+        handler = GitHubWebhookHandler()
+        payload = {'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}}, 'commits': []}
+
+        with self.assertRaises(Exception):
+            await handler.handle_push(payload)
+
+        self.assertTrue(mock_logger.error.called)
+
+    @patch('core.webhooks.handlers.RepoCollaborator.objects.aupdate_or_create', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.User.objects.aget_or_create', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
