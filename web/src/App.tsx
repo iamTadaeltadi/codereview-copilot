@@ -64,3 +64,68 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   if (!token) {
+    return <Navigate to="/" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const AppRoutes = () => {
+  const dispatch = useDispatch();
+  const token = useSelector((state: RootState) => state.auth.token);
+  const navigate = useNavigate();
+
+  // Hydrate auth state from localStorage when app loads
+  useEffect(() => {
+    dispatch(restoreAuth());
+  }, [dispatch]);
+
+  // If logged in and on login page, redirect to dashboard
+  const location = useLocation();
+  useEffect(() => {
+    if (token && location.pathname === '/') {
+      navigate('/dashboard');
+    }
+  }, [token, location.pathname, navigate]);
+
+  return (
+    <Routes>
+      {/* Public route (no sidebar) */}
+      <Route element={<AuthLayout />}>
+        <Route path="/" element={<LoginPage />} />
+      </Route>
+
+      {/* Private routes (with sidebar) */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/repos/:repoId" element={<RepoOverview />} />
+        <Route path="/repos/:repoId/settings" element={<RepoSettings />} />
+        <Route path="/repositories" element={<Repositories />} />
+        <Route path="/repo-registration" element={<RepoRegistration />} />
+        <Route path="/repos/:repoId/pulls" element={<PullRequestPage />} />
+        <Route path="/repos/:repoId/pulls/:prNumber" element={<PullRequestDetailPage />} />
+        <Route path="/commit-list/:id" element={<CommitList />} />
+        <Route path="/commit-detail/:id" element={<CommitDetail />} />
+        <Route path="/commit-review/:id" element={<CodeReviewPage />} />
+      </Route>
+    </Routes>
+  );
+};
+
+const App = () => {
+  return (
+  <Router>
+      <SidebarProvider>
+    <AppRoutes />
+      </SidebarProvider>
+  </Router>
+);
+};
+
+export default App;
