@@ -48,3 +48,52 @@ const Sidebar: React.FC = () => {
                 isActiveRoute('/dashboard') 
                   ? 'bg-blue-600 text-white' 
                   : 'text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              <FiHome size={20} />
+              {isOpen && <span>Dashboard</span>}
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/repo-registration" 
+              className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} p-3 rounded-lg transition-all duration-200 ${
+                isActiveRoute('/repo-registration') 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              <FiClipboard size={20} />
+              {isOpen && <span>Repo Registration</span>}
+            </Link>
+          </li>
+          <li>
+            <Link 
+              to="/repositories" 
+              className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} p-3 rounded-lg transition-all duration-200 ${
+                isActiveRoute('/repositories') 
+                  ? 'bg-blue-600 text-white' 
+                  : 'text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              <FiList size={20} />
+              {isOpen && <span>Repositories</span>}
+            </Link>
+          </li>
+        </ul>
+      </nav>
+
+      <div className="p-4 border-t border-slate-700">
+        <button
+          onClick={handleLogout}
+          className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} w-full p-3 text-slate-300 hover:bg-slate-700 rounded-lg transition-all duration-200`}
+        >
+          <FiLogOut size={20} />
+          {isOpen && <span>Logout</span>}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default Sidebar;
