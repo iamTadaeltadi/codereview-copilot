@@ -79,3 +79,84 @@ describe('CodeReviewPage', () => {
         contextLabel: 'PR #12 · Improve review UX',
         contextRoute: '/repos/2/pulls/12',
         threadCount: 0,
+        errorMessage: null,
+        activeThreadId: null,
+        chatThread: [],
+        raw: {
+          review: {
+            syntax: [{ issues: [{ file: 'src/app.ts', location: '12', description: 'Missing semicolon' }] }],
+            standards: [{ issues: [{ file: 'src/app.ts', location: '15', standard: 'Prefer const' }] }],
+            final: [
+              {
+                file: 'src/app.ts',
+                summary: 'Core app module',
+                ratings: {
+                  'Code complexity': '8',
+                  'Code duplication': '7',
+                  'Code coverage': '9',
+                },
+                critical_issues: ['Missing tests'],
+              },
+            ],
+          },
+          status: 'completed',
+          artifacts: {
+            fixes: ['Use <strong>const</strong> instead of let'],
+            summary: 'Summary',
+          },
+        },
+      },
+    }
+    createReviewThreadMock.mockResolvedValue({ id: 901 })
+    replyToReviewThreadMock.mockResolvedValue(undefined)
+
+    const { unmount } = render(
+      <MemoryRouter>
+        <CodeReviewPage />
+      </MemoryRouter>,
+    )
+
+    expect(fetchCodeReviewMock).toHaveBeenCalledWith(77)
+    expect(screen.getByText('Review Workflow #77')).toBeInTheDocument()
+    expect(screen.getByText('1 Critical Issues')).toBeInTheDocument()
+    expect(screen.getByText('1 Standards Issues')).toBeInTheDocument()
+    expect(screen.getByText('1 Suggested Fixes')).toBeInTheDocument()
+    expect(screen.getByText('Missing semicolon')).toBeInTheDocument()
+    expect(screen.getByText('Prefer const')).toBeInTheDocument()
+    expect(screen.getByText('Missing tests')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to source item/i })).toHaveAttribute(
+      'href',
+      '/repos/2/pulls/12',
+    )
+
+    fireEvent.change(
+      screen.getByPlaceholderText(/ask the review assistant to clarify/i),
+      { target: { value: 'Can you explain the standards issue?' } },
+    )
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(createReviewThreadMock).toHaveBeenCalledWith(77, 'Discussion for review 77')
+    })
+    expect(replyToReviewThreadMock).toHaveBeenCalledWith(
+      901,
+      'Can you explain the standards issue?',
+    )
+    expect(fetchCodeReviewMock).toHaveBeenCalledTimes(2)
+
+    unmount()
+    expect(clearCodeReviewMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('renders loading, error, empty, and send-error states', async () => {
+    selectorState.codeReview = {
+      review: null,
+      loading: true,
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <CodeReviewPage />
+      </MemoryRouter>,
+    )
