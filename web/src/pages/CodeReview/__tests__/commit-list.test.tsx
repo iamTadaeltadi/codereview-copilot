@@ -65,3 +65,69 @@ describe('CommitList page', () => {
           message: 'Improve parser',
           reviewer: 'Linus',
           commitHash: 'abc123',
+          date: '2026-05-18T10:00:00.000Z',
+        },
+        {
+          author: 'Grace',
+          message: 'Fix caching',
+          reviewer: 'Turing',
+          commitHash: 'def456',
+          date: '2026-05-19T10:00:00.000Z',
+        },
+      ],
+    }
+    getReviewHistoryMock
+      .mockResolvedValueOnce([{ status: 'completed' }, { status: 'completed' }])
+      .mockRejectedValueOnce(new Error('no history'))
+
+    render(
+      <MemoryRouter>
+        <CommitList />
+      </MemoryRouter>,
+    )
+
+    expect(fetchCommitsMock).toHaveBeenCalledWith(3)
+    await waitFor(() => {
+      expect(getReviewHistoryMock).toHaveBeenCalledTimes(2)
+    })
+
+    expect(screen.getByText('Improve parser')).toBeInTheDocument()
+    expect(screen.getByText('Fix caching')).toBeInTheDocument()
+    expect(screen.getByText('Completed')).toBeInTheDocument()
+    expect(screen.getByText('Unavailable')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Ada' })).toHaveAttribute(
+      'href',
+      '/commit-detail/abc123',
+    )
+  })
+
+  it('renders loading and error states', () => {
+    selectorState.commits = {
+      commits: [],
+      loading: true,
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <CommitList />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/loading commits/i)).toBeInTheDocument()
+
+    selectorState.commits = {
+      commits: [],
+      loading: false,
+      error: 'Commit API failed',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <CommitList />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/error: commit api failed/i)).toBeInTheDocument()
+  })
+})
