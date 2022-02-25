@@ -61,3 +61,65 @@ describe('CommitDetail page', () => {
       error: null,
       detail: {
         message: 'Normalize commit reporting',
+        commitHash: 'abc123',
+        author: 'Ada',
+        date: '2026-05-18T10:00:00.000Z',
+        repositoryId: 7,
+        repositoryName: 'graph-review-engine',
+        changes: 14,
+        reviewer: 'Linus',
+        description: 'More consistent review output',
+        diff: 'https://example.com/diff',
+        diffBlocks: [
+          { type: 'addition', oldLine: null, newLine: 10, content: '+ const ready = true;' },
+          { type: 'deletion', oldLine: 11, newLine: null, content: '- const ready = false;' },
+        ],
+      },
+    }
+    getReviewHistoryMock.mockResolvedValue([
+      {
+        id: 401,
+        status: 'completed',
+        createdAt: '2026-05-18T10:00:00.000Z',
+        threadCount: 1,
+        hasReviewData: true,
+        errorMessage: null,
+      },
+    ])
+
+    render(
+      <MemoryRouter>
+        <CommitDetail />
+      </MemoryRouter>,
+    )
+
+    expect(fetchCommitDetailMock).toHaveBeenCalledWith('abc123')
+    await waitFor(() => {
+      expect(getReviewHistoryMock).toHaveBeenCalledWith('commit', 'abc123')
+    })
+
+    expect(screen.getByText('Normalize commit reporting')).toBeInTheDocument()
+    expect(screen.getByText('graph-review-engine')).toBeInTheDocument()
+    expect(screen.getByText('Open review')).toHaveAttribute('href', '/commit-review/401')
+    expect(screen.getByText('+ const ready = true;')).toBeInTheDocument()
+    expect(screen.getByText('- const ready = false;')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /view repository/i })).toHaveAttribute(
+      'href',
+      '/repos/7',
+    )
+  })
+
+  it('renders loading, error, missing-detail, and history-error states', async () => {
+    selectorState.commitDetail = {
+      detail: null,
+      loading: true,
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <CommitDetail />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/loading commit details/i)).toBeInTheDocument()
