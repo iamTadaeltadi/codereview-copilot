@@ -59,3 +59,64 @@ const CommitDetail: React.FC = () => {
 
   return (
     <div className="max-w-5xl mx-auto mt-8 px-4 md:px-0">
+      <header className="border-b pb-4 mb-6">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-800">{detail.message}</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              <span className="font-semibold">Commit Hash:</span> {detail.commitHash}
+              {' | '}
+              <span className="font-semibold">Author:</span> {detail.author}
+              {' | '}
+              <span className="font-semibold">Date:</span> {new Date(detail.date).toLocaleString()}
+            </p>
+          </div>
+          {detail.repositoryId && (
+            <Link to={`/repos/${detail.repositoryId}`} className="text-sm text-blue-700 hover:text-blue-900">
+              View repository
+            </Link>
+          )}
+        </div>
+      </header>
+
+      <section className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="space-y-2 rounded-xl border border-gray-200 bg-white p-4">
+          <div><strong>Repository:</strong> {detail.repositoryName || 'Unknown'}</div>
+          <div><strong>Recorded reviews:</strong> {reviewHistory.length}</div>
+          <div><strong>Changes:</strong> {detail.changes}</div>
+          <div><strong>Reviewer field:</strong> <span className="italic">{detail.reviewer}</span></div>
+        </div>
+        <div className="space-y-2 rounded-xl border border-gray-200 bg-white p-4">
+          <div><strong>Description:</strong> {detail.description || 'No commit description was captured.'}</div>
+          <div><strong>Diff URL:</strong> {detail.diff ? <a className="text-blue-700" href={detail.diff} target="_blank" rel="noreferrer">Open source URL</a> : 'Unavailable'}</div>
+          <div className="rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+            AI review state is tracked through Review records. Use the history panel below to open a specific review run.
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
+        <div className="border-b px-4 py-3">
+          <h2 className="text-xl font-semibold text-gray-700">Review Workflow</h2>
+        </div>
+        {reviewLoading ? (
+          <div className="p-4 text-gray-500">Loading commit review history...</div>
+        ) : reviewError ? (
+          <div className="p-4 text-red-600">{reviewError}</div>
+        ) : reviewHistory.length === 0 ? (
+          <div className="p-4 text-gray-500">No review runs have been recorded for this commit yet.</div>
+        ) : (
+          <div className="divide-y">
+            {reviewHistory.map((entry) => (
+              <div key={entry.id} className="p-4 flex items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <ReviewStatusBadge status={entry.status} />
+                    <span className="text-sm text-gray-500">Review #{entry.id}</span>
+                  </div>
+                  <div className="mt-2 text-sm text-gray-600 flex flex-wrap gap-4">
+                    <span>Created {new Date(entry.createdAt).toLocaleString()}</span>
+                    <span>{entry.threadCount} thread{entry.threadCount === 1 ? '' : 's'}</span>
+                    <span>{entry.hasReviewData ? 'Findings available' : 'No report yet'}</span>
+                  </div>
+                  {entry.errorMessage && <div className="mt-2 text-sm text-red-600">{entry.errorMessage}</div>}
