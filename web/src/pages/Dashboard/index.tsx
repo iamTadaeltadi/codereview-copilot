@@ -76,3 +76,80 @@ const UserDashboard: React.FC = () => {
           type="text"
           placeholder="Search repositories..."
           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <div className="col-span-4">Repository</div>
+            <div className="col-span-4">Description</div>
+            <div className="col-span-2">Webhook</div>
+            <div className="col-span-2 text-right">Action</div>
+          </div>
+        </div>
+
+        <div className="divide-y divide-gray-200">
+          {filteredRepos.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 px-4">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <FiGitBranch className="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-900">No repositories found</h3>
+              <p className="mt-1 text-sm text-gray-500">Try adjusting your search or register your first repository.</p>
+            </div>
+          ) : (
+            filteredRepos.map((repo) => (
+              <div
+                key={repo.id}
+                className="grid grid-cols-12 gap-4 items-center px-6 py-4 hover:bg-gray-50 transition-colors duration-150"
+              >
+                <div className="col-span-4 min-w-0">
+                  <button
+                    onClick={() => navigate(`/repos/${repo.id}`)}
+                    className="flex items-center gap-2 text-left text-gray-900 hover:text-blue-600"
+                  >
+                    <FiGitBranch className="text-gray-400" />
+                    <span className="font-medium truncate">{repo.name}</span>
+                  </button>
+                  {repo.repoUrl ? (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-gray-500 truncate">
+                      <FiLink />
+                      <span className="truncate">{repo.repoUrl}</span>
+                    </div>
+                  ) : null}
+                </div>
+                <div className="col-span-4 text-sm text-gray-600">
+                  {repo.description || <span className="text-gray-400 italic">No description provided</span>}
+                </div>
+                <div className="col-span-2">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      repo.webhookStatus ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'
+                    }`}
+                  >
+                    {repo.webhookStatus ? 'Configured' : 'Pending'}
+                  </span>
+                </div>
+                <div className="col-span-2 flex justify-end">
+                  <button
+                    onClick={() => navigate(`/repos/${repo.id}/settings`)}
+                    className="inline-flex items-center px-3 py-2 text-sm text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100"
+                  >
+                    <FiSettings className="mr-2" />
+                    Settings
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default UserDashboard;
+/* Feature: Add loading states */ 
