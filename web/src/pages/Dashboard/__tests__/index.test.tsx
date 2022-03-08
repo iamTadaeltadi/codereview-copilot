@@ -72,3 +72,76 @@ describe('Dashboard page', () => {
 
     render(
       <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+
+    expect(fetchReposMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByText('alpha-review')).toBeInTheDocument()
+    expect(screen.getByText('beta-review')).toBeInTheDocument()
+    expect(screen.getByText('Configured')).toBeInTheDocument()
+    expect(screen.getByText('Pending')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByPlaceholderText(/search repositories/i), {
+      target: { value: 'beta' },
+    })
+
+    expect(screen.queryByText('alpha-review')).not.toBeInTheDocument()
+    expect(screen.getByText('beta-review')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: /add repository/i }))
+    expect(navigateMock).toHaveBeenCalledWith('/repo-registration')
+
+    fireEvent.click(screen.getByRole('button', { name: /beta-review/i }))
+    expect(navigateMock).toHaveBeenCalledWith('/repos/12')
+
+    fireEvent.click(screen.getByRole('button', { name: /settings/i }))
+    expect(navigateMock).toHaveBeenCalledWith('/repos/12/settings')
+  })
+
+  it('renders loading, failed, and empty states', () => {
+    selectorState.repos = {
+      repos: [],
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/Loading repositories/i)).toBeInTheDocument()
+
+    selectorState.repos = {
+      repos: [],
+      status: 'failed',
+      error: 'API unavailable',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error Loading Data')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+    expect(dispatchMock).toHaveBeenCalledWith({ type: 'repos/fetchRepos' })
+
+    selectorState.repos = {
+      repos: [],
+      status: 'succeeded',
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <Dashboard />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('No repositories found')).toBeInTheDocument()
+  })
+})
