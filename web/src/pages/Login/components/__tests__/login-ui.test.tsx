@@ -39,3 +39,44 @@ describe('login ui modules', () => {
   it('login form submits credentials and toggles loading state', async () => {
     render(
       <MemoryRouter>
+        <LoginForm />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'dev@example.com' } })
+    fireEvent.change(screen.getByPlaceholderText('••••••••••••'), { target: { value: 'secret' } })
+    fireEvent.click(screen.getByRole('button', { name: /sign in with email/i }))
+
+    await waitFor(() => {
+      expect(loginThunkMock).toHaveBeenCalledWith({
+        email: 'dev@example.com',
+        password: 'secret',
+      })
+      expect(dispatchMock).toHaveBeenCalled()
+    })
+  })
+
+  it('login page and smaller controls render expected content', () => {
+    const inputChange = vi.fn()
+    render(
+      <MemoryRouter>
+      <>
+        <LoginPage />
+        <FormCheckbox id="remember" label="Remember me" required />
+        <FormInput id="password" type="password" value="" onChange={inputChange} />
+        <SocialLoginButtons />
+        <SubmitButton text="Send" isLoading />
+      </>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('AI Review Workspace')).toBeInTheDocument()
+    expect(screen.getByText(/New users should start with GitHub OAuth/i)).toBeInTheDocument()
+    const githubLinks = screen.getAllByRole('link', { name: /continue with github/i })
+    expect(githubLinks).toHaveLength(2)
+    expect(githubLinks[0]).toHaveAttribute('href', 'https://github.com/login/oauth')
+    expect(screen.getAllByText('Remember me')[0]).toBeInTheDocument()
+
+    expect(document.getElementById('password')).toHaveAttribute('type', 'password')
+  })
+})
