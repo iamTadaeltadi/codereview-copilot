@@ -40,3 +40,44 @@ export default function LoginForm() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <FormInput
+            id="loginEmail"
+            label="Email"
+            type="email"
+            placeholder="john@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label htmlFor="loginPassword" className="text-sm font-medium text-[#E0E0E0]">
+                Password
+              </label>
+              <a href="#" className="text-sm text-[#00C9A7] hover:text-[#00C9A7]/80 transition-colors">
+                Forgot password?
+              </a>
+            </div>
+            <FormInput
+              id="loginPassword"
+              type="password"
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <FormCheckbox id="remember" label="Remember me" />
+
+          <SubmitButton
+            isLoading={isLoading}
+            text="Sign in with Email"
+            className="w-full bg-[#1E2A38] hover:bg-[#3C5873] text-[#E0E0E0] py-2.5 rounded-lg transition-all duration-200 border border-[#3C5873] hover:border-[#00C9A7] shadow-lg shadow-[#1E2A38]/10"
+          />
+        </form>
+      </div>
+    </div>
+  );
+}
