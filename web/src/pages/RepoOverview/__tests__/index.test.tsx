@@ -74,3 +74,78 @@ describe('RepoOverview page', () => {
         ],
       },
       status: 'succeeded',
+      error: null,
+    }
+
+    render(
+      <MemoryRouter>
+        <RepoOverview />
+      </MemoryRouter>,
+    )
+
+    expect(fetchRepoDetailsActionMock).toHaveBeenCalledWith(12)
+    expect(dispatchMock).toHaveBeenCalledWith({
+      type: 'repos/fetchRepoDetails',
+      payload: 12,
+    })
+    expect(screen.getByText('graph-review-engine')).toBeInTheDocument()
+    expect(screen.getByText('Repository automation')).toBeInTheDocument()
+    expect(screen.getByText('Pull Requests')).toBeInTheDocument()
+    expect(screen.getByText('8')).toBeInTheDocument()
+    expect(screen.getByText('31')).toBeInTheDocument()
+    expect(screen.getByText('93%')).toBeInTheDocument()
+    expect(screen.getByText('Ada')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /settings/i })).toHaveAttribute(
+      'href',
+      '/repos/12/settings',
+    )
+  })
+
+  it('renders loading, failed, and not-found states', () => {
+    selectorState.repos = {
+      currentRepo: null,
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <RepoOverview />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/Loading repository details/i)).toBeInTheDocument()
+
+    selectorState.repos = {
+      currentRepo: null,
+      status: 'failed',
+      error: 'Bad gateway',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <RepoOverview />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error Loading Repository')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+    expect(fetchRepoDetailsActionMock).toHaveBeenLastCalledWith(12)
+
+    selectorState.repos = {
+      currentRepo: null,
+      status: 'succeeded',
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <RepoOverview />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Repository not found')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /view all repositories/i }))
+    expect(navigateMock).toHaveBeenCalledWith('/repositories')
+  })
+})
