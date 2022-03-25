@@ -73,3 +73,78 @@ const RepoRegistration = () => {
         <div className="text-center mb-10">
           <h1 className="text-3xl font-bold text-gray-900">Register a New Repository</h1>
           <p className="mt-3 text-gray-500">
+            Add a GitHub repository so the backend can track pull requests, commits, and review jobs.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormField
+              label="Repository Name"
+              name="repo_name"
+              icon={<FaGithub className="text-gray-400" />}
+              placeholder="owner/repository"
+              value={formData.repo_name}
+              onChange={handleChange}
+              helper="Required format: owner/repository"
+            />
+
+            <FormField
+              label="Repository URL"
+              name="repo_url"
+              icon={<FaLink className="text-gray-400" />}
+              placeholder="https://github.com/owner/repository"
+              value={formData.repo_url}
+              onChange={handleChange}
+              helper="Public GitHub URL used for webhook and metadata lookups"
+            />
+
+            <div className="space-y-2 md:col-span-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                Description
+              </label>
+              <textarea
+                id="description"
+                name="description"
+                rows={3}
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Short description of the repository"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+              />
+            </div>
+
+            <FormField
+              label="Coding Standards"
+              name="coding_standards"
+              icon={<FaCode className="text-gray-400" />}
+              placeholder="e.g., DRY, SOLID, secure input validation"
+              value={formData.coding_standards}
+              onChange={handleChange}
+              helper="Comma-separated review standards"
+            />
+
+            <FormField
+              label="Code Metrics"
+              name="code_metrics"
+              icon={<FaCode className="text-gray-400" />}
+              placeholder="e.g., complexity, duplication, testability"
+              value={formData.code_metrics}
+              onChange={handleChange}
+              helper="Comma-separated metrics the review agents should emphasize"
+            />
+
+            <div className="space-y-2 md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700">
+                <span className="flex items-center gap-2">
+                  <FaRobot className="text-gray-400" />
+                  LLM Preference
+                </span>
+              </label>
+              <select
+                name="llm_preference"
+                value={formData.llm_preference}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+              >
+                <option value="gpt-4">GPT-4</option>
