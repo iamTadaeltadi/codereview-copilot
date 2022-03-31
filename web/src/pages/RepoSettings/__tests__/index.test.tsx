@@ -69,3 +69,74 @@ describe('RepoSettings page', () => {
       error: null,
       currentRepo: {
         id: 12,
+        name: 'graph-review-engine',
+        description: 'Repository automation',
+        settings: {
+          codeStandards: ['DRY', 'SOLID'],
+          evaluationMetrics: ['complexity'],
+          llmModel: 'gpt-4o',
+          webhookUrl: 'https://example.com/webhook',
+        },
+      },
+    }
+
+    render(
+      <MemoryRouter>
+        <RepoSettingsPage />
+      </MemoryRouter>,
+    )
+
+    expect(fetchRepoDetailsActionMock).toHaveBeenCalledWith(12)
+    expect(screen.getByDisplayValue('graph-review-engine')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Repository automation')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('DRY, SOLID')).toBeInTheDocument()
+    expect(screen.getByText(/parsed standards: dry, solid/i)).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText(/repository name/i), {
+      target: { value: 'graph-review-platform' },
+    })
+    fireEvent.change(screen.getByLabelText(/description/i), {
+      target: { value: 'Updated description' },
+    })
+    fireEvent.change(screen.getByLabelText(/coding standards/i), {
+      target: { value: 'SOLID, security, tests' },
+    })
+    fireEvent.change(screen.getByLabelText(/evaluation metrics/i), {
+      target: { value: 'maintainability, coverage' },
+    })
+    fireEvent.change(screen.getByLabelText(/preferred model/i), {
+      target: { value: 'claude-3.5-sonnet' },
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /save settings/i }))
+
+    await waitFor(() => {
+      expect(updateRepoSettingsActionMock).toHaveBeenCalledWith({
+        repoId: 12,
+        settings: {
+          codeStandards: ['SOLID', 'security', 'tests'],
+          evaluationMetrics: ['maintainability', 'coverage'],
+          llmModel: 'claude-3.5-sonnet',
+          webhookUrl: 'https://example.com/webhook',
+          webhookEnabled: true,
+        },
+        metadata: {
+          name: 'graph-review-platform',
+          description: 'Updated description',
+        },
+      })
+    })
+    expect(unwrapMock).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/parsed metrics: maintainability, coverage/i)).toBeInTheDocument()
+  })
+
+  it('renders loading, failure, retry, inline error, and saving states', () => {
+    selectorState.repos = {
+      currentRepo: null,
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <RepoSettingsPage />
