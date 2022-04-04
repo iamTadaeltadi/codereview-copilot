@@ -59,3 +59,64 @@ describe('Repositories page', () => {
     expect(screen.getByText('alpha-service')).toBeInTheDocument()
     expect(screen.getByText('beta-worker')).toBeInTheDocument()
     expect(screen.getByText('No description provided')).toBeInTheDocument()
+    expect(screen.getByText('TypeScript')).toBeInTheDocument()
+    expect(screen.getByText('4')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /add repository/i })).toHaveAttribute(
+      'href',
+      '/repo-registration',
+    )
+
+    fireEvent.change(screen.getByPlaceholderText(/search repositories/i), {
+      target: { value: 'beta' },
+    })
+
+    expect(screen.queryByText('alpha-service')).not.toBeInTheDocument()
+    expect(screen.getByText('beta-worker')).toBeInTheDocument()
+  })
+
+  it('renders loading, failure, and empty states', () => {
+    selectorState.repos = {
+      repos: [],
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <Repositories />
+      </MemoryRouter>,
+    )
+
+    expect(document.querySelector('.animate-spin')).toBeTruthy()
+
+    selectorState.repos = {
+      repos: [],
+      status: 'failed',
+      error: 'Network down',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <Repositories />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error occurred')).toBeInTheDocument()
+    expect(screen.getByText('Network down')).toBeInTheDocument()
+
+    selectorState.repos = {
+      repos: [],
+      status: 'succeeded',
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <Repositories />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('No repositories found')).toBeInTheDocument()
+    expect(screen.getByText(/Try adjusting your search term/i)).toBeInTheDocument()
+  })
+})
