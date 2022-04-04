@@ -75,3 +75,80 @@ const Repositories: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full sm:w-96 pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+        />
+          </div>
+      </div>
+
+        {/* Repositories List */}
+      {filteredRepos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <FiGitBranch className="w-12 h-12 text-gray-400 mb-4" />
+            <p className="text-gray-500 text-lg">No repositories found</p>
+            <p className="text-gray-400 text-sm mt-1">Try adjusting your search term</p>
+          </div>
+      ) : (
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Repository
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Language
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Stars
+                    </th>
+              </tr>
+            </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+              {filteredRepos.map((repo: Repo) => (
+                    <tr key={repo.id} className="hover:bg-gray-50 transition-colors duration-150">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Link 
+                          to={`/repos/${repo.id}`}
+                          className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                        >
+                          <FiGitBranch className="mr-2 flex-shrink-0" />
+                      {repo.name}
+                    </Link>
+                  </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-600 line-clamp-2">
+                          {repo.description || 
+                            <span className="text-gray-400 italic">No description provided</span>
+                          }
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        {repo.language ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            <FiCode className="mr-1" />
+                            {repo.language}
+                          </span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <span className="inline-flex items-center text-sm text-gray-600">
+                          <FiStar className="mr-1" />
+                          {repo.stars ?? 0}
+                        </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+            </div>
+        </div>
+      )}
+      </div>
+    </div>
+  );
+};
+
+export default Repositories;
