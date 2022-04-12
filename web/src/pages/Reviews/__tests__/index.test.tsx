@@ -54,3 +54,59 @@ describe('PullRequests page', () => {
     selectorState.pullRequests = {
       pullRequests: {},
       currentPR: null,
+      status: 'idle',
+      error: null,
+    }
+  })
+
+  it('loads pull requests, resolves workflow history, and filters the list', async () => {
+    selectorState.pullRequests = {
+      pullRequests: {
+        7: [
+          {
+            id: 11,
+            number: 22,
+            title: 'Improve review orchestration',
+            status: 'open',
+            author: { name: 'Ada', avatarUrl: '/ada.png' },
+            createdAt: '2026-05-18T10:00:00.000Z',
+          },
+          {
+            id: 12,
+            number: 23,
+            title: 'Fix graph cache invalidation',
+            status: 'closed',
+            author: { name: 'Linus', avatarUrl: '/linus.png' },
+            createdAt: '2026-05-17T10:00:00.000Z',
+          },
+        ],
+      },
+      currentPR: null,
+      status: 'succeeded',
+      error: null,
+    }
+    getReviewHistoryMock.mockImplementation(async (_context, prId) => {
+      if (prId === 11) {
+        return [
+          { id: 100, status: 'completed' },
+          { id: 101, status: 'completed' },
+        ]
+      }
+      throw new Error('history unavailable')
+    })
+
+    renderPullRequestsPage()
+
+    expect(fetchPullRequestsActionMock).toHaveBeenCalledWith(7)
+    expect(screen.getByText('Improve review orchestration')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('Completed')).toBeInTheDocument()
+      expect(screen.getByText('Unavailable')).toBeInTheDocument()
+    })
+    expect(getReviewHistoryMock).toHaveBeenCalledTimes(2)
+
+    fireEvent.change(screen.getByPlaceholderText(/search pull requests/i), {
+      target: { value: 'graph' },
+    })
+    expect(screen.queryByText('Improve review orchestration')).not.toBeInTheDocument()
+    expect(screen.getByText('Fix graph cache invalidation')).toBeInTheDocument()
