@@ -43,3 +43,48 @@ services:
         healthcheck:
             test: pg_isready -U langgraph -d checkpointer
             start_period: 10s
+            timeout: 1s
+            retries: 5
+            interval: 5s
+
+    store-postgres:
+        image: postgres:16
+        ports:
+            - "5436:5432"
+        environment:
+            POSTGRES_DB: store
+            POSTGRES_USER: langgraph
+            POSTGRES_PASSWORD: langgraph
+        volumes:
+            - store-data:/var/lib/postgresql/data
+            - ./init-store.sql:/docker-entrypoint-initdb.d/init-store.sql
+        healthcheck:
+            test: pg_isready -U langgraph -d store
+            start_period: 10s
+            timeout: 1s
+            retries: 5
+            interval: 5s
+    langgraph-api:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ./:/app/agent_runtime
+        ports:
+            - "8123:8000"
+        depends_on:
+            langgraph-redis:
+                condition: service_healthy
+            langgraph-postgres:
+                condition: service_healthy
+            checkpointer-postgres:
+                condition: service_healthy
+            store-postgres:
+                condition: service_healthy
+        env_file:
+            - .env
+        environment:
+            REDIS_URI: redis://langgraph-redis:6379
+            POSTGRES_URI: postgres://postgres:postgres@langgraph-postgres:5432/postgres?sslmode=disable
+            CHECKPOINTER_DB_URI: postgresql://langgraph:langgraph@checkpointer-postgres:5432/checkpointer
+            STORE_DB_URI: postgresql://langgraph:langgraph@store-postgres:5432/store
