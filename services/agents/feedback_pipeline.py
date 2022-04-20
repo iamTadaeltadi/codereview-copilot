@@ -156,3 +156,82 @@ class FeedbackPipeline:
             {"chat_responder": "chat_responder", "plan_generator": "plan_generator"}
         )
         builder.add_edge("plan_generator", "instruction_generator")
+        builder.add_edge("instruction_generator", "dynamic_review_executor")
+        builder.add_edge("dynamic_review_executor", "review_integrator")
+        builder.add_edge("review_integrator", "chat_responder")
+        builder.add_edge("chat_responder", "log_memory")
+        builder.add_edge("log_memory", END)
+        return builder.compile(checkpointer=self.memory,store=self.store)
+    def _log_action(self, node_name: str, summary: Dict[str, Any]) -> Dict[str, Any]:
+        """Helper to create a standardized log entry."""
+        return {
+            "action_log": [{
+                "node": node_name,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                **summary
+            }]
+        }
+     # Helper methods to process memory data
+    def _process_episodic_memory(self, episodic_context: List[dict]) -> List[str]:
+        episodic_summary = []
+        for memory in episodic_context:
+            memory = memory.get("value",{})
+            if "content" in memory:
+                try:
+                    content = json.loads(memory.get("content",{}))
+                    if "feedback_received" in content:
+                        episodic_summary.append(f"Previous feedback: {content['feedback_received']}")
+                    if "ai_response_snippet" in content:
+                        episodic_summary.append(f"Previous response: {content['ai_response_snippet']}")
+                except json.JSONDecodeError:
+                    continue
+        return episodic_summary
+
+    def _process_preferences(self, preferences: List[dict]) -> List[str]:
+        preference_context = []
+        for pref in preferences:
+            pref = pref.get("value",{})
+            if "content" in pref:
+                try:
+                    content = json.loads(pref["content"])
+                    if content.get("type") == "preference":
+                        pref_data = json.loads(content["data"]) if isinstance(content["data"],str) else content["data"]
+                        if pref_data["confidence"] > 0.7:  # Only use high-confidence preferences
+                            preference_context.append(
+                                f"User prefers {pref_data['preference']} "
+                                f"(Category: {pref_data['category']}, "
+                                f"Context: {pref_data['context']})"
+                            )
+                except json.JSONDecodeError:
+                    continue
+        return preference_context
+    def with_error_handling(default_value: Any):
+        def decorator(func):
+            def wrapper(self, state: FeedbackState, *args, **kwargs):
+                try:
+                    return func(self, state, *args, **kwargs)
+                except Exception as e:
+                    import traceback
+                    stack_trace = traceback.format_exc()
+                    print(f"Error in {func.__name__}: {e}")
+                    print(f"Stack trace:\n{stack_trace}")
+                    updates = default_value
+                    updates.update(self._log_action(func.__name__, {
+                        "status": "error",
+                        "error": str(e),
+                        "stack_trace": stack_trace
+                    }))
+                    return updates
+            return wrapper
+        return decorator
+    @with_error_handling(default_value={})
+    def preprocess(self, state: FeedbackState):
+        print("--- Running Preprocess ---")
+        updates = {}
+        
+        # Initialize state
+        updates.update(self._initialize_state(state))
+        # Initialize LLM
+        updates.update(self._initialize_llm(state))
+        
+        # Setup repository and tools if needed
