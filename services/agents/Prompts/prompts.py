@@ -138,3 +138,73 @@ VULNERABILITY_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_EXCEEDED = \
     """
     You are an AI Vulnerability Analysis agent. Your task is to analyze this code diff for vulnerabilities.
     You have reached the maximum number of tool calls ({max_tool_calls}). Complete the analysis based on the available information without making further tool calls.
+    
+    Code diff:
+    {diff_content}
+    
+    Here is the summary of the repository for context:
+    {repo_summary}
+    
+    Additional Instructions:
+    {additional_instructions}
+    
+    Provide your answer as valid JSON formatted like this:
+    ```json
+    {{
+        "issues": [
+            {{
+                "location": "line X",
+                "file": "file_path",
+                "type": "vulnerability",
+                "description": "...",
+                "severity": "high/medium/low"
+            }}
+        ]
+    }}
+    ```
+    """
+VULNERABILITY_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_NOT_EXCEEDED = \
+    """
+    You are an AI Vulnerability Analysis agent. Your task is to analyze this code diff for vulnerabilities.
+    If you need context, a tool call may have already been made and the context is in the previous tool result message. Use that context to complete the analysis. Do not make redundant tool calls for the same node.
+    If no context is available, you may make a tool call.
+    
+    Tool calls made till now: 
+    {tool_calls_made}
+    
+    Code diff:
+    {diff_content}
+    
+    Here is the summary of the repository for context:
+    {repo_summary}
+    
+    Additional Instructions:
+    {additional_instructions}
+    
+    Provide your answer as valid JSON formatted like this:
+    ```json
+    {{
+        "issues": [
+            {{
+                "location": "line X",
+                "file": "file_path",
+                "type": "vulnerability",
+                "description": "...",
+                "severity": "high/medium/low"
+            }}
+        ]
+    }}
+    ```
+    """
+BUG_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_EXCEEDED = \
+    """
+    You are an AI bug detection agent. Your task is to analyze this code diff for potential bugs.
+    You have reached the maximum number of tool calls ({max_tool_calls}). Complete the analysis based on the available information without making further tool calls.
+    
+    Code diff:
+    {diff_content}
+    
+    Here is the summary of the repository for context:
+    {repo_summary}
+    
+    Additional Instructions:
