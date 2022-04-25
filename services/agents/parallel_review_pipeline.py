@@ -129,3 +129,68 @@ class ParallelReviewPipeline:
         if not repo_folder_path or not os.path.exists(repo_folder_path):
              raise ValueError(f"Repository folder path not established or does not exist: {repo_folder_path}")
 
+        # Generate graph (common for all modes with a repo_folder_path)
+        # Ensure graph_folder_path is unique for each run type
+        mode_identifier = "local"
+        if pr_id: mode_identifier = f"pr-{pr_id}"
+        elif commit_hash: mode_identifier = f"commit-{commit_hash[:7]}"
+        
+        graph_repo_id = repo if repo else "local" # Handle case where repo might be None for local
+        graph_folder_path = os.path.join(".", "tmp", "graph", f"{graph_repo_id}-{mode_identifier}-{uuid.uuid4()}")
+        
+        G = generate_code_graph(repo_folder_path)
+        print_graph_info(G, repo_folder_path)
+        save_graph(graph_folder_path, G)
+
+        # Initialize tools with the graph folder path
+        self.tools = toolOrganizer(G,graph_folder_path)
+
+        # Update state with computed values
+        state["user_github_token"] = "" # user github token is not used in the pipeline after this, so should be empty so that it won't get exposed later
+        state["files"] = ""  # Reset files as they are not used after preprocessing
+        state["diff_str"] = "" # Reset diff_str as it is not used after preprocessing
+        state["diffs"] = diffs
+        state["current_diff"] = None
+        state["current_review"] = {"syntax": [], "standards": [], "error_analysis": []}
+        state["reviews"] = {}
+        state["repo_folder_path"] = repo_folder_path
+        state["fixes"] = []
+        state["max_tool_calls"] = state.get("max_tool_calls", 3)
+        state["messages"] = [f"Preprocessed PR {pr_id} for {user}/{repo}"]
+        
+        self.original_diffs = diffs.copy()  # Store original diffs
+        return state
+    def repo_summary_node(self, state: CodeReviewState):
+        repo_folder_path = state.get("repo_folder_path")  # Set in preprocess or code clone step
+        summarizer = RepoSummarizerAgent(self.llm)
+        repo_summary = summarizer.summarize_repository(repo_folder_path)
+        state["repo_summary"] = repo_summary
+        return state
+    def start_node(self, state: CodeReviewState):
+        if state["diffs"]:
+            state["current_diff"] = state["diffs"].pop(0)
+        return state
+
+    def _build_graph(self):
+        builder = StateGraph(CodeReviewState)
+        
+        # Add preprocessing node as entry point
+        builder.add_node("preprocess", self.preprocess)
+        # Add repo summary node
+        builder.add_node("repoSummary", self.repo_summary_node)
+        # Use the start_node that assigns current_diff before continuing.
+        builder.add_node("start", self.start_node)
+        
+        # Group 1: Run syntax_check, standard_check, and error_analysis in parallel
+        builder.add_node("syntax_check", self.run_syntax_check)
+        builder.add_node("standard_check", self.run_standard_check)
+        builder.add_node("error_analysis", self.run_error_analysis)
+        # Create join node for Group 1
+        builder.add_node("merge_1", lambda state: state)
+        builder.add_edge("preprocess", "repoSummary")
+        builder.add_edge("repoSummary", "start")
+        builder.add_edge("start", "syntax_check")
+        builder.add_edge("start", "standard_check")
+        builder.add_edge("start", "error_analysis")
+        builder.add_edge(["syntax_check", "standard_check", "error_analysis"], "merge_1")
+        
