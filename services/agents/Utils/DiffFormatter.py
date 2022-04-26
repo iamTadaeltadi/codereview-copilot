@@ -138,3 +138,72 @@ class DiffFormatter:
                 max_line_number_length = max(
                     [
                         len(str(change["new_line_number"]))
+                        for change in chunk["changes"]
+                        if change["type"] != "deletion"
+                    ]
+                )
+                for change in chunk["changes"]:
+                    if change["type"] == "addition":
+                        line_info = f"+ {change['new_line_number']}"
+                        line_info = line_info.rjust(max_line_number_length + 2)
+                    elif change["type"] == "deletion":
+                        line_info = " "
+                        line_info = "-" + line_info.rjust(max_line_number_length + 1)
+                    else:
+                        line_info = f" {change['new_line_number']}"
+                        line_info = line_info.rjust(max_line_number_length + 2)
+                    # spaces = ' ' * (15 - len(line_info))
+                    spaces = ""
+                    formatted_output.append(f"{line_info}{spaces}: {change['content']}")
+            final_output.append({
+                "id": id,
+                "file_path": file["file_path"],
+                "content":"\n".join(formatted_output)
+                })
+            id += 1
+            formatted_output = []
+        return final_output
+
+    def get_structured_diff(self):
+        """Return the structured diff data for programmatic use."""
+        return self.formatted_files
+
+def get_pr_diff(owner: str, repo: str, pull_number: str, user_github_token: t.Optional[str] = None) -> str:
+    """
+    Get .diff data for a github PR.
+
+    :param owner: Name of the owner of the repository.
+    :param repo: Name of the repository.
+    :param pull_number: Pull request number to retrive the diff for.
+    :param thought: Thought to be used for the request.
+
+    :return diff: .diff content for give pull request.
+    """
+    user_github_token = user_github_token if user_github_token else Config.GITHUB_TOKEN
+    diff_text = requests.get(
+        DIFF_URL.format(
+            owner=owner,
+            repo=repo,
+            pull_number=pull_number,
+        ),
+        headers= {        
+                "Accept": "application/vnd.github.v3+json",
+                "Authorization": f"Bearer {user_github_token}" if user_github_token else ""
+            }
+    ).text
+    return DiffFormatter(diff_text).parse_and_format()
+
+def get_pr_metadata(owner: str, repo: str, pull_number: str, user_github_token: t.Optional[str] = None) -> t.Dict:
+    """
+    Get metadata for a github PR.
+
+    :param owner: Name of the owner of the repository.
+    :param repo: Name of the repository.
+    :param pull_number: Pull request number to retrive the diff for.
+    :param thought: Thought to be used for the request.
+
+    :return metadata: Metadata for give pull request.
+    """
+    user_github_token = user_github_token if user_github_token else Config.GITHUB_TOKEN
+    data = requests.get(
+        PR_URL.format(
