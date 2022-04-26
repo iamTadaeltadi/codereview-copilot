@@ -120,3 +120,64 @@ class ReviewPipeline:
         # Main flow
         builder.add_edge("preprocess", "repoSummary")
         builder.add_edge("repoSummary", "syntax_check")
+        builder.add_edge("syntax_check", "standard_check")
+        builder.add_edge("standard_check", "error_analysis")
+        builder.add_edge("error_analysis", "generate_fix")
+
+        builder.add_edge("generate_fix","generate_review")
+
+        # Conditional edges after generating reviews
+        builder.add_conditional_edges("generate_review",
+                                      self.should_continue,
+                                      {"continue": "syntax_check", END: "final_summary"})
+        builder.set_entry_point("preprocess")
+
+        return builder.compile()
+
+    def run_syntax_check(self, state: CodeReviewState):
+        if self.original_diffs is None:
+            self.original_diffs = state["diffs"].copy()
+        syntax_checker = SyntaxCheckerAgent(self.llm)
+        state["current_diff"] = state["diffs"].pop(0)
+        result = syntax_checker.analyze(state["current_diff"])
+        state["current_review"] = {"syntax": [result]}
+        if "syntax" not in state["reviews"]:
+            state["reviews"]["syntax"] = []
+        state["reviews"]["syntax"].append(result)
+        return state
+
+    def run_standard_check(self, state: CodeReviewState):
+        standard_checker = StandardCheckerAgent(self.llm, self.standards)
+        result = standard_checker.check_compliance(state["current_diff"])
+        state["current_review"]["standards"] = [result]
+        if "standards" not in state["reviews"]:
+            state["reviews"]["standards"] = []
+        state["reviews"]["standards"].append(result)
+        return state
+    def run_error_analysis(self, state: CodeReviewState):
+        error_agent = ErrorAnalysisAgent(self.llm, self.tools, max_tool_calls=state["max_tool_calls"])
+        result = error_agent.graph.invoke({
+            "messages": [],
+            "issues":[],
+            "current_diff": state["current_diff"],
+            "total_tool_calls" : 0,
+            "repo_summary": state["repo_summary"],
+            "bug_state":{"issues": [], "tool_calls_made": [], "tool_call_count": 0},
+            "vuln_state":{"issues": [], "tool_calls_made": [], "tool_call_count": 0},
+        })
+        state["current_review"]["error_analysis"] = [
+            {
+                "messages": result["messages"],
+                "issues": result["issues"],
+                "current_diff": state["current_diff"],
+                "total_tool_calls": result["total_tool_calls"]
+            }
+        ]
+        if "error_analysis" not in state["reviews"]:
+            state["reviews"]["error_analysis"] = []
+        state["reviews"]["error_analysis"].append({
+                "messages": result["messages"],
+                "issues": result["issues"],
+                "current_diff": state["current_diff"],
+                "total_tool_calls": result["total_tool_calls"],
+                "tool_calls": result["bug_state"]["tool_calls_made"] + result["vuln_state"]["tool_calls_made"]
