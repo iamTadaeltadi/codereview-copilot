@@ -128,3 +128,67 @@ def generate_html_report(review_data):
         '''
         for index, file_data in enumerate(review_data["review"]['final'])
     )
+
+    # Format the HTML template with the data
+    html_content = f'''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Code Review Report</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body {{ background-color: #f8f9fa; }}
+            .nav-sidebar {{ position: sticky; top: 20px; }}
+            .review-section {{ margin-bottom: 2rem; }}
+            .issue-card {{ margin-bottom: 1rem; border-left: 4px solid #6c757d; }}
+            .vulnerability {{ border-left-color: #dc3545; }}
+            .syntax-issue {{ border-left-color: #ffc107; }}
+            .standard-issue {{ border-left-color: #0dcaf0; }}
+            pre {{ background-color: #f8f9fa; padding: 1rem; border-radius: 4px; }}
+            .file-header {{ background-color: #e9ecef; padding: 1rem; border-radius: 4px; }}
+            .fixes {{ display: block; padding: 1rem; margin-top: 1rem; color: #000; background-color: #fff; border: 1px solid #ddd; }}
+        </style>
+    </head>
+    <body>
+        <div class="container py-5">
+            <h1 class="mb-4">Code Review Report</h1>
+            
+            <!-- Summary Section -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Summary</h5>
+                    <p class="card-text">
+                        <span class="badge bg-danger">{critical_count} Critical Issues</span>
+                        <span class="badge bg-warning">{warning_count} Warnings</span>
+                        <span class="badge bg-info">{standards_count} Standards Issues</span>
+                    </p>
+                    <ul class="list-group list-group-flush">
+                        {file_summaries}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Navigation Sidebar -->
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="nav-sidebar">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Files Reviewed</h6>
+                                <div class="list-group">
+                                    {file_links}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div class="col-md-9">
+                    {main_content}
+                </div>
+            </div>
+        </div>
+
