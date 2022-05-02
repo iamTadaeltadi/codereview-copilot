@@ -159,3 +159,83 @@ class CommitViewSet(viewsets.ModelViewSet):
         try:
             repository_id = int(repository_id_str)
         except ValueError:
+            return Response({"detail": "repository_id must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            repository = get_object_or_404(DBRepository, pk=repository_id)
+        except ValueError: # Should be caught by get_object_or_404 for non-int pk
+             return Response({"detail": "Invalid repository_id format."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check permissions for the repository
+        if not CanAccessRepository().has_object_permission(request, self, repository):
+            raise PermissionDenied("You do not have permission to trigger reviews for this repository.")
+
+        commit_instance = None
+        try:
+            commit_instance = CommitModel.objects.get(repository=repository, commit_hash=commit_hash_from_request)
+        except CommitModel.DoesNotExist:
+            logger.info(f"Commit {commit_hash_from_request} not found in DB for repository {repository.repo_name}. Attempting to fetch from GitHub.")
+            if not request.user.github_access_token:
+                return Response(
+                    {"detail": f"Commit {commit_hash_from_request} not found in DB and no GitHub token available to fetch from GitHub."},
+                    status=status.HTTP_403_FORBIDDEN # 403 as token is missing for required action
+                )
+            
+            try:
+                owner_login = repository.owner.username
+                repo_name_only = repository.repo_name.split('/')[-1]
+                
+                gh_commit_data = get_single_commit_from_github(
+                    github_token=request.user.github_access_token,
+                    owner_login=owner_login,
+                    repo_name=repo_name_only,
+                    commit_sha=commit_hash_from_request
+                )
+                
+                # Transform and save/update the commit
+                commit_payload = gh_commit_data.get('commit', {})
+                author_payload = commit_payload.get('author', {})
+                # committer_payload = commit_payload.get('committer', {}) # If you store separate committer date
+                
+                gh_author_user = gh_commit_data.get('author')  # GitHub user object for author
+                gh_committer_user = gh_commit_data.get('committer') # GitHub user object for committer
+
+                timestamp_str = author_payload.get('date')
+                parsed_timestamp = None
+                if timestamp_str:
+                    parsed_timestamp = parse_datetime(timestamp_str)
+                
+                commit_defaults = {
+                    'message': commit_payload.get('message'),
+                    'author_github_id': str(gh_author_user.get('id')) if gh_author_user and gh_author_user.get('id') is not None else None,
+                    'committer_github_id': str(gh_committer_user.get('id')) if gh_committer_user and gh_committer_user.get('id') is not None else None,
+                    'url': gh_commit_data.get('html_url'),
+                    'timestamp': parsed_timestamp,
+                }
+                # Remove None values from defaults to prevent overriding existing valid fields with None
+                commit_defaults_cleaned = {k: v for k, v in commit_defaults.items() if v is not None}
+
+                commit_instance, created = CommitModel.objects.update_or_create(
+                    repository=repository,
+                    commit_hash=gh_commit_data.get('sha'), # Use sha from response
+                    defaults=commit_defaults_cleaned
+                )
+                if created:
+                    logger.info(f"Commit {commit_instance.commit_hash} fetched from GitHub and saved to DB for repository {repository.repo_name}.")
+                else:
+                    logger.info(f"Commit {commit_instance.commit_hash} fetched from GitHub and updated in DB for repository {repository.repo_name}.")
+
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    return Response({"detail": f"Commit {commit_hash_from_request} not found on GitHub for repository {repository.repo_name}."}, status=status.HTTP_404_NOT_FOUND)
+                elif e.response.status_code == 422: # Invalid SHA format
+                    return Response({"detail": f"Invalid commit SHA format: {commit_hash_from_request}."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+                logger.error(f"GitHub API error fetching commit {commit_hash_from_request} for repo {repository.id}: {e.response.text if e.response else str(e)}")
+                return Response({"detail": f"GitHub API error: {e.response.status_code if e.response else 'Unknown'}"}, status=status.HTTP_502_BAD_GATEWAY)
+            except Exception as e:
+                logger.error(f"Unexpected error fetching or saving commit {commit_hash_from_request} for repo {repository.id} from GitHub: {e}", exc_info=True)
+                return Response({"detail": "An unexpected error occurred while fetching commit from GitHub."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Check for existing reviews that are completed or in progress
+        existing_reviews = ReviewModel.objects.filter(
+            commit=commit_instance,
