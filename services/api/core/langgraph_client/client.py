@@ -148,3 +148,78 @@ class LangGraphClient:
         repo_settings: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Handle feedback for a review"""
+        if not self.feedback_agent:
+            await self.initialize()
+        github_token = await self._get_user_github_token(user_id)
+        try:
+            # Prepare input data for feedback
+            messages_for_langgraph = []
+            # Convert conversation_history to LangGraph message format if necessary
+            # For example: messages_for_langgraph = [(msg_role, msg_content) for msg_role, msg_content in conversation_history]
+            # Then add the current feedback
+            messages_for_langgraph.append(("user", feedback))
+
+            input_data = {
+                "messages": messages_for_langgraph, # Use the constructed history + new message
+                "feedback": feedback,
+                "reviewer_id": user_id, # This should be the ID of the user giving feedback
+                "thread_id": thread_id # thread_id is usually part of the run config, not input directly to messages
+            }
+            if is_first_message:
+                input_data.update({
+                    "original_review": review_data.get("review_data", {}).get("final_result", {}), # Assuming review_data contains the structure
+                    "updated_review": review_data.get("review_data", {}).get("final_result", {}), # Assuming final_result is the updated review
+                    "llm_model": repo_settings.get('llm_preference', settings.DEFAULT_LLM_MODEL),
+                    "user": review_data.get("repository", {}).get("owner", {}).get("username"), # Example, adjust as per actual data
+                    "repo": review_data.get("repository", {}).get("repo_name").split("/")[-1], # Example
+                    "user_github_token": github_token, # GitHub token for the user
+                    "pr_id": str(review_data.get("pull_request", {}).get("pr_number", "")) if review_data.get("pull_request") else None, # Example
+                    "standards": repo_settings.get('coding_standards', []),
+                    "metrics": repo_settings.get('code_metrics', []),
+                    "temperature": settings.DEFAULT_TEMPERATURE,
+                    "max_tokens": settings.DEFAULT_MAX_TOKENS,
+                    "max_tool_calls": settings.DEFAULT_MAX_TOOL_CALLS,
+                    "reviewer_id": user_id, # Already present
+                })
+            
+            # The thread_id for the run/wait call
+            config = {"recursion_limit": 99999999} # Configurable can be added if needed by your LangGraph setup
+
+            run = await self.client.runs.create( # Use create then join, or wait if your SDK version supports it well
+                assistant_id=self.feedback_agent['assistant_id'],
+                thread_id=thread_id,
+                input=input_data,
+                config=config # Pass config here if using create
+            )
+            
+            # Wait for the run to complete
+            completed_run = await self.client.runs.join(run_id=run['run_id'], thread_id=thread_id) # Adjust timeout
+
+            # Get the final state of the feedback
+            final_state = await self.client.threads.get_state(thread_id)
+            
+            # Fetch token usage if not in completed_run or final_state
+            # This part depends on your LangGraph SDK version and Langsmith client integration
+            # token_usage = completed_run.get('token_usage', {})
+            # if not token_usage and hasattr(self, 'langsmith_client'): # Hypothetical langsmith_client
+            token_usage = {}
+            try:
+                time.sleep(1)  # Optional: wait a bit for the run to be fully processed
+                meta = self.langsmith_client.read_run(run_id=run['run_id'])
+                token_usage = {
+                    'input_tokens': meta.prompt_tokens,
+                    'output_tokens': meta.completion_tokens,
+                    'total_tokens': meta.total_tokens
+                }
+            except Exception as e_ls:
+                logger.error(f"Could not fetch token usage from Langsmith: {e_ls}")
+
+            return {
+                'run_id': run['run_id'],
+                'feedback_data': final_state.get('values', {}), # Get the 'values' from the state
+                'token_usage': token_usage
+            }
+
+        except Exception as e:
+            logger.error(f"Error handling feedback: {str(e)}")
+            raise 
