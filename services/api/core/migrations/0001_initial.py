@@ -141,3 +141,74 @@ class Migration(migrations.Migration):
                 ('output_tokens', models.IntegerField()),
                 ('cost', models.FloatField()),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='llm_usages', to=settings.AUTH_USER_MODEL)),
+                ('review', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='llm_usages', to='core.review')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='ReviewFeedback',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('rating', models.IntegerField(validators=[django.core.validators.MinValueValidator(1), django.core.validators.MaxValueValidator(5)])),
+                ('feedback', models.TextField()),
+                ('review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='feedbacks', to='core.review')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='review_feedbacks', to=settings.AUTH_USER_MODEL)),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='Thread',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('status', models.CharField(default='open', max_length=20)),
+                ('langgraph_thread_id', models.CharField(blank=True, max_length=255, null=True)),
+                ('review', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='threads', to='core.review')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='Comment',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('comment', models.TextField()),
+                ('comment_data', models.JSONField(blank=True, null=True)),
+                ('type', models.CharField(choices=[('request', 'Request'), ('response', 'Response'), ('note', 'Note')], max_length=50)),
+                ('parent_comment', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='replies', to='core.comment')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to=settings.AUTH_USER_MODEL)),
+                ('thread', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='comments', to='core.thread')),
+            ],
+            options={
+                'abstract': False,
+            },
+        ),
+        migrations.CreateModel(
+            name='RepoCollaborator',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+                ('updated_at', models.DateTimeField(auto_now=True)),
+                ('role', models.CharField(choices=[('owner', 'Owner'), ('contributor', 'Contributor'), ('member', 'Member'), ('admin', 'Admin'), ('pull', 'Pull'), ('push', 'Push')], max_length=50)),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='repo_collaborations', to=settings.AUTH_USER_MODEL)),
+                ('repository', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='collaborators', to='core.repository')),
+            ],
+            options={
+                'unique_together': {('repository', 'user')},
+            },
+        ),
+        migrations.AddConstraint(
+            model_name='review',
+            constraint=models.CheckConstraint(condition=models.Q(('pull_request__isnull', False), ('commit__isnull', False), _connector='OR'), name='check_review_context'),
+        ),
+    ]
