@@ -156,3 +156,82 @@ class Review(TimestampMixin):
         ]
 
     def __str__(self):
+        if self.pull_request:
+            return f"Review for PR #{self.pull_request.pr_number}"
+        elif self.commit:
+            return f"Review for Commit {self.commit.commit_hash[:7]}"
+        return f"Review {self.id}"
+
+class Thread(TimestampMixin):
+    review = models.ForeignKey(Review, related_name='threads', on_delete=models.CASCADE)
+    thread_id = models.CharField(max_length=255, unique=True, help_text="LangGraph thread ID") # Added unique=True
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='created_threads', on_delete=models.SET_NULL, null=True, blank=True)
+    status = models.CharField(max_length=20, default='open')
+    title = models.CharField(max_length=255, blank=True, null=True, help_text="Optional thread title or topic")
+    thread_type = models.CharField(max_length=50, default='main', help_text="Type of thread (main, feedback, followup, etc.)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True) # To track overall thread activity
+    last_comment_at = models.DateTimeField(null=True, blank=True) # New field for signal
+
+    def __str__(self):
+        return f"Thread for Review {self.review.id} - {self.thread_id}"
+
+class Comment(TimestampMixin):
+    COMMENT_TYPE_CHOICES = [
+        ('request', 'Request'),
+        ('response', 'Response'),
+        ('note', 'Note'),
+    ]
+    thread = models.ForeignKey(Thread, related_name='comments', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='comments', on_delete=models.CASCADE)
+    comment = models.TextField()
+    comment_data = models.JSONField(null=True, blank=True) # Alembic: comment_data (JSONB)
+    type = models.CharField(max_length=50, choices=COMMENT_TYPE_CHOICES) # Alembic: comment_type_enum
+    parent_comment = models.ForeignKey('self', related_name='replies', null=True, blank=True, on_delete=models.SET_NULL)
+
+    def __str__(self):
+        return f"Comment by {self.user.username} on Thread {self.thread.id}"
+
+class LLMUsage(TimestampMixin):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='llm_usages', on_delete=models.CASCADE)
+    review = models.ForeignKey(Review, related_name='llm_usages', null=True, blank=True, on_delete=models.CASCADE)
+    llm_model = models.CharField(max_length=255)
+    input_tokens = models.IntegerField()
+    output_tokens = models.IntegerField()
+    cost = models.FloatField()
+
+    def __str__(self):
+        return f"LLM Usage by {self.user.username} for Review {self.review.id if self.review else 'N/A'}"
+
+class ReviewFeedback(TimestampMixin):
+    review = models.ForeignKey(Review, related_name='feedbacks', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='review_feedbacks', on_delete=models.CASCADE)
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)]) # Alembic: check_rating_range
+    feedback = models.TextField()
+
+    def __str__(self):
+        return f"Feedback by {self.user.username} for Review {self.review.id} (Rating: {self.rating})"
+
+class WebhookEventLog(TimestampMixin):
+    repository = models.ForeignKey(Repository, related_name='webhook_events', on_delete=models.CASCADE, null=True, blank=True)
+    event_id = models.CharField(max_length=255, unique=True, null=True, blank=True, help_text="GitHub event ID (X-GitHub-Delivery)")
+    event_type = models.CharField(max_length=100, help_text="e.g., pull_request, push")
+    payload = models.JSONField()
+    headers = models.JSONField(null=True, blank=True)
+    status = models.CharField(max_length=20, default='received', choices=[
+        ('received', 'Received'),
+        ('processed', 'Processed'),
+        ('failed', 'Failed'),
+    ])
+    error_message = models.TextField(null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        repo_name = self.repository.repo_name if self.repository else "Unknown"
+        return f"Event {self.event_id} ({self.event_type}) - {repo_name} - {self.status}"
+
+# Remember to add 'core.apps.CoreConfig' to INSTALLED_APPS in django_backend/settings.py
+# Also, set AUTH_USER_MODEL = 'core.User' in django_backend/settings.py if you use this User model for authentication.
+# Then run:
+# python manage.py makemigrations core
+# python manage.py migrate
