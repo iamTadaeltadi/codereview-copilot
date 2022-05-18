@@ -149,3 +149,78 @@ class PullRequestViewSet(viewsets.ModelViewSet):
         Args:
             pk: The ID of the PullRequest model instance
         
+        Returns:
+            Response with the review ID and status
+        """
+        repository_id = request.data.get('repository_id')
+        pr_number_str = request.data.get('pr_number')
+
+        if not repository_id or pr_number_str is None:
+            return Response(
+                {"detail": "repository_id and pr_number are required in the request body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            pr_number = int(pr_number_str)
+        except ValueError:
+            return Response({"detail": "pr_number must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            repository = get_object_or_404(DBRepository, pk=repository_id)
+        except ValueError: # Handles non-integer repository_id
+            return Response({"detail": "Invalid repository_id format."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Check permissions for the repository
+        # The view instance 'self' is PullRequestViewSet here.
+        if not CanAccessRepository().has_object_permission(request, self, repository):
+            raise PermissionDenied("You do not have permission to trigger reviews for this repository.")
+
+        try:
+            pr = PRModel.objects.get(repository=repository, pr_number=pr_number)
+        except PRModel.DoesNotExist:
+            logger.info(f"Pull Request #{pr_number} not found in DB for repository {repository.repo_name}. Attempting to fetch from GitHub.")
+            if not request.user.github_access_token:
+                return Response({"detail": f"Pull Request #{pr_number} not found in DB and no GitHub token available to fetch from GitHub."}, status=status.HTTP_404_NOT_FOUND)
+            
+            try:
+                owner_login = repository.owner.username
+                repo_name_only = repository.repo_name.split('/')[-1]
+                
+                gh_pr_data = get_single_pull_request_from_github(
+                    github_token=request.user.github_access_token,
+                    owner_login=owner_login,
+                    repo_name=repo_name_only,
+                    pr_number=pr_number
+                )
+                
+                # Transform and save the PR if found on GitHub
+                user_data = gh_pr_data.get('user', {})
+                head_data = gh_pr_data.get('head', {})
+                base_data = gh_pr_data.get('base', {})
+
+                pr, created = PRModel.objects.update_or_create(
+                    repository=repository,
+                    pr_number=pr_number,
+                    defaults={
+                        'pr_github_id': str(gh_pr_data.get('id')),
+                        'title': gh_pr_data.get('title'),
+                        'body': gh_pr_data.get('body'),
+                        'author_github_id': str(user_data.get('id')) if user_data else None,
+                        'status': gh_pr_data.get('state'),
+                        'url': gh_pr_data.get('html_url'),
+                        'head_sha': head_data.get('sha'),
+                        'base_sha': base_data.get('sha'),
+                    }
+                )
+                if created:
+                    logger.info(f"Pull Request #{pr_number} fetched from GitHub and saved to DB for repository {repository.repo_name}.")
+                else:
+                    logger.info(f"Pull Request #{pr_number} fetched from GitHub and updated in DB for repository {repository.repo_name}.")
+
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    return Response({"detail": f"Pull Request #{pr_number} not found on GitHub for repository {repository.repo_name}."}, status=status.HTTP_404_NOT_FOUND)
+                logger.error(f"GitHub API error fetching PR #{pr_number} for repo {repository.id}: {e.response.text if e.response else str(e)}")
+                return Response({"detail": f"GitHub API error: {e.response.status_code if e.response else 'Unknown'}"}, status=status.HTTP_502_BAD_GATEWAY)
+            except Exception as e:
