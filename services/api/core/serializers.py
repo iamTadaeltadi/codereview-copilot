@@ -154,3 +154,80 @@ class CommitSerializer(serializers.ModelSerializer):
     # author_date = serializers.DateTimeField(read_only=True, required=False) # Covered by model's timestamp
     committer_name = serializers.CharField(read_only=True, required=False, allow_null=True)
     committer_email = serializers.EmailField(read_only=True, required=False, allow_null=True)
+    committed_date = serializers.DateTimeField(read_only=True, required=False, allow_null=True)
+
+
+    class Meta:
+        model = Commit
+        fields = [
+            'id', 'repository', 'repository_id', # Standard fields
+            'commit_hash', 'message', 'author_github_id', 'committer_github_id', 
+            'url', 'timestamp', # Model fields
+            'author_name', 'author_email', # Additional GitHub data
+            'committer_name', 'committer_email', 'committed_date', # Additional GitHub data
+            'created_at', 'updated_at', # Timestamps from TimestampMixin
+            'source'
+        ]
+        read_only_fields = [
+            'id', 'repository', 'created_at', 'updated_at', 'source',
+            'author_name', 'author_email', 
+            'committer_name', 'committer_email', 'committed_date'
+        ]
+    def to_representation(self, instance):
+        """
+        Augment the representation with non-model fields from initial_data
+        when the serializer was initialized with `data=...`.
+        """
+        representation = super().to_representation(instance)
+
+        if hasattr(self, 'initial_data') and self.initial_data:
+            non_model_fields = [
+                'author_name', 'author_email',
+                'committer_name', 'committer_email', 'committed_date'
+            ]
+            for field_name in non_model_fields:
+                if field_name in self.initial_data:
+                    representation[field_name] = self.initial_data[field_name]
+        
+        if self.context.get('source'):
+            representation['source'] = self.context.get('source')
+        elif 'source' not in representation: # Default if not set by super and not in context
+            representation['source'] = None
+            
+        return representation
+class ReviewFeedbackSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True) # Feedback is always by the logged-in user
+    review = serializers.PrimaryKeyRelatedField(queryset=Review.objects.all())
+
+    class Meta:
+        model = ReviewFeedback
+        fields = ['id', 'review', 'user', 'rating', 'feedback', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        # User is set from the request context in the view
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class CommentSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True) # Comment is always by the logged-in user
+    thread = serializers.PrimaryKeyRelatedField(queryset=Thread.objects.all())
+    parent_comment = serializers.PrimaryKeyRelatedField(queryset=Comment.objects.all(), allow_null=True, required=False)
+    # replies = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Comment
+        fields = [
+            'id', 'thread', 'user', 'comment', 'comment_data', 'type', 
+            'parent_comment', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'thread', 'created_at', 'updated_at']
+
+    def get_replies(self, obj):
+        # Avoids excessively deep nesting or circular dependencies if not careful
+        if self.context.get('depth', 0) > 10: # Control nesting depth
+            return []
+        
+        # Create a new context with incremented depth
+        new_context = self.context.copy()
+        new_context['depth'] = self.context.get('depth', 0) + 1
