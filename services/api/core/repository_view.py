@@ -138,3 +138,73 @@ class RepositoryViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def collaborators(self, request, pk=None):
         """Get collaborators from GitHub for this repository."""
+        repository = self.get_object() # Applies CanAccessRepository permission
+        if not request.user.github_access_token:
+            return Response({"error": "GitHub access token not available for current user."}, status=status.HTTP_400_BAD_REQUEST)
+        if not repository.owner or not repository.owner.username:
+             return Response({"error": "Repository owner or owner's GitHub username not found."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            page = int(request.query_params.get('page', 1))
+            per_page = int(request.query_params.get('per_page', 30))
+            github_collaborators_data = get_repo_collaborators_from_github(
+                owner_login=repository.owner.username,
+                repo_name=repository.repo_name.split("/")[1],
+                github_token=request.user.github_access_token,
+                page=page,
+                per_page=per_page
+            )
+            
+            # --- NEW: if the signed-in user is in that list, make sure they exist in our table ---
+            for gh in github_collaborators_data:
+                if str(gh["id"]) == str(request.user.github_id):
+                    RepoCollaborator.objects.update_or_create(
+                        repository=repository,
+                        user=request.user,
+                        defaults={"role": gh.get("permissions", {}).get("push") and "member" or "read"}
+                    )
+                    break
+            # -------------------------------------------------------------------------------
+            serializer = GitHubCollaboratorSerializer(github_collaborators_data, many=True)
+            return Response(serializer.data)
+        except Exception as e:
+            # Log error e
+            return Response({"error": f"Failed to fetch collaborators from GitHub: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'], url_path='registered-collaborators')
+    def registered_collaborators(self, request, pk=None):
+        """Get registered collaborators in the system for this repository."""
+        repository = self.get_object() # Applies CanAccessRepository permission
+        collaborators = RepoCollaborator.objects.filter(repository=repository)
+        serializer = RepoCollaboratorSerializer(collaborators, many=True)
+        return Response(serializer.data)
+
+    # The get_repository_by_github_id from FastAPI is slightly different from DRF's default retrieve.
+    # We can add it as a list route action or a separate view if preferred.
+    # For now, let's assume client will use /api/v1/repositories/{id}/ (PK) or filter list view.
+    # If a dedicated /repositories/by-github-id/{github_id} is needed:
+    @action(detail=False, methods=['get'], url_path='by-github-id/(?P<github_id>[0-9]+)')
+    def by_github_id(self, request, github_id=None):
+         repository = get_object_or_404(DBRepository, github_native_id=github_id)
+         # apply IsAuthenticated + CanAccessRepository
+         self.check_object_permissions(request, repository)
+         serializer = self.get_serializer(repository)
+         return Response(serializer.data)
+    @action(detail=True, methods=['get'], url_path='pulls/(?P<pr_number>[0-9]+)')
+    def retrieve_pull_request(self, request, pk=None, pr_number=None):
+        repository = self.get_object() # pk is repo_id, permission check done by get_object
+
+        try:
+            pr_instance = PRModel.objects.get(repository=repository, pr_number=pr_number)
+            serializer = PRSerializer(pr_instance)
+            data = serializer.data
+            data['source'] = 'db' # Add source information
+            return Response(data)
+        except PRModel.DoesNotExist:
+            if not request.user.github_access_token:
+                return Response({"detail": "Pull Request not found in DB and no GitHub token available to fetch from GitHub."}, status=status.HTTP_404_NOT_FOUND)
+            
+            try:
+                owner_login = repository.owner.username # Assumes User model has username as GitHub login
+                repo_name_only = repository.repo_name.split('/')[-1]
+                
