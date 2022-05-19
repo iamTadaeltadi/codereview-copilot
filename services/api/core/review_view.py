@@ -148,3 +148,78 @@ class ReviewViewSet(viewsets.ModelViewSet):
         threads_qs = ThreadModel.objects.filter(review=review)
         serializer = ThreadSerializer(threads_qs, many=True) # Assuming ThreadSerializer exists
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def create_thread(self, request, pk=None):
+        review = self.get_object()
+        title = request.data.get('title', f'Conversation for Review {review.id}')
+
+        loop = None
+        try:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            langgraph_client = LangGraphClient()
+            loop.run_until_complete(langgraph_client.initialize())
+            langgraph_thread = loop.run_until_complete(langgraph_client.client.threads.create())
+            langgraph_thread_id = langgraph_thread.get('thread_id')
+        except Exception as exc:
+            logger.error(f'Failed to create LangGraph thread for review {review.id}: {exc}', exc_info=True)
+            return Response(
+                {'detail': 'Failed to initialize a discussion thread for this review.'},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        finally:
+            try:
+                if loop is not None:
+                    loop.close()
+            except Exception:
+                pass
+
+        new_thread = ThreadModel.objects.create(
+            review=review,
+            title=title,
+            thread_id=langgraph_thread_id,
+            status='open',
+            created_by=request.user,
+        )
+        serializer = ThreadSerializer(new_thread)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    @action(detail=True, methods=['post'])
+    def re_review(self, request, pk=None):
+        review = self.get_object()
+        issues = request.data.get('issues', [])
+        
+        if not issues:
+            return Response(
+                {"detail": "No issues provided for re-review"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        try:
+            # Create new review based on previous one
+            new_review = ReviewModel.objects.create(
+                repository=review.repository,
+                pull_request=review.pull_request,
+                commit=review.commit,
+                status='pending',
+                parent_review=review
+            )
+            
+            # Trigger re-review process
+            process_pr_review.delay({
+                'pull_request': {
+                    'number': review.pull_request.pr_number if review.pull_request else None,
+                    'user': {'id': request.user.id},
+                    'base': {
+                        'repo': {
+                            'owner': {'login': review.repository.owner.username},
+                            'name': review.repository.repo_name.split('/')[-1]
+                        }
+                    }
+                },
+                'repository': {
+                    'owner': {'login': review.repository.owner.username},
+                    'name': review.repository.repo_name.split('/')[-1]
+                }
+            })
+            
