@@ -156,3 +156,82 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
         
         if not client.review_agent:
             logger.error("PROCESS_PR_REVIEW_TASK: LangGraph review agent not available after initialization.")
+            raise Exception("LangGraph review agent not available.")
+
+        pr_github_payload = event_data.get('pull_request', {})
+        if not pr_github_payload:
+            logger.error(f"PROCESS_PR_REVIEW_TASK: Missing 'pull_request' data in event_data for review {review.id}")
+            raise ValueError("Pull request data missing from webhook event for LangGraph")
+
+        repo_settings = {
+            'coding_standards': repo.coding_standards or [],
+            'code_metrics': repo.code_metrics or [],
+            'llm_preference': repo.llm_preference or settings.DEFAULT_LLM_MODEL,
+        }
+        pr_author_github_id = str(pr_github_payload.get('user', {}).get('id'))
+        pr_author_login = pr_github_payload.get('user', {}).get('login', 'unknown_user')
+
+        logger.info(f"PROCESS_PR_REVIEW_TASK: Calling LangGraph to generate review for review ID {review.id}")
+         # Run the async generate_review method
+        review_result = loop.run_until_complete(client.generate_review(
+            pr_data=pr_github_payload,
+            repo_settings=repo_settings,
+            user_id=pr_author_github_id 
+        ))
+        logger.info(f"PROCESS_PR_REVIEW_TASK: LangGraph review generated for review ID {review.id}")
+
+        raw_review_data = review_result.get('review_data', {})
+        allowed_review_keys = ["repo", "user", "fixes", "metrics", "reviews", "llm_model", "standards",'final_result']
+        filtered_review_data = {key: raw_review_data[key] for key in allowed_review_keys if key in raw_review_data}
+        
+        review.review_data = filtered_review_data
+        review.status = 'completed'
+        review.save()
+        logger.info(f"PROCESS_PR_REVIEW_TASK: Review {review.id} updated and saved as completed.")
+
+        # Create a main thread for this review
+        thread_id = review_result.get('thread_id') or uuid.uuid4().hex  # Use a UUID if no thread_id provided
+        if thread_id:
+            Thread.objects.create(
+                review=review,
+                thread_id=thread_id,
+                thread_type='main',
+                title='Initial AI Review',
+                status='open'
+            )
+            logger.info(f"PROCESS_PR_REVIEW_TASK: Created main thread for review {review.id}")
+
+        token_usage_data = review_result.get('token_usage', {})
+        if token_usage_data:
+            user_for_llm_usage = None
+            if triggering_user_id:
+                try:
+                    user_for_llm_usage = User.objects.get(id=triggering_user_id)
+                    logger.info(f"PROCESS_PR_REVIEW_TASK: LLMUsage will be attributed to triggering user ID: {triggering_user_id}")
+                except User.DoesNotExist:
+                    logger.warning(f"PROCESS_PR_REVIEW_TASK: Triggering user with ID {triggering_user_id} not found. Falling back to PR author for LLMUsage.")
+
+            if not user_for_llm_usage: # Fallback to PR author
+                logger.info(f"PROCESS_PR_REVIEW_TASK: LLMUsage will be attributed to PR author GitHub ID: {pr_author_github_id}")
+                user_for_llm_usage, _ = User.objects.get_or_create(
+                    github_id=pr_author_github_id,
+                    defaults={
+                        'username': pr_author_login,
+                        'email': pr_github_payload.get('user', {}).get('email') # Ensure your User model handles potentially null email
+                    }
+                )
+            
+            LLMUsage.objects.create(
+                review=review, user=user_for_llm_usage,
+                llm_model=repo_settings['llm_preference'],
+                input_tokens=token_usage_data.get('prompt_tokens', 0),
+                output_tokens=token_usage_data.get('completion_tokens', 0),
+                cost=calculate_cost(token_usage_data, repo_settings['llm_preference'])
+            )
+            logger.info(f"PROCESS_PR_REVIEW_TASK: LLM usage recorded for review {review.id} by user {user_for_llm_usage.username}.")
+
+        github_service = GitHubService() 
+        review_url = f"{settings.FRONTEND_URL}/reviews/{review.id}"
+        comment_body = (
+            f"🤖 AI Code Review Complete!\n\n"
+            f"Status: {review.status}\n"
