@@ -143,3 +143,75 @@ def get_repository_commits_from_github(github_token: str, owner_login: str, repo
         "Authorization": f"token {github_token}",
         "Accept": "application/vnd.github.v3+json",
     }
+    params = {"per_page": per_page, "page": page}
+    
+    url = f"https://api.github.com/repos/{owner_login}/{repo_name}/commits"
+    response = requests.get(url, headers=headers, params=params)
+    response.raise_for_status()  # Raise an exception for bad status codes
+    return response.json()
+
+def get_repository_pull_requests_from_github(github_token: str, owner_login: str, repo_name: str, state: str = "all", sort: str = "created", direction: str = "desc", per_page: int = 30, page: int = 1):
+    """
+    Fetches pull requests for a specific repository from the GitHub API.
+    'state' can be 'open', 'closed', or 'all'.
+    'sort' can be 'created', 'updated', 'popularity', 'long-running'.
+    'direction' can be 'asc' or 'desc'.
+    """
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    params = {
+        "state": state,
+        "sort": sort,
+        "direction": direction,
+        "per_page": per_page,
+        "page": page,
+    }
+    url = f"https://api.github.com/repos/{owner_login}/{repo_name}/pulls"
+    response = requests.get(url, headers=headers, params=params)
+    response.raise_for_status()  # Raise an exception for bad status codes
+    return response.json()
+
+def get_single_pull_request_from_github(github_token: str, owner_login: str, repo_name: str, pr_number: int):
+    """
+    Fetches a single pull request by its number for a specific repository from the GitHub API.
+    """
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json",
+    }
+    url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()  # Raise an exception for bad status codes (404 if not found)
+    return response.json()
+
+def get_single_commit_from_github(github_token: str, owner_login: str, repo_name: str, commit_sha: str):
+    """
+    Fetches a single commit by its SHA for a specific repository from the GitHub API.
+    """
+    headers = {
+        "Authorization": f"token {github_token}",
+        "Accept": "application/vnd.github.v3+json", # Or "application/vnd.github.sha" for just the SHA
+    }
+    url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/commits/{commit_sha}"
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()  # Raise an exception for bad status codes (404 if not found, 422 for invalid SHA)
+    return response.json()
+
+# LangGraph service wrapper
+class LangGraphService:
+    """Synchronous wrapper around the async LangGraph client used by Django views."""
+
+    def __init__(self):
+        self.base_url = settings.LANGGRAPH_API_URL.rstrip('/')
+
+    def _run(self, coro):
+        import asyncio
+        return asyncio.run(coro)
+
+    def initialize_review(self, pr_data, repo_settings, user_github_id):
+        """Initialize and execute a review run through the LangGraph client."""
+        from .langgraph_client.client import LangGraphClient
+
+        async def _execute():
