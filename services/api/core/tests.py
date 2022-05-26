@@ -160,3 +160,84 @@ class PermissionTests(TestCase):
     @patch("core.permissions.get_repo_collaborators_from_github")
     def test_can_access_repository_syncs_github_collaborator(self, mock_get_collabs):
         mock_get_collabs.return_value = [
+            {"id": int(self.member.github_id), "permissions": {"push": True}}
+        ]
+        request = self.factory.get("/")
+        request.user = self.member
+
+        allowed = CanAccessRepository().has_object_permission(request, None, self.repository)
+
+        self.assertTrue(allowed)
+        self.assertTrue(RepoCollaborator.objects.filter(repository=self.repository, user=self.member).exists())
+
+    @patch("core.permissions.get_single_pull_request_from_github")
+    def test_is_assigned_reviewer_for_thread_uses_requested_reviewers(self, mock_get_pr):
+        mock_get_pr.return_value = {
+            "requested_reviewers": [{"id": int(self.member.github_id), "login": self.member.username}]
+        }
+        request = self.factory.get("/")
+        request.user = self.member
+
+        allowed = IsAssignedReviewerForThread().has_object_permission(request, None, self.thread)
+
+        self.assertTrue(allowed)
+
+
+class UserViewTests(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.user = get_user_model().objects.create_user(
+            github_id="5001",
+            username="view-user",
+            password="pw",
+            github_access_token="token-123",
+            email="view@example.com",
+        )
+
+    def test_current_user_view_returns_authenticated_user(self):
+        request = self.factory.get("/api/v1/user/")
+        force_authenticate(request, user=self.user)
+
+        response = CurrentUserView.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["username"], self.user.username)
+
+    @patch("core.user_view.get_user_repos_from_github")
+    def test_user_repositories_view_marks_registered_repositories(self, mock_get_repos):
+        repository = Repository.objects.create(
+            owner=self.user,
+            github_native_id=321,
+            repo_name="view-user/registered-repo",
+            repo_url="https://github.com/view-user/registered-repo",
+        )
+        mock_get_repos.return_value = [
+            {
+                "id": 321,
+                "name": "registered-repo",
+                "full_name": repository.repo_name,
+                "private": False,
+                "html_url": repository.repo_url,
+                "description": "registered",
+                "owner": {"login": self.user.username},
+            },
+            {
+                "id": 322,
+                "name": "other-repo",
+                "full_name": f"{self.user.username}/other-repo",
+                "private": True,
+                "html_url": "https://github.com/view-user/other-repo",
+                "description": "other",
+                "owner": {"login": self.user.username},
+            },
+        ]
+        request = self.factory.get("/api/v1/user/repos/?page=1&per_page=30")
+        force_authenticate(request, user=self.user)
+
+        response = UserRepositoriesView.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
+        registered = {item["id"]: item for item in response.data}
+        self.assertTrue(registered[321]["is_registered_in_system"])
+        self.assertEqual(registered[321]["system_id"], repository.id)
+        self.assertFalse(registered[322]["is_registered_in_system"])
