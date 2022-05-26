@@ -120,3 +120,64 @@ class ThreadViewSet(viewsets.ModelViewSet):
             review_model_instance = thread.review
             review_data_for_lg = {}
             repo_settings_for_lg = {}
+
+            if is_first_message_in_thread:
+                # Serialize review and repository for context
+                # This is a simplified example; you might need more detailed serialization
+                review_data_for_lg = ReviewSerializer(review_model_instance).data
+                
+                repo_settings_for_lg = {
+                    'llm_preference': review_model_instance.repository.llm_preference or settings.DEFAULT_LLM_MODEL,
+                    'coding_standards': review_model_instance.repository.coding_standards or [],
+                    'code_metrics': review_model_instance.repository.code_metrics or [],
+                } 
+            response = loop.run_until_complete(
+                langgraph_client_instance.handle_feedback(
+                    feedback=message,
+                    thread_id=thread.thread_id,  # This is the LangGraph native thread_id
+                    user_id=str(request.user.github_id),
+                    # conversation_history=conversation_history, # If you want to pass the history
+                    is_first_message=is_first_message_in_thread,
+                    review_data=review_data_for_lg,
+                    repo_settings=repo_settings_for_lg
+            ))
+            # response = async_to_sync(langgraph_client_instance.handle_feedback)(
+            #     # review_id=str(thread.review.id),
+            #     feedback=message,
+            #     thread_id=thread.thread_id, # This is the LangGraph native thread_id
+            #     user_id=str(request.user.id),
+            #     # conversation_history=conversation_history,
+            #     is_first_message=is_first_message_in_thread,
+            #     review_data=review_data_for_lg,
+            #     repo_settings=repo_settings_for_lg
+            # )
+            # Extract AI response and token usage
+            ai_response_content = response.get('feedback_data', {}).get('messages', [])[-1]
+            # Extract the last AI message, assuming it's the latest response
+            actual_ai_message = "No response generated."
+            if ai_response_content and isinstance(ai_response_content, tuple) and ai_response_content[0] == 'ai':
+                actual_ai_message = ai_response_content[1]
+            elif isinstance(ai_response_content, dict) and ai_response_content.get('type') == 'ai': # Adjust if structure is different
+                 actual_ai_message = ai_response_content.get('content', actual_ai_message)
+
+
+            token_usage = response.get('token_usage', {})
+            
+            # Filter the feedback_data before saving
+            raw_feedback_data = response.get('feedback_data', {})
+            allowed_keys = [
+                "repo", "user", "fixes", "pr_id", "llm_model", "metrics", 
+                "reviews", "original_review", "updated_review", "messages", 
+                "feedback", "standards", "re_run_plan", "reviewer_id", 
+                "sufficiency", "instructions", "feedback_status", 
+                "feedback_suggestion", "feedback_explanation", 
+                "sufficiency_suggestion", "sufficiency_explanation"
+            ]
+            filtered_feedback_data = {key: raw_feedback_data[key] for key in allowed_keys if key in raw_feedback_data}
+            
+            ai_comment = CommentModel.objects.create(
+                thread=thread,
+                user=ai_user,
+                comment=actual_ai_message, # Use extracted message
+                type='response',
+                parent_comment=user_comment,
