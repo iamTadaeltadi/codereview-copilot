@@ -140,3 +140,74 @@ def parse_file(file_path, file_extension):
         with open(file_path, "r", encoding="utf-8") as file:
             file_content = file.read()
     except Exception as e:
+        print(f"Error reading file {file_path}: {e}")
+        return {}
+
+    # Check if language is available
+    if not set_language_for_file(file_extension):
+        print(f"Skipping parsing for {file_path}: language not available")
+        return {"classes": [], "functions": []}
+
+    tree = parser.parse(bytes(file_content, "utf-8"))
+    root_node = tree.root_node
+
+    if file_extension == ".py":
+        return parse_python_like_file(root_node)
+    elif file_extension == ".js":
+        return parse_javascript_like_file(root_node)
+    elif file_extension == ".java":
+        return parse_java_like_file(root_node)
+    elif file_extension == ".c":
+        return parse_c_file(root_node)
+
+    return {"classes": [], "functions": []}
+
+def parse_python_like_file(root_node):
+    """Parse Python-like files for classes and functions."""
+    return extract_definitions(root_node, ["class_definition", "function_definition"])
+
+def parse_javascript_like_file(root_node):
+    """Parse JavaScript-like files for classes and functions."""
+    return extract_definitions(root_node, ["class", "function"])
+
+def parse_java_like_file(root_node):
+    """Parse Java-like files for classes and methods."""
+    return extract_definitions(root_node, ["class_declaration", "method_declaration"])
+
+def parse_c_file(root_node):
+    """Parse C files for function definitions."""
+    return extract_definitions(root_node, ["function_definition"])
+
+def extract_definitions(node, definition_types):
+    """Extract class and function/method definitions from the syntax tree."""
+    classes = []
+    functions = []
+
+    for child in node.children:
+        if child.type in definition_types:
+            name_node = next((c for c in child.children if c.type == "identifier"), None)
+            name = name_node.text.decode("utf-8") if name_node else "unknown"
+            start_line, end_line = child.start_point[0] + 1, child.end_point[0] + 1
+
+            if child.type in ["class", "class_definition", "class_declaration"]:
+                classes.append({
+                    "name": name,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                    "methods": extract_definitions(child, ["method_definition", "method_declaration"])["functions"],
+                })
+            elif child.type in ["function", "function_definition", "method_declaration"]:
+                functions.append({
+                    "name": name,
+                    "start_line": start_line,
+                    "end_line": end_line,
+                })
+
+        extracted = extract_definitions(child, definition_types)
+        classes.extend(extracted.get("classes", []))
+        functions.extend(extracted.get("functions", []))
+
+    return {
+        "classes": classes,
+        "functions": functions
+    }
