@@ -155,3 +155,81 @@ class CodeGraph:
             kind = "write" if inside_assignment else "read"
             dependencies.append(
                 Tag(
+                    rel_fname=rel_fname,
+                    fname=current_function,  # The enclosing function’s name
+                    line=[node.start_point[0] + 1, node.end_point[0] + 1],
+                    name=var_name,
+                    kind=kind,               # "read" or "write"
+                    category="var_dependency",
+                    info={}
+                )
+            )
+
+        elif node.type == "attribute":
+            # e.g. "self.x" or "obj.prop" in Python
+            var_name = node.text.decode("utf-8")
+            kind = "write" if inside_assignment else "read"
+            dependencies.append(
+                Tag(
+                    rel_fname=rel_fname,
+                    fname=current_function,  # The enclosing function’s name
+                    line=[node.start_point[0] + 1, node.end_point[0] + 1],
+                    name=var_name,
+                    kind=kind,
+                    category="var_dependency",
+                    info={"is_attribute": True}
+                )
+            )
+
+        # Recurse further if we're not specifically dividing assignment left/right
+        if node.type not in ("assignment", "augmented_assignment_expression"):
+            for child in node.children:
+                dependencies.extend(
+                    self.extract_variable_attributes(child, rel_fname, current_function, inside_assignment)
+                )
+
+        return dependencies
+
+    def extract_inheritance_tags(self, class_node, file_extension, rel_fname, class_name):
+        """
+        Detect class inheritance. Returns a list of Tag objects representing 'inherits_from'.
+        """
+        inheritance_tags = []
+
+        if file_extension == ".py":
+            arg_list_node = next((c for c in class_node.children if c.type == "argument_list"), None)
+            if arg_list_node:
+                parent_ids = [c.text.decode("utf-8") for c in arg_list_node.children if c.type == "identifier"]
+                for parent_cls in parent_ids:
+                    inheritance_tags.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[class_node.start_point[0] + 1, class_node.end_point[0] + 1],
+                            name=f"{class_name}->{parent_cls}",
+                            kind="inherits",
+                            category="class_inheritance",
+                            info={"child_class": class_name, "parent_class": parent_cls}
+                        )
+                    )
+
+
+        elif file_extension == ".java":
+            superclass_node = next((c for c in class_node.children if c.type == "superclass"), None)
+            if superclass_node:
+                type_identifier = next((c for c in superclass_node.children if c.type == "type_identifier"), None)
+                if type_identifier:
+                    parent_cls = type_identifier.text.decode("utf-8")
+                    inheritance_tags.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[class_node.start_point[0] + 1, class_node.end_point[0] + 1],
+                            name=f"{class_name}->{parent_cls}",
+                            kind="inherits",
+                            category="class_inheritance",
+                            info={"child_class": class_name, "parent_class": parent_cls}
+                        )
+                    )
+
+        elif file_extension == ".js":
