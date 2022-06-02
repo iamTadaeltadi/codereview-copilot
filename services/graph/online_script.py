@@ -118,3 +118,62 @@ def main():
             "name": data["name"],
             "filepath": data["relative_path"],
             "start_line": data["line_range"][0],
+            "end_line": data["line_range"][1],
+            "Info": {}
+        }
+
+        if node_type == "file":
+            dep_ids = data["metadata"]["dependencies"]
+            related_files = [G.nodes[dep_id]["name"] for dep_id in dep_ids if dep_id in G.nodes]
+            out["Info"] = {
+                "Number_of_lines": data["metadata"].get("total_lines", 0),
+                "Language": data["metadata"].get("language", ""),
+                "related_files": related_files
+            }
+
+        elif node_type == "class":
+            meta = data["metadata"]
+            parent_names = [G.nodes[parent_id]["name"] for parent_id in meta["parent_classes"] if parent_id in G.nodes]
+            method_names = [
+                G.nodes[succ]["name"]
+                for succ in G.successors(node_id)
+                if G.nodes[succ]["type"] == "function" and G.nodes[succ]["metadata"]["parent_class"] == data["name"]
+            ]
+            var_names = list(set(meta["variables"]))
+            out["Info"] = {
+                "Inheritance": parent_names,
+                "methods": method_names,
+                "variables": var_names
+            }
+
+        elif node_type == "function":
+            meta = data["metadata"]
+            call_names = [G.nodes[callee_id]["name"] for callee_id in meta["calls"] if callee_id in G.nodes]
+            out["Info"] = {
+                "Parameters": meta.get("parameters", []),
+                "IsMethodof": meta["parent_class"],
+                "calls": call_names
+            }
+
+        elif node_type == "variable":
+            meta = data["metadata"]
+            used_by = set(meta["accessed_by"] + meta["modified_by"])
+            calls = []
+            for used_id in used_by:
+                if used_id in G.nodes:
+                    used_node = G.nodes[used_id]
+                    calls.append(used_node["name"])
+                    if used_node["type"] == "function" and "parent_class" in used_node["metadata"]:
+                        calls.append(used_node["metadata"]["parent_class"])
+            out["Info"] = {"calls": list(set(calls))}
+
+        final_nodes.append(out)
+
+    # 8) Save results to tags.json
+    with open("tags.json", "w", encoding="utf-8") as f:
+        json.dump(final_nodes, f, indent=2)
+
+    print("Wrote tags.json")
+
+if __name__ == "__main__":
+    main()
