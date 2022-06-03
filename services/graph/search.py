@@ -146,3 +146,77 @@ def functions_called_by(G, func_node_id):
     return called
 
 def functions_which_call(G, func_node_id):
+    """
+    Which functions call this one?
+    """
+    callers = []
+    for (src, _, edge_data) in G.in_edges(func_node_id, data=True):
+        if edge_data.get("label") == "calls":
+            callers.append(src)
+    return callers
+
+def variables_accessed_by_function(G, func_node_id):
+    """
+    Which variables does a function read or write?
+    """
+    reads = []
+    writes = []
+    for (_, dst, edge_data) in G.out_edges(func_node_id, data=True):
+        if edge_data.get("label") == "reads":
+            reads.append(dst)
+        elif edge_data.get("label") == "writes":
+            writes.append(dst)
+    return (reads, writes)
+
+# ----------------------------------------------------------------------
+# VARIABLE-LEVEL QUERIES
+# ----------------------------------------------------------------------
+
+def functions_that_access_variable(G, var_node_id):
+    """
+    Which functions read or modify a certain variable?
+    """
+    readers = []
+    writers = []
+    for (src, _, edge_data) in G.in_edges(var_node_id, data=True):
+        if edge_data.get("label") == "reads":
+            readers.append(src)
+        elif edge_data.get("label") == "writes":
+            writers.append(src)
+    return (readers, writers)
+
+def variable_is_attribute(G, var_node_id):
+    """
+    Check if the variable is a class/instance attribute.
+    """
+    return G.nodes[var_node_id]["metadata"].get("is_attribute", False)
+
+# ----------------------------------------------------------------------
+# CROSS-CUTTING QUERIES
+# ----------------------------------------------------------------------
+
+def find_references_to_name(G, name, node_type=None):
+    """
+    Find all nodes that match a given 'name'.
+    """
+    results = []
+    for node_id, data in G.nodes(data=True):
+        if data["name"] == name:
+            if node_type and data["type"] != node_type:
+                continue
+            results.append(node_id)
+    return results
+
+def show_call_chain(G, start_func_node_id, end_func_node_id):
+    """
+    Show a path (if any) in the function-call graph from start_func to end_func.
+    """
+    def is_function_call_edge(u, v):
+        for key, edge_data in G[u][v].items():
+            if edge_data.get("label") == "calls":
+                return True
+        return False
+    try:
+        return nx.shortest_path(
+            G, 
+            source=start_func_node_id, 
