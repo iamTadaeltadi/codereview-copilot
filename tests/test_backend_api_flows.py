@@ -150,3 +150,79 @@ class BackendApiFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["feedback_data"]["status"], "ok")
         self.assertEqual(response.data["token_usage"]["output_tokens"], 5)
+
+    @patch("core.review_view.LangGraphService.handle_feedback", side_effect=RuntimeError("boom"))
+    def test_review_feedback_returns_server_error_when_processing_fails(self, _mock_handle_feedback):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/feedback/",
+            {"review": self.review.id, "rating": 2, "feedback": "Needs work"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn("Error processing feedback", response.data["detail"])
+
+    def test_review_threads_action_returns_threads_for_review(self):
+        self.authenticate(self.owner)
+        response = self.client.get(f"/api/v1/reviews/{self.review.id}/threads/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], self.thread.id)
+
+    @patch("core.review_view.LangGraphClient")
+    def test_review_create_thread_creates_thread_and_returns_payload(self, mock_langgraph_client):
+        self.authenticate(self.owner)
+        client_instance = mock_langgraph_client.return_value
+        client_instance.initialize = AsyncMock()
+        client_instance.client = MagicMock()
+        client_instance.client.threads.create = AsyncMock(return_value={"thread_id": "lg-thread-1"})
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/create_thread/",
+            {"title": "Follow-up"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data["thread_id"], "lg-thread-1")
+        self.assertTrue(Thread.objects.filter(review=self.review, thread_id="lg-thread-1").exists())
+
+    @patch("core.review_view.LangGraphClient")
+    def test_review_create_thread_returns_bad_gateway_when_langgraph_fails(self, mock_langgraph_client):
+        self.authenticate(self.owner)
+        client_instance = mock_langgraph_client.return_value
+        client_instance.initialize = AsyncMock(side_effect=RuntimeError("offline"))
+        response = self.client.post(f"/api/v1/reviews/{self.review.id}/create_thread/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_502_BAD_GATEWAY)
+
+    def test_review_re_review_requires_issue_list(self):
+        self.authenticate(self.owner)
+        response = self.client.post(f"/api/v1/reviews/{self.review.id}/re_review/", {"issues": []}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("core.review_view.process_pr_review.delay")
+    def test_review_re_review_creates_child_review(self, mock_delay):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/re_review/",
+            {"issues": ["address comment"]},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        child_review = Review.objects.get(parent_review=self.review)
+        self.assertEqual(response.data["review_id"], child_review.id)
+        mock_delay.assert_called_once()
+
+    def test_submit_ai_rating_validates_rating(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/submit_ai_rating/",
+            {"rating": 7, "feedback": "bad"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_submit_ai_rating_requires_feedback_text(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/submit_ai_rating/",
+            {"rating": 4},
+            format="json",
