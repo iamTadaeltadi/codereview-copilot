@@ -160,3 +160,83 @@ class ReviewSourceEndpointTests(unittest.TestCase):
             "/api/v1/pull-requests/trigger-review/",
             {"repository_id": self.repo.id, "pr_number": "abc"},
             format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_pull_request_trigger_review_returns_conflict_for_existing_review(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            "/api/v1/pull-requests/trigger-review/",
+            {"repository_id": self.repo.id, "pr_number": self.pull_request.pr_number},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(response.data["review_id"], self.review.id)
+
+    @patch("core.pr_view.process_pr_review.delay")
+    @patch("core.pr_view.get_single_pull_request_from_github")
+    def test_pull_request_trigger_review_fetches_missing_pr_and_creates_review(self, mock_get_pr, mock_delay):
+        self.authenticate(self.owner)
+        mock_get_pr.return_value = {
+            "id": 2222,
+            "number": 22,
+            "title": "Fetched PR",
+            "body": "Fetched body",
+            "html_url": "https://github.com/owner/repo/pull/22",
+            "state": "open",
+            "user": {"id": 42, "login": "owner"},
+            "head": {"sha": "head-22"},
+            "base": {"sha": "base-22"},
+        }
+        response = self.client.post(
+            "/api/v1/pull-requests/trigger-review/",
+            {"repository_id": self.repo.id, "pr_number": 22},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Review.objects.filter(pull_request__pr_number=22).exists())
+        mock_delay.assert_called_once()
+
+    def test_commit_list_requires_repo_id(self):
+        self.authenticate(self.owner)
+        response = self.client.get("/api/v1/commits/")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_commit_list_rejects_invalid_repo_id(self):
+        self.authenticate(self.owner)
+        response = self.client.get("/api/v1/commits/?repo_id=abc")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_commit_list_rejects_unauthorized_user(self):
+        self.authenticate(self.outsider)
+        response = self.client.get(f"/api/v1/commits/?repo_id={self.repo.id}")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @patch("core.commit_view.get_repository_commits_from_github")
+    def test_commit_list_merges_db_and_github_results(self, mock_get_commits):
+        self.authenticate(self.owner)
+        mock_get_commits.return_value = [
+            {
+                "sha": "def456",
+                "html_url": "https://github.com/owner/repo/commit/def456",
+                "commit": {
+                    "message": "GitHub commit",
+                    "author": {"name": "Owner", "email": "owner@example.com", "date": "2026-05-03T00:00:00Z"},
+                    "committer": {"name": "Owner", "email": "owner@example.com", "date": "2026-05-03T01:00:00Z"},
+                },
+                "author": {"id": 1},
+                "committer": {"id": 1},
+            }
+        ]
+        response = self.client.get(f"/api/v1/commits/?repo_id={self.repo.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        hashes = {item["commit_hash"]: item["source"] for item in response.data}
+        self.assertEqual(hashes["abc123"], "db")
+        self.assertEqual(hashes["def456"], "github")
+
+    def test_commit_list_without_github_token_returns_db_only(self):
+        self.owner.github_access_token = None
+        self.owner.save(update_fields=["github_access_token"])
+        self.authenticate(self.owner)
+        response = self.client.get(f"/api/v1/commits/?repo_id={self.repo.id}")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
