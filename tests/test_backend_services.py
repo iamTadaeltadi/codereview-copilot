@@ -148,3 +148,78 @@ class GitHubApiServiceEdgeCaseTests(unittest.TestCase):
         self.assertNotIn('email', result)
 
     @patch('core.services.requests.get')
+    def test_get_user_orgs_from_github_passes_pagination_params(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{'login': 'afterquery'}]
+        mock_get.return_value = response
+
+        result = services.get_user_orgs_from_github('token-123', page=3, per_page=15)
+
+        self.assertEqual(result[0]['login'], 'afterquery')
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['params']['page'], 3)
+        self.assertEqual(kwargs['params']['per_page'], 15)
+
+    @patch('core.services.requests.get')
+    def test_get_repo_collaborators_from_github_passes_owner_repo_and_pagination(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{'login': 'reviewer'}]
+        mock_get.return_value = response
+
+        result = services.get_repo_collaborators_from_github('token-123', 'owner', 'repo', page=4, per_page=20)
+
+        self.assertEqual(result[0]['login'], 'reviewer')
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['params']['page'], 4)
+        self.assertEqual(kwargs['params']['per_page'], 20)
+
+    @patch('core.services.requests.get')
+    def test_get_repository_commits_from_github_returns_commit_list(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{'sha': 'abc123'}]
+        mock_get.return_value = response
+
+        result = services.get_repository_commits_from_github('token-123', 'owner', 'repo', per_page=5, page=2)
+
+        self.assertEqual(result[0]['sha'], 'abc123')
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['params']['per_page'], 5)
+        self.assertEqual(kwargs['params']['page'], 2)
+
+    @patch('core.services.requests.get')
+    def test_get_repository_pull_requests_from_github_passes_filters(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = [{'number': 7}]
+        mock_get.return_value = response
+
+        result = services.get_repository_pull_requests_from_github(
+            'token-123', 'owner', 'repo', state='open', sort='updated', direction='asc', per_page=10, page=3
+        )
+
+        self.assertEqual(result[0]['number'], 7)
+        _, kwargs = mock_get.call_args
+        self.assertEqual(kwargs['params']['state'], 'open')
+        self.assertEqual(kwargs['params']['sort'], 'updated')
+        self.assertEqual(kwargs['params']['direction'], 'asc')
+
+    @patch('core.services.requests.get')
+    def test_get_single_pull_request_from_github_returns_json_payload(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {'number': 42, 'title': 'Improve tests'}
+        mock_get.return_value = response
+
+        result = services.get_single_pull_request_from_github('token-123', 'owner', 'repo', 42)
+
+        self.assertEqual(result['title'], 'Improve tests')
+
+    @patch('core.services.requests.get')
+    def test_get_single_commit_from_github_returns_json_payload(self, mock_get):
+        response = Mock()
+        response.raise_for_status.return_value = None
+        response.json.return_value = {'sha': 'abc123'}
+        mock_get.return_value = response
