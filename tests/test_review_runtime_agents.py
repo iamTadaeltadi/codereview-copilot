@@ -160,3 +160,84 @@ class AgentWrapperTests(unittest.TestCase):
             Response('{"issues": ["snake_case"]}'),
             Response('{"issues": ["indentation"]}'),
         ]
+
+        guardrail = guardrail_module.GuardrailCheckerAgent(llm).guardrail_checker("focus on auth")
+        standards = standard_module.StandardCheckerAgent(llm, ["snake_case"]).check_compliance(
+            {"content": "+ value = 1"}, "extra"
+        )
+        syntax = syntax_module.SyntaxCheckerAgent(llm).analyze(
+            {"file_path": "src/app.py", "content": "+ print('ok')"}, "extra"
+        )
+
+        self.assertEqual(guardrail["classification"], "relevant")
+        self.assertEqual(standards["issues"], ["snake_case"])
+        self.assertEqual(syntax["issues"], ["indentation"])
+
+    def test_repo_summarizer_builds_tree_and_parses_summary(self):
+        module = load_module(
+            "repo_summarizer_module",
+            "agent_runtime/Agents/repo_summarizer_agent.py",
+            {"Prompts": fake_prompts_module(), "Utils": base_utils_module()},
+        )
+        llm = Mock()
+        llm.invoke.return_value = Response('{"project_type": "django"}')
+        agent = module.RepoSummarizerAgent(llm)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.makedirs(os.path.join(tmpdir, "src"), exist_ok=True)
+            Path(tmpdir, "src", "app.py").write_text("print('x')\n", encoding="utf-8")
+            result = agent.summarize_repository(tmpdir)
+
+        self.assertEqual(result["project_type"], "django")
+        self.assertTrue(agent._build_file_tree(ROOT)["tests"])
+
+    def test_rereview_planner_and_sufficiency_agents_include_episodic_context(self):
+        prompts = fake_prompts_module()
+        utils = base_utils_module()
+        jmespath_module = types.ModuleType("jmespath")
+        jmespath_module.search = lambda expr, data: ["src/app.py"]
+        planner_module = load_module(
+            "planner_agent_module",
+            "agent_runtime/Agents/rereview_planner_agent.py",
+            {"Prompts": prompts, "Utils": utils},
+        )
+        sufficiency_module = load_module(
+            "sufficiency_agent_module",
+            "agent_runtime/Agents/sufficiency_checker_agent.py",
+            {"Prompts": prompts, "Utils": utils, "jmespath": jmespath_module},
+        )
+        llm = Mock()
+        llm.invoke.side_effect = [
+            Response('{"src/app.py": ["syntax", "final"]}'),
+            Response('{"classification": "sufficient"}'),
+        ]
+
+        plan = planner_module.ReReviewPlannerAgent(llm).re_review_planner(
+            "please re-check", ["prior note"]
+        )
+        sufficiency = sufficiency_module.SufficiencyCheckerAgent(llm).sufficiency_checker(
+            "please re-check", {"review": {"error_analysis": []}}, "episode text"
+        )
+
+        self.assertIn("src/app.py", plan)
+        self.assertEqual(sufficiency["classification"], "sufficient")
+
+    def test_rereview_instruction_generator_builds_per_file_step_instructions(self):
+        prompts = fake_prompts_module()
+        utils = base_utils_module()
+        jmespath_module = types.ModuleType("jmespath")
+
+        def fake_search(expr, data):
+            if expr == "review.error_analysis[].current_diff.file_path":
+                return ["src/app.py"]
+            if expr == "review.final[0]":
+                return {"summary": "current"}
+            return None
+
+        jmespath_module.search = fake_search
+        module = load_module(
+            "instruction_agent_module",
+            "agent_runtime/Agents/rereview_instruction_generator_agent.py",
+            {"Prompts": prompts, "Utils": utils, "jmespath": jmespath_module},
+        )
+        llm = Mock()
