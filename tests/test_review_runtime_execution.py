@@ -129,3 +129,68 @@ class BasicToolNodeTests(unittest.TestCase):
                     content=json.dumps(
                         {
                             "tool_calls": [
+                                {
+                                    "function_call": {
+                                        "name": "retrieve_graph",
+                                        "args": {"node": "src/app.py::function::run"},
+                                    }
+                                }
+                            ]
+                        }
+                    )
+                )
+            ]
+        }
+
+        result = node(inputs)
+
+        self.assertEqual(len(result["issues"]), 2)
+        tool_message = result["issues"][-1]
+        self.assertEqual(tool_message.name, "retrieve_graph")
+        self.assertEqual(
+            json.loads(tool_message.content),
+            {"ok": True, "args": {"node": "src/app.py::function::run"}},
+        )
+
+    def test_raises_when_input_has_no_issues(self):
+        module = build_basic_tool_node_module()
+        node = module.BasicToolNode([])
+
+        with self.assertRaises(ValueError):
+            node({})
+
+    def test_returns_original_inputs_for_invalid_json(self):
+        module = build_basic_tool_node_module()
+        node = module.BasicToolNode([])
+        inputs = {"issues": [types.SimpleNamespace(content="not-json")]}
+
+        result = node(inputs)
+
+        self.assertIs(result, inputs)
+        self.assertEqual(len(result["issues"]), 1)
+
+
+class CloneRepositoryTests(unittest.TestCase):
+    def test_clone_repository_creates_directory_and_disables_prompts(self):
+        module = build_clone_repo_module()
+
+        with patch.object(module.os.path, "exists", return_value=False), patch.object(
+            module.os, "makedirs"
+        ) as mock_makedirs, patch.object(
+            module.os.environ, "copy", return_value={"PATH": "/tmp"}
+        ), patch.object(module.Repo, "clone_from") as mock_clone_from:
+            module.clone_repository(
+                "https://example.com/repo.git",
+                "main",
+                "/tmp/repo-destination",
+            )
+
+        mock_makedirs.assert_called_once_with("/tmp/repo-destination", exist_ok=True)
+        _, _, kwargs = mock_clone_from.mock_calls[0]
+        self.assertEqual(kwargs["branch"], "main")
+        self.assertEqual(kwargs["env"]["GIT_TERMINAL_PROMPT"], "0")
+
+
+class RepositoryUtilityTests(unittest.TestCase):
+    def test_clone_repo_uses_default_token_and_checks_out_commit(self):
+        module = build_repository_module()
