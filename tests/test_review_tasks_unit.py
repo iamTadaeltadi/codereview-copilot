@@ -150,3 +150,78 @@ class ProcessPrReviewTests(unittest.TestCase):
     @patch("core.tasks.review_tasks.LangGraphClient")
     @patch("core.tasks.review_tasks.Review")
     @patch("core.tasks.review_tasks.PullRequest")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_happy_path_completes_review(
+        self, repo_cls, pr_cls, review_cls, client_cls, user_cls, thread_cls, usage_cls, gh_cls
+    ):
+        repo = MagicMock(
+            coding_standards=[], code_metrics=[], llm_preference="gpt-4", repo_name="octo/repo"
+        )
+        repo.owner.id = 42
+        repo_cls.objects.get.return_value = repo
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        pr_cls.objects.get.return_value = MagicMock(id=5, pr_number=7)
+        pr_cls.DoesNotExist = _exception_class("PrMissing")
+        review = MagicMock(id=3, status="in_progress")
+        review_cls.objects.get_or_create.return_value = (review, True)
+
+        client = client_cls.return_value
+        client.initialize = AsyncMock()
+        client.review_agent = MagicMock()
+        client.generate_review = AsyncMock(return_value=self._review_result())
+
+        user_cls.objects.get.return_value = MagicMock(username="dev")
+
+        with patch.object(review_tasks, "settings") as settings_mock:
+            settings_mock.FRONTEND_URL = "https://app.example.com"
+            settings_mock.DEFAULT_LLM_MODEL = "gpt-4"
+            event = {"pull_request": {"user": {"id": 11, "login": "dev"}}}
+            review_tasks.process_pr_review(event, 1, 5, triggering_user_id=42)
+
+        self.assertEqual(review.status, "completed")
+        review.save.assert_called()
+        thread_cls.objects.create.assert_called_once()
+        usage_cls.objects.create.assert_called_once()
+
+    @patch("core.tasks.review_tasks.Repository")
+    def test_missing_repository_is_handled(self, repo_cls):
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        repo_cls.objects.get.side_effect = repo_cls.DoesNotExist
+
+        # Should not raise even though the repository is missing.
+        review_tasks.process_pr_review({"pull_request": {}}, 1, 5)
+
+
+class ProcessCommitReviewTests(unittest.TestCase):
+    @patch("core.tasks.review_tasks.GitHubService")
+    @patch("core.tasks.review_tasks.LLMUsage")
+    @patch("core.tasks.review_tasks.Thread")
+    @patch("core.tasks.review_tasks.User")
+    @patch("core.tasks.review_tasks.LangGraphClient")
+    @patch("core.tasks.review_tasks.Review")
+    @patch("core.tasks.review_tasks.Commit")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_happy_path_completes_commit_review(
+        self, repo_cls, commit_cls, review_cls, client_cls, user_cls, thread_cls, usage_cls, gh_cls
+    ):
+        repo = MagicMock(
+            coding_standards=[], code_metrics=[], llm_preference="gpt-4",
+            repo_name="octo/repo", github_native_id="gh-1",
+        )
+        repo.owner.username = "dev"
+        repo.owner.github_id = "gh-99"
+        repo_cls.objects.get.return_value = repo
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        commit = MagicMock(id=2, commit_hash="abcdef1234567", message="msg", url="u", author_github_id="gh-3")
+        commit.timestamp = None
+        commit_cls.objects.get.return_value = commit
+        commit_cls.DoesNotExist = _exception_class("CommitMissing")
+        review = MagicMock(id=8, status="in_progress")
+        review_cls.objects.get_or_create.return_value = (review, True)
+
+        client = client_cls.return_value
+        client.initialize = AsyncMock()
+        client.review_agent = MagicMock()
+        client.generate_review = AsyncMock(
+            return_value={
+                "review_data": {"reviews": []},
