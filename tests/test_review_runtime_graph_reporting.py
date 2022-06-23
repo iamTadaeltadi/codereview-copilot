@@ -148,3 +148,77 @@ class GraphUtilityTests(unittest.TestCase):
 
     def test_parse_code_files_collects_tags_and_skips_missing_files(self):
         module = build_graph_module()
+        code_graph = types.SimpleNamespace(parse_code_string=Mock(return_value=[{"tag": "ok"}]))
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            Path(tmpdir, "existing.py").write_text("print('ok')\n", encoding="utf-8")
+            tags = module.parse_code_files(code_graph, tmpdir, ["existing.py", "missing.py"])
+
+        self.assertEqual(tags, [{"tag": "ok"}])
+        code_graph.parse_code_string.assert_called_once()
+
+    def test_generate_code_tags_summarizes_file_class_function_and_variable_nodes(self):
+        module = build_graph_module()
+        tags = module.generate_code_tags(FakeGraph())
+
+        file_tag = next(tag for tag in tags if tag["Node_type"] == "file")
+        class_tag = next(tag for tag in tags if tag["Node_type"] == "class")
+        function_tag = next(tag for tag in tags if tag["Node_type"] == "function" and tag["name"] == "run")
+        variable_tag = next(tag for tag in tags if tag["Node_type"] == "variable")
+
+        self.assertIn("src/lib.py", file_tag["Info"]["related_files"])
+        self.assertEqual(class_tag["Info"]["methods"], ["run"])
+        self.assertEqual(function_tag["Info"]["Parameters"], [{"name": "payload"}])
+        self.assertEqual(variable_tag["Info"]["var_type"], "HttpClient")
+
+    def test_generate_code_graph_uses_gather_parse_and_tag_pipeline(self):
+        module = build_graph_module()
+        fake_code_graph = types.SimpleNamespace(all_source_files=[], tag_to_graph=Mock(return_value={"built": True}))
+
+        with patch.object(module, "gather_files", return_value=(["src/app.py", "README.md"], ["src/app.py"])), patch.object(
+            module, "parse_code_files", return_value=[{"tag": "ok"}]
+        ), patch.object(module, "CodeGraph", return_value=fake_code_graph), patch.object(
+            module.os, "getcwd", return_value="/workspace"
+        ):
+            graph = module.generate_code_graph("./repo")
+
+        self.assertEqual(graph, {"built": True})
+        self.assertEqual(fake_code_graph.all_source_files, ["src/app.py", "README.md"])
+        fake_code_graph.tag_to_graph.assert_called_once_with([{"tag": "ok"}])
+
+    def test_print_graph_info_emits_summary_lines(self):
+        module = build_graph_module()
+        graph = types.SimpleNamespace(nodes=[1, 2, 3], edges=[("a", "b")])
+
+        with patch("builtins.print") as mock_print:
+            module.print_graph_info(graph, "./repo")
+
+        self.assertEqual(mock_print.call_count, 5)
+
+
+class HtmlReportTests(unittest.TestCase):
+    def test_generate_html_report_contains_summary_counts_and_file_sections(self):
+        module = build_html_report_module()
+        review_data = {
+            "review": {
+                "final": [
+                    {
+                        "file": "backend/core/views.py",
+                        "summary": "Main review summary",
+                        "ratings": {"maintainability": "8: good"},
+                        "critical_issues": ["Fix auth validation"],
+                    }
+                ],
+                "syntax": [{"issues": [{"file": "backend/core/views.py", "location": 14, "description": "Missing colon"}]}],
+                "standards": [{"issues": [{"file": "backend/core/views.py", "location": 20, "standard": "Use snake_case"}]}],
+            },
+            "artifacts": {"fixes": ["```diff\n+ fix\n```"], "summary": "Applied a patch"},
+        }
+
+        html = module.generate_html_report(review_data)
+
+        self.assertIn("1 Critical Issues", html)
+        self.assertIn("backend/core/views.py", html)
+        self.assertIn("Missing colon", html)
+        self.assertIn("Use snake_case", html)
+
