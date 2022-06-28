@@ -126,3 +126,66 @@ describe('frontend data api modules', () => {
       .mockResolvedValueOnce({ data: repoPayload })
       .mockResolvedValueOnce({ data: repoPayload })
     client.post.mockResolvedValueOnce({ data: repoPayload })
+    client.patch.mockResolvedValueOnce({ data: { ...repoPayload, description: 'Updated' } })
+
+    const repos = await module.fetchReposFromApi()
+    const detail = await module.fetchRepoDetails(21)
+    const created = await module.createRepository({
+      repoName: 'owner/repo',
+      repoUrl: 'https://github.com/owner/repo',
+      description: 'Demo repo',
+      codingStandards: ['DRY'],
+      codeMetrics: ['complexity'],
+      llmPreference: 'gpt-4o',
+    })
+    const settings = await module.fetchRepoSettings(21)
+    const updated = await module.updateRepoSettings(
+      21,
+      {
+        codeStandards: ['SOLID'],
+        evaluationMetrics: ['duplication'],
+        llmModel: 'gpt-4',
+        webhookEnabled: true,
+        webhookUrl: 'https://hook.example',
+      },
+      { description: 'Updated' },
+    )
+
+    expect(repos[0].webhookStatus).toBe(true)
+    expect(detail.settings?.llmModel).toBe('gpt-4o')
+    expect(created.name).toBe('owner/repo')
+    expect(settings.codeStandards).toEqual(['DRY'])
+    expect(updated.description).toBe('Updated')
+  })
+
+  it('normalizes code review data, history, threads and reply actions', async () => {
+    const module = await import('../CodeReviewAPi')
+    client.get
+      .mockResolvedValueOnce({
+        data: {
+          id: 40,
+          status: 'completed',
+          pull_request: {
+            id: 4,
+            pr_number: 17,
+            title: 'Improve tests',
+            repository: { id: 9 },
+          },
+          review_data: {
+            final_result: {
+              review: {
+                syntax: [{ issues: [{ file: 'a.py', location: '12', description: 'bad' }] }],
+                standards: [],
+                error_analysis: [],
+                final: [],
+              },
+              status: 'completed',
+              artifacts: { fixes: ['patch'], summary: 'done' },
+            },
+          },
+          thread_count: 1,
+          threads: [
+            {
+              id: 50,
+              thread_id: 'thread-1',
+              title: '',
