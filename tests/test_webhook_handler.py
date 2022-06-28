@@ -156,3 +156,81 @@ class GitHubWebhookHandlerTests(unittest.IsolatedAsyncioTestCase):
     @patch('core.webhooks.handlers.RepoCollaborator.objects.aupdate_or_create', new_callable=AsyncMock)
     @patch('core.webhooks.handlers.User.objects.aget_or_create', new_callable=AsyncMock)
     @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_member_added_creates_collaborator(self, mock_repo_get, mock_user_get_or_create, mock_collab_update):
+        handler = GitHubWebhookHandler()
+        mock_repo = Mock()
+        mock_user = Mock()
+        mock_repo_get.return_value = mock_repo
+        mock_user_get_or_create.return_value = (mock_user, True)
+        payload = {
+            'action': 'added',
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+            'member': {'id': 77, 'login': 'new-reviewer', 'avatar_url': 'https://avatars.example/new-reviewer'},
+        }
+
+        await handler.handle_member(payload)
+
+        mock_user_get_or_create.assert_awaited_once()
+        mock_collab_update.assert_awaited_once()
+        _args, kwargs = mock_collab_update.await_args
+        self.assertIs(kwargs['user'], mock_user)
+        self.assertNotIsInstance(kwargs['user'], tuple)
+
+    @patch('core.webhooks.handlers.User.objects.aget_or_create', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_member_added_passes_stringified_github_id(self, mock_repo_get, mock_user_get_or_create):
+        handler = GitHubWebhookHandler()
+        mock_repo_get.return_value = Mock()
+        mock_user_get_or_create.return_value = (Mock(), True)
+        payload = {
+            'action': 'added',
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+            'member': {'id': 12345, 'login': 'new-reviewer', 'avatar_url': 'https://avatars.example/new-reviewer'},
+        }
+
+        with patch('core.webhooks.handlers.RepoCollaborator.objects.aupdate_or_create', new_callable=AsyncMock):
+            await handler.handle_member(payload)
+
+        _args, kwargs = mock_user_get_or_create.await_args
+        self.assertEqual(kwargs['github_id'], '12345')
+
+    @patch('core.webhooks.handlers.RepoCollaborator.objects.filter')
+    @patch('core.webhooks.handlers.User.objects.aget', new_callable=AsyncMock)
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_member_removed_deletes_collaborator(self, mock_repo_get, mock_user_get, mock_filter):
+        handler = GitHubWebhookHandler()
+        mock_repo_get.return_value = Mock()
+        mock_user_get.return_value = Mock()
+        filtered = Mock()
+        filtered.adelete = AsyncMock()
+        mock_filter.return_value = filtered
+        payload = {
+            'action': 'removed',
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+            'member': {'id': 88, 'login': 'former-reviewer'},
+        }
+
+        await handler.handle_member(payload)
+
+        filtered.adelete.assert_awaited_once()
+
+    @patch('core.webhooks.handlers.logger')
+    @patch('core.webhooks.handlers.User.objects.aget', new_callable=AsyncMock, side_effect=Exception('missing user'))
+    @patch('core.webhooks.handlers.Repository.objects.aget', new_callable=AsyncMock)
+    async def test_handle_member_removed_logs_missing_user_errors(self, mock_repo_get, _mock_user_get, mock_logger):
+        handler = GitHubWebhookHandler()
+        mock_repo_get.return_value = Mock()
+        payload = {
+            'action': 'removed',
+            'repository': {'name': 'repo', 'full_name': 'org/repo', 'owner': {'login': 'org'}},
+            'member': {'id': 99, 'login': 'missing-user'},
+        }
+
+        with self.assertRaises(Exception):
+            await handler.handle_member(payload)
+
+        self.assertTrue(mock_logger.error.called)
+
+
+if __name__ == '__main__':
+    unittest.main()
