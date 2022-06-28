@@ -150,3 +150,79 @@ function buildContextLabel(review: any): string {
   }
   if (review.commit) {
     return `${String(review.commit.commit_hash || "").slice(0, 12)} · ${review.commit.message || "Commit review"}`;
+  }
+  return `Review #${review.id}`;
+}
+
+function buildContextRoute(review: any): string | null {
+  if (review.pull_request?.repository?.id && review.pull_request?.pr_number) {
+    return `/repos/${review.pull_request.repository.id}/pulls/${review.pull_request.pr_number}`;
+  }
+  if (review.commit?.commit_hash) {
+    return `/commit-detail/${review.commit.commit_hash}`;
+  }
+  return null;
+}
+
+function fromBackend(review: any): CodeReview {
+  const pullRequestId = review.pull_request?.id;
+  const commitId = review.commit?.id;
+  const threads = (review.threads || []).map(normalizeThread);
+  return {
+    id: review.id,
+    prOrCommitId: pullRequestId || commitId || review.id,
+    status: review.status || "pending",
+    contextType: review.pull_request ? "pull_request" : review.commit ? "commit" : "review",
+    contextLabel: buildContextLabel(review),
+    contextRoute: buildContextRoute(review),
+    raw: extractReviewPayload(review),
+    chatThread: flattenComments(threads),
+    reviewRating: null,
+    reviewFeedback: "",
+    threadCount: review.thread_count || threads.length,
+    errorMessage: review.error_message || null,
+    threads,
+    activeThreadId: threads[0]?.id || null,
+  };
+}
+
+function normalizeHistoryEntry(entry: any): ReviewHistoryEntry {
+  return {
+    id: entry.id,
+    status: entry.status || "pending",
+    createdAt: entry.created_at,
+    updatedAt: entry.updated_at,
+    errorMessage: entry.error_message || null,
+    threadCount: entry.thread_count || 0,
+    hasReviewData: Boolean(entry.review_data),
+  };
+}
+
+export async function getCodeReview(id: number): Promise<CodeReview> {
+  const response = await apiClient.get(`/reviews/${id}/`);
+  return fromBackend(response.data);
+}
+
+export async function getReviewHistory(context: "pr" | "commit", id: number | string): Promise<ReviewHistoryEntry[]> {
+  const response = await apiClient.get<any[]>('/reviews/history/', {
+    params: {
+      context,
+      id,
+    },
+  });
+  return response.data.map(normalizeHistoryEntry);
+}
+
+export async function createReviewThread(reviewId: number, title?: string): Promise<ReviewThread> {
+  const response = await apiClient.post(`/reviews/${reviewId}/create_thread/`, {
+    title,
+  });
+  return normalizeThread(response.data);
+}
+
+export async function replyToReviewThread(threadId: number, message: string): Promise<void> {
+  await apiClient.post(`/threads/${threadId}/reply/`, {
+    message,
+  });
+}
+// Bug fix: Prevent duplicate API calls
