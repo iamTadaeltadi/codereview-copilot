@@ -160,3 +160,83 @@ describe('CodeReviewPage', () => {
         <CodeReviewPage />
       </MemoryRouter>,
     )
+
+    expect(screen.getByText(/loading/i)).toBeInTheDocument()
+
+    selectorState.codeReview = {
+      review: null,
+      loading: false,
+      error: 'Review fetch failed',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <CodeReviewPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Review fetch failed')).toBeInTheDocument()
+
+    selectorState.codeReview = {
+      review: null,
+      loading: false,
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <CodeReviewPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/no review data/i)).toBeInTheDocument()
+
+    selectorState.codeReview = {
+      loading: false,
+      error: null,
+      review: {
+        id: 88,
+        status: 'completed',
+        contextLabel: 'Commit review',
+        contextRoute: null,
+        threadCount: 1,
+        errorMessage: 'Partial pipeline failure',
+        activeThreadId: 33,
+        chatThread: [
+          {
+            id: 1,
+            author: 'assistant',
+            text: 'Initial note',
+            isAI: true,
+            timestamp: '2026-05-19T12:00:00.000Z',
+          },
+        ],
+        raw: {
+          review: { syntax: [], standards: [], final: [] },
+          status: 'completed',
+          artifacts: { fixes: [], summary: '' },
+        },
+      },
+    }
+    replyToReviewThreadMock.mockRejectedValue(new Error('reply failed'))
+
+    rerender(
+      <MemoryRouter>
+        <CodeReviewPage />
+      </MemoryRouter>,
+    )
+
+    fireEvent.change(
+      screen.getByPlaceholderText(/ask the review assistant to clarify/i),
+      { target: { value: 'Retry feedback' } },
+    )
+    fireEvent.click(screen.getByRole('button', { name: /send/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/error sending message/i)).toBeInTheDocument()
+    })
+    expect(screen.getByText('reply failed')).toBeInTheDocument()
+    expect(screen.getByText('Initial note')).toBeInTheDocument()
+    expect(screen.getByText('Partial pipeline failure')).toBeInTheDocument()
+  })
+})
