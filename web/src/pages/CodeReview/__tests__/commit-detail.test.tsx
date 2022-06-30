@@ -123,3 +123,65 @@ describe('CommitDetail page', () => {
     )
 
     expect(screen.getByText(/loading commit details/i)).toBeInTheDocument()
+
+    selectorState.commitDetail = {
+      detail: null,
+      loading: false,
+      error: 'Could not load commit',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <CommitDetail />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/error: could not load commit/i)).toBeInTheDocument()
+
+    selectorState.commitDetail = {
+      detail: null,
+      loading: false,
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <CommitDetail />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/no commit details found/i)).toBeInTheDocument()
+
+    selectorState.commitDetail = {
+      loading: false,
+      error: null,
+      detail: {
+        message: 'Fallback commit',
+        commitHash: 'abc123',
+        author: 'Ada',
+        date: '2026-05-18T10:00:00.000Z',
+        repositoryId: null,
+        repositoryName: '',
+        changes: 0,
+        reviewer: '',
+        description: '',
+        diff: '',
+        diffBlocks: [],
+      },
+    }
+    getReviewHistoryMock.mockRejectedValue(new Error('history failed'))
+
+    rerender(
+      <MemoryRouter>
+        <CommitDetail />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('history failed')).toBeInTheDocument()
+    })
+    expect(
+      screen.getByText(/structured diff blocks are not available in the current backend response/i),
+    ).toBeInTheDocument()
+  })
+})
