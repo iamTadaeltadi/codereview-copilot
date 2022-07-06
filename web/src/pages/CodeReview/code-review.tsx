@@ -144,3 +144,76 @@ const CodeReviewPage: React.FC = () => {
                 Standards Issues <span className="rounded px-2 bg-yellow-100 text-yellow-700">{standardIssues.length}</span>
               </a>
               <a href="#suggested-fixes" className="flex justify-between px-3 py-2 bg-gray-100 rounded hover:bg-gray-200">
+                Suggested Fixes <span className="rounded px-2 bg-blue-100 text-blue-700">{fixes.length}</span>
+              </a>
+              <a href="#file-summaries" className="flex justify-between px-3 py-2 bg-gray-100 rounded hover:bg-gray-200">
+                File Summaries <span className="rounded px-2 bg-gray-200 text-gray-700">{finalSummaries.length}</span>
+              </a>
+              <a href="#discussion" className="flex justify-between px-3 py-2 bg-gray-100 rounded hover:bg-gray-200">
+                Discussion <span className="rounded px-2 bg-purple-100 text-purple-700">{review.chatThread.length}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2">
+          <section id="syntax-issues" className="mb-8 bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3 border-l-4 border-red-500 pl-3">Syntax Issues</h2>
+            {syntaxIssues.length > 0 ? syntaxIssues.map((issue, idx) => (
+              <div key={idx} className="p-3 border-l-4 border-red-500 bg-red-50 mb-3 rounded-r">
+                <div className="font-mono text-sm mb-1">{issue.file} - {issue.location}</div>
+                <div>{issue.description || issue.standard}</div>
+              </div>
+            )) : <p className="text-gray-500">No syntax issues found.</p>}
+          </section>
+
+          <section id="standards-issues" className="mb-8 bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3 border-l-4 border-yellow-500 pl-3">Standards Violations</h2>
+            {standardIssues.length > 0 ? standardIssues.map((issue, idx) => (
+              <div key={idx} className="p-3 border-l-4 border-yellow-500 bg-yellow-50 mb-3 rounded-r">
+                <div className="font-mono text-sm mb-1">{issue.file} - {issue.location}</div>
+                <div>{issue.description || issue.standard}</div>
+              </div>
+            )) : <p className="text-gray-500">No standards violations found.</p>}
+          </section>
+
+          <section id="suggested-fixes" className="mb-8 bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3 border-l-4 border-blue-500 pl-3">Suggested Fixes</h2>
+            {fixes.length > 0 ? fixes.map((f, i) => (
+              <div key={i} className="p-3 border-l-4 border-blue-500 bg-blue-50 mb-3 rounded-r">
+                <div dangerouslySetInnerHTML={{ __html: f.replace(/\n/g, '<br/>') }} />
+              </div>
+            )) : <p className="text-gray-500">No suggested fixes were returned for this review.</p>}
+          </section>
+
+          <section id="file-summaries" className="mb-8 bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3 border-l-4 border-gray-500 pl-3">File Summaries</h2>
+            {finalSummaries.length > 0 ? finalSummaries.map((f: any, i: number) => (
+              <details key={i} className="mb-3 border rounded p-3 group">
+                <summary className="cursor-pointer font-medium p-2 bg-gray-100 rounded group-open:bg-gray-200 transition-colors">{f.file}</summary>
+                <div className="p-3">
+                  <p className="mt-2">{f.summary}</p>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <div className="p-2 bg-gray-50 rounded"><div className="text-sm text-gray-500">Complexity</div><div className="font-semibold">{f.ratings?.["Code complexity"]}/10</div></div>
+                    <div className="p-2 bg-gray-50 rounded"><div className="text-sm text-gray-500">Duplication</div><div className="font-semibold">{f.ratings?.["Code duplication"]}/10</div></div>
+                    <div className="p-2 bg-gray-50 rounded"><div className="text-sm text-gray-500">Coverage</div><div className="font-semibold">{f.ratings?.["Code coverage"]}/10</div></div>
+                  </div>
+                  {f.critical_issues?.length > 0 && (
+                    <div className="mt-3">
+                      <h4 className="font-semibold text-red-600 mb-1">Critical Issues</h4>
+                      <ul className="list-disc ml-6 mt-2">
+                        {f.critical_issues.map((c: string, j: number) => <li key={j} className="text-red-700">{c}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </details>
+            )) : <p className="text-gray-500">This review does not include per-file summaries yet.</p>}
+          </section>
+
+          <section id="discussion" className="mb-8 bg-white p-4 rounded shadow">
+            <h2 className="text-xl font-semibold mb-3 border-l-4 border-purple-500 pl-3">Discussion</h2>
+            <p className="text-sm text-gray-500 mb-3">
+              Messages below are loaded from the backend review threads. Sending feedback will call the thread reply endpoint and refresh the review state.
+              {!review.activeThreadId && " A discussion thread will be created automatically when you send your first message."}
+            </p>
