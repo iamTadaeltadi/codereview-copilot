@@ -120,3 +120,64 @@ const CommitDetail: React.FC = () => {
                     <span>{entry.hasReviewData ? 'Findings available' : 'No report yet'}</span>
                   </div>
                   {entry.errorMessage && <div className="mt-2 text-sm text-red-600">{entry.errorMessage}</div>}
+                </div>
+                <Link to={`/commit-review/${entry.id}`} className="px-3 py-2 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-medium">
+                  Open review
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <h2 className="text-xl font-semibold mb-2 text-gray-700">Changes</h2>
+      {detail.diffBlocks.length === 0 ? (
+        <div className="border rounded p-4 text-gray-500">Structured diff blocks are not available in the current backend response for this commit yet.</div>
+      ) : (
+        <div className="border rounded">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="py-2 px-3 text-left text-gray-600 w-12">Old</th>
+                <th className="py-2 px-3 text-left text-gray-600 w-12">New</th>
+                <th className="py-2 px-3 text-left text-gray-600">Code</th>
+              </tr>
+            </thead>
+            <tbody>{detail.diffBlocks.map((block, index) => <DiffRow key={index} block={block} />)}</tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default CommitDetail;
+
+const DiffRow: React.FC<{ block: DiffBlock }> = ({ block }) => {
+  let rowBg = 'bg-transparent';
+  let textColor = 'text-gray-800';
+  if (block.type === 'addition') { rowBg = 'bg-green-50'; textColor = 'text-green-800'; }
+  else if (block.type === 'deletion') { rowBg = 'bg-red-50'; textColor = 'text-red-800'; }
+
+  return (
+    <tr className={`${rowBg} border-b border-gray-200`}>
+      <td className="py-1 px-2 text-gray-500 text-right align-top w-10">{block.oldLine !== null ? block.oldLine : ''}</td>
+      <td className="py-1 px-2 text-gray-500 text-right align-top w-10">{block.newLine !== null ? block.newLine : ''}</td>
+      <td className={`py-1 px-2 whitespace-pre-wrap ${textColor}`}>{block.content}</td>
+    </tr>
+  );
+};
+
+const ReviewStatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'completed':
+      return <span className="inline-flex items-center rounded-full bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700"><FiCheck className="mr-1 h-3 w-3" />Completed</span>;
+    case 'failed':
+      return <span className="inline-flex items-center rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700"><FiX className="mr-1 h-3 w-3" />Failed</span>;
+    case 'in_progress':
+    case 'processing':
+      return <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700"><FiClock className="mr-1 h-3 w-3" />In progress</span>;
+    default:
+      return <span className="inline-flex items-center rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700"><FiAlertCircle className="mr-1 h-3 w-3" />Pending</span>;
+  }
+};
