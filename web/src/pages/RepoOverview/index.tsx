@@ -130,3 +130,68 @@ const RepoOverview: React.FC = () => {
                   <div className="flex-shrink-0">
                     <img
                       src={activity.user.avatar}
+                      alt={activity.user.name}
+                      className="w-8 h-8 rounded-full"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-gray-900">
+                      <span className="font-medium">{activity.user.name}</span>
+                      {' '}{activity.action}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {activity.timestamp}
+                    </p>
+              </div>
+              </div>
+              </div>
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FiActivity className="w-8 h-8 text-gray-400 mb-2" />
+              <p className="text-gray-500">No recent activity</p>
+            </div>
+          )}
+        </div>
+      </div>
+        </div>
+  );
+};
+
+const StatCard = ({ icon, label, value, href }: { icon: React.ReactNode; label: string; value: number | string; href?: string }) => {
+  const Content = () => (
+    <div className="flex items-center justify-between p-6">
+          <div className="flex items-center">
+        <div className="flex-shrink-0">{icon}</div>
+        <div className="ml-4">
+          <p className="text-sm font-medium text-gray-500">{label}</p>
+          <p className="text-2xl font-semibold text-gray-900">{value}</p>
+        </div>
+      </div>
+      {href && (
+        <div className="ml-4">
+          <FiActivity className="w-5 h-5 text-gray-400" />
+        </div>
+      )}
+    </div>
+  );
+
+  if (href) {
+    return (
+      <Link
+        to={href}
+        className="bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-500/20 hover:ring-2 hover:ring-blue-500/20 transition-all duration-200"
+      >
+        <Content />
+      </Link>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+      <Content />
+    </div>
+  );
+};
+
+export default RepoOverview;
