@@ -148,3 +148,77 @@ const RepoRegistration = () => {
                 className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
               >
                 <option value="gpt-4">GPT-4</option>
+                <option value="gpt-4o">GPT-4o</option>
+                <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+              </select>
+              <p className="text-xs text-gray-500 mt-1">Stored on the repository record and used by review services.</p>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600 space-y-2">
+            <p>Webhook URL is generated automatically by the backend after registration.</p>
+            <p>Parsed standards: {parsedPreview.standards.length ? parsedPreview.standards.join(', ') : 'none'}</p>
+            <p>Parsed metrics: {parsedPreview.metrics.length ? parsedPreview.metrics.join(', ') : 'none'}</p>
+          </div>
+
+          {error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          ) : null}
+
+          <div className="pt-6 border-t border-gray-200 flex items-center justify-between gap-4">
+            <p className="text-sm text-gray-500">Repository name and repository URL must both match the GitHub repository you want to register.</p>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`inline-flex items-center justify-center px-6 py-3 bg-blue-600 text-white text-sm font-semibold rounded-lg shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 ${
+                isSubmitting ? 'opacity-80 cursor-not-allowed' : ''
+              }`}
+            >
+              {isSubmitting ? 'Registering...' : 'Register Repository'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+const FormField = ({
+  label,
+  name,
+  icon,
+  placeholder,
+  value,
+  onChange,
+  helper,
+}: {
+  label: string;
+  name: string;
+  icon: React.ReactNode;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  helper?: string;
+}) => (
+  <div className="space-y-2">
+    <label htmlFor={name} className="block text-sm font-medium text-gray-700">
+      <span className="flex items-center gap-2">{icon} {label}</span>
+    </label>
+    <div className="relative">
+      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">{icon}</div>
+      <input
+        id={name}
+        name={name}
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={onChange}
+        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200"
+        required
+      />
+    </div>
+    {helper ? <p className="text-xs text-gray-500">{helper}</p> : null}
+  </div>
+);
+
+export default RepoRegistration;
