@@ -140,3 +140,73 @@ describe('RepoSettings page', () => {
     const { rerender } = render(
       <MemoryRouter>
         <RepoSettingsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/loading repository settings/i)).toBeInTheDocument()
+
+    selectorState.repos = {
+      currentRepo: null,
+      status: 'failed',
+      error: 'Failed to load repository',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <RepoSettingsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error Loading Settings')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+    expect(fetchRepoDetailsActionMock).toHaveBeenLastCalledWith(12)
+
+    selectorState.repos = {
+      currentRepo: {
+        id: 12,
+        name: 'graph-review-engine',
+        description: '',
+        settings: {
+          codeStandards: [],
+          evaluationMetrics: [],
+          llmModel: 'gpt-4',
+          webhookUrl: '',
+        },
+      },
+      status: 'failed',
+      error: 'Save failed',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <RepoSettingsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Save failed')).toBeInTheDocument()
+
+    selectorState.repos = {
+      currentRepo: {
+        id: 12,
+        name: 'graph-review-engine',
+        description: '',
+        settings: {
+          codeStandards: [],
+          evaluationMetrics: [],
+          llmModel: 'gpt-4',
+          webhookUrl: '',
+        },
+      },
+      status: 'loading',
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter>
+        <RepoSettingsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('button', { name: /saving/i })).toBeDisabled()
+  })
+})
