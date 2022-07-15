@@ -137,3 +137,72 @@ const RepoSettingsPage: React.FC = () => {
 
   return (
     <div className="p-8">
+      <div className="mb-8">
+        <Link
+          to={`/repos/${repoId}`}
+          className="inline-flex items-center text-gray-600 hover:text-gray-900 transition-colors duration-200"
+        >
+          <FiArrowLeft className="mr-2" />
+          Back to Repository
+        </Link>
+      </div>
+
+      <div className="max-w-4xl mx-auto space-y-8">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Repository Settings</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            These fields persist to the backend repository record. Collaborator access and Git provider visibility remain GitHub-managed.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">General</h2>
+            </div>
+            <div className="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700">Repository Name</label>
+                <input
+                  id="name"
+                  value={settings.name}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, name: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="webhookUrl" className="block text-sm font-medium text-gray-700">Generated Webhook URL</label>
+                <div className="mt-1 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">
+                  <FiLink className="text-gray-400" />
+                  <span className="truncate">{settings.webhookUrl || 'Will be available after repository registration.'}</span>
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                <textarea
+                  id="description"
+                  rows={4}
+                  value={settings.description}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, description: e.target.value }))}
+                  className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-2">
+              <FiSettings className="text-gray-400" />
+              <h2 className="text-lg font-medium text-gray-900">Review Policy</h2>
+            </div>
+            <div className="p-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="sm:col-span-2">
+                <label htmlFor="llmModel" className="block text-sm font-medium text-gray-700">Preferred Model</label>
+                <div className="relative mt-1">
+                  <FiCpu className="absolute left-3 top-3 text-gray-400" />
+                  <select
+                    id="llmModel"
+                    value={settings.llmModel}
+                    onChange={(e) => setSettings((prev) => ({ ...prev, llmModel: e.target.value }))}
