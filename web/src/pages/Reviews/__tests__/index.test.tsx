@@ -110,3 +110,59 @@ describe('PullRequests page', () => {
     })
     expect(screen.queryByText('Improve review orchestration')).not.toBeInTheDocument()
     expect(screen.getByText('Fix graph cache invalidation')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('combobox'), {
+      target: { value: 'open' },
+    })
+    expect(screen.getByText(/no pull requests found/i)).toBeInTheDocument()
+  })
+
+  it('renders loading, failure, retry, and empty states', () => {
+    selectorState.pullRequests = {
+      pullRequests: {},
+      currentPR: null,
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = renderPullRequestsPage()
+
+    expect(screen.getByText(/loading pull requests/i)).toBeInTheDocument()
+
+    selectorState.pullRequests = {
+      pullRequests: {},
+      currentPR: null,
+      status: 'failed',
+      error: 'GitHub API down',
+    }
+
+    rerender(
+      <MemoryRouter initialEntries={['/repos/7/pulls']}>
+        <Routes>
+          <Route path="/repos/:repoId/pulls" element={<PullRequests />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error Loading Pull Requests')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+    expect(fetchPullRequestsActionMock).toHaveBeenLastCalledWith(7)
+
+    selectorState.pullRequests = {
+      pullRequests: { 7: [] },
+      currentPR: null,
+      status: 'succeeded',
+      error: null,
+    }
+
+    rerender(
+      <MemoryRouter initialEntries={['/repos/7/pulls']}>
+        <Routes>
+          <Route path="/repos/:repoId/pulls" element={<PullRequests />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/there are no pull requests in this repository yet/i)).toBeInTheDocument()
+  })
+})
