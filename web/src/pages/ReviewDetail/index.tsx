@@ -143,3 +143,75 @@ const PullRequestDetail: React.FC = () => {
                     <ReviewStatusBadge status={entry.status} />
                     <span className="text-sm text-gray-500">Review #{entry.id}</span>
                   </div>
+                  <div className="mt-2 text-sm text-gray-600 flex flex-wrap gap-4">
+                    <span>Started {new Date(entry.createdAt).toLocaleString()}</span>
+                    <span>Updated {new Date(entry.updatedAt).toLocaleString()}</span>
+                    <span>{entry.threadCount} thread{entry.threadCount === 1 ? '' : 's'}</span>
+                  </div>
+                  {entry.errorMessage && <p className="mt-2 text-sm text-red-600">{entry.errorMessage}</p>}
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs uppercase tracking-wide text-gray-500">
+                    {entry.hasReviewData ? 'Findings ready' : 'Awaiting analysis'}
+                  </span>
+                  <Link to={`/commit-review/${entry.id}`} className="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-700 bg-blue-50 rounded-lg hover:bg-blue-100">
+                    Open review
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-medium text-gray-900">Files Changed</h2>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {currentPR.files.length === 0 ? (
+            <div className="p-6 text-sm text-gray-500">File diffs are not persisted in the current backend response for this pull request yet.</div>
+          ) : currentPR.files.map((file: PRFileDiff) => (
+            <div key={file.id} className="p-4 hover:bg-gray-50 transition-colors duration-150">
+              <button onClick={() => setSelectedFile(selectedFile === file.filename ? null : file.filename)} className="w-full text-left">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FiGitCommit className="text-gray-400" />
+                    <span className="font-mono text-sm text-gray-900">{file.filename}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <span className="text-green-600">+{file.additions}</span>
+                    <span className="text-red-600">-{file.deletions}</span>
+                  </div>
+                </div>
+                {selectedFile === file.filename && file.patch && (
+                  <pre className="mt-4 p-4 bg-gray-50 rounded-lg overflow-x-auto text-sm">{file.patch}</pre>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-medium text-gray-900">GitHub Reviews</h2>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {currentPR.reviews.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FiMessageSquare className="w-8 h-8 text-gray-400 mb-2" />
+              <p className="text-gray-500">No GitHub reviews are attached to this response.</p>
+            </div>
+          ) : (
+            currentPR.reviews.map((review: PRReview) => (
+              <div key={review.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  <img src={review.user.avatar_url} alt={review.user.login} className="w-10 h-10 rounded-full" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{review.user.login}</span>
+                      <GitHubReviewStateBadge state={review.state} />
+                      <span className="text-sm text-gray-500">{new Date(review.submitted_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="mt-2 text-gray-700">{review.body}</p>
