@@ -139,3 +139,73 @@ describe('PullRequestDetail page', () => {
     fireEvent.click(screen.getByRole('button'))
     expect(screen.getByText(/console\.log\("ok"\)/i)).toBeInTheDocument()
   })
+
+  it('renders page-level failure and empty section fallbacks', async () => {
+    selectorState.pullRequests = {
+      pullRequests: {},
+      currentPR: null,
+      status: 'loading',
+      error: null,
+    }
+
+    const { rerender } = render(
+      <MemoryRouter>
+        <PullRequestDetail />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText(/loading pull request details/i)).toBeInTheDocument()
+
+    selectorState.pullRequests = {
+      pullRequests: {},
+      currentPR: null,
+      status: 'failed',
+      error: 'Bad gateway',
+    }
+
+    rerender(
+      <MemoryRouter>
+        <PullRequestDetail />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Error Loading Pull Request')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /try again/i }))
+    expect(fetchPRDetailsActionMock).toHaveBeenLastCalledWith({ repoId: 8, prNumber: 42 })
+
+    selectorState.pullRequests = {
+      pullRequests: {},
+      status: 'succeeded',
+      error: null,
+      currentPR: {
+        id: 311,
+        number: 43,
+        state: 'closed',
+        title: 'Empty fallback PR',
+        body: '',
+        created_at: '2026-05-17T10:00:00.000Z',
+        user: { login: 'empty-user', avatar_url: '/empty.png' },
+        files: [],
+        reviews: [],
+        comments: [],
+      },
+    }
+    getReviewHistoryMock.mockRejectedValue(new Error('workflow unavailable'))
+
+    rerender(
+      <MemoryRouter>
+        <PullRequestDetail />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('workflow unavailable')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/no pull request description was provided/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/file diffs are not persisted in the current backend response/i),
+    ).toBeInTheDocument()
+    expect(screen.getByText(/no github reviews are attached/i)).toBeInTheDocument()
+    expect(screen.getByText(/no comments are attached/i)).toBeInTheDocument()
+  })
+})
