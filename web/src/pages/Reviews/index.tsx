@@ -131,3 +131,69 @@ const PullRequests: React.FC = () => {
             <div className="flex flex-col items-center justify-center py-16 px-4">
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4"><FiGitPullRequest className="w-8 h-8 text-gray-400" /></div>
               <h3 className="text-lg font-medium text-gray-900">No pull requests found</h3>
+              <p className="mt-1 text-sm text-gray-500">{searchTerm || statusFilter !== 'all' ? 'Try adjusting your search or filters' : 'There are no pull requests in this repository yet'}</p>
+            </div>
+          ) : filteredPRs.map((pr: PullRequest) => (
+            <Link key={pr.id} to={`/repos/${repoId}/pulls/${pr.number}`} className="block hover:bg-gray-50 transition-colors duration-150">
+              <div className="px-6 py-4">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0"><StatusIcon status={pr.status} /></div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-medium text-gray-900 truncate">{pr.title}</h3>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800">#{pr.number}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-4 text-xs text-gray-500 flex-wrap">
+                      <div className="flex items-center gap-1">
+                        <img src={pr.author.avatarUrl} alt={pr.author.name} className="w-4 h-4 rounded-full" />
+                        <span>{pr.author.name}</span>
+                      </div>
+                      <span>Created {new Date(pr.createdAt).toLocaleDateString()}</span>
+                      <span>{pr.reviewRuns || 0} workflow run{pr.reviewRuns === 1 ? '' : 's'}</span>
+                    </div>
+                  </div>
+                  <div className="flex-shrink-0"><WorkflowStatusBadge status={pr.workflowStatus || 'pending'} /></div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+function summarizeHistory(history: ReviewHistoryEntry[]) {
+  if (history.length === 0) return { status: 'pending', count: 0 };
+  const latest = history[0];
+  return { status: latest.status || 'pending', count: history.length };
+}
+
+const StatusIcon = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'merged':
+      return <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center"><FiGitPullRequest className="w-4 h-4 text-purple-600" /></div>;
+    case 'closed':
+      return <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center"><FiX className="w-4 h-4 text-red-600" /></div>;
+    default:
+      return <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center"><FiGitPullRequest className="w-4 h-4 text-green-600" /></div>;
+  }
+};
+
+const WorkflowStatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'completed':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><FiCheck className="w-3 h-3 mr-1" />Completed</span>;
+    case 'failed':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"><FiX className="w-3 h-3 mr-1" />Failed</span>;
+    case 'in_progress':
+    case 'processing':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"><FiClock className="w-3 h-3 mr-1" />In progress</span>;
+    case 'unavailable':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"><FiAlertCircle className="w-3 h-3 mr-1" />Unavailable</span>;
+    default:
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-50 text-yellow-700"><FiClock className="w-3 h-3 mr-1" />Pending</span>;
+  }
+};
+
+export default PullRequests;
