@@ -194,3 +194,68 @@ class ParallelReviewPipeline:
         builder.add_edge("start", "error_analysis")
         builder.add_edge(["syntax_check", "standard_check", "error_analysis"], "merge_1")
         
+        # Group 2: Run generate_fix and generate_review in parallel
+        builder.add_node("generate_fix", self.generate_fix)
+        builder.add_node("generate_review", self.generate_review)
+
+        builder.add_edge("merge_1", "generate_review")
+        builder.add_edge("generate_review", "generate_fix")
+        
+        # Conditional step: loop if diffs remain, else generate summary.
+        builder.add_conditional_edges("generate_fix", self.should_continue,
+                                    {"continue": "restart", END: "final_summary"})
+        builder.add_node("restart", lambda state: state)
+        builder.add_edge("restart", "start")
+        builder.add_node("final_summary", self.generate_summary)
+        
+        builder.set_entry_point("preprocess")
+        return builder.compile()
+
+    def run_syntax_check(self, state: CodeReviewState):
+        syntax_checker = SyntaxCheckerAgent(self.llm)
+        # Use the current_diff already set by start_node.
+        result = syntax_checker.analyze(state["current_diff"])
+        state["current_review"]["syntax"] = [result]
+        if "syntax" not in state["reviews"]:
+            state["reviews"]["syntax"] = []
+        state["reviews"]["syntax"].append(result)
+        return state
+
+    def run_standard_check(self, state: CodeReviewState):
+        standard_checker = StandardCheckerAgent(self.llm, self.standards)
+        result = standard_checker.check_compliance(state["current_diff"])
+        state["current_review"]["standards"] = [result]
+        if "standards" not in state["reviews"]:
+            state["reviews"]["standards"] = []
+        state["reviews"]["standards"].append(result)
+        return state
+
+    def run_error_analysis(self, state: CodeReviewState):
+        error_agent = ErrorAnalysisAgent(self.llm, self.tools, max_tool_calls=state["max_tool_calls"])
+        result = error_agent.graph.invoke({
+            "messages": [],
+            "issues":[],
+            "current_diff": state["current_diff"],
+            "total_tool_calls" : 0,
+            "repo_summary": state["repo_summary"],
+            "bug_state":{"issues": [], "tool_calls_made": [], "tool_call_count": 0},
+            "vuln_state":{"issues": [], "tool_calls_made": [], "tool_call_count": 0},
+        })
+        state["current_review"]["error_analysis"] = [
+            {
+                "messages": result["messages"],
+                "issues": result["issues"],
+                "current_diff": state["current_diff"],
+                "total_tool_calls": result["total_tool_calls"],
+            }
+        ]
+        if "error_analysis" not in state["reviews"]:
+            state["reviews"]["error_analysis"] = []
+        state["reviews"]["error_analysis"].append({
+                "messages": result["messages"],
+                "issues": result["issues"],
+                "current_diff": state["current_diff"],
+                "total_tool_calls": result["total_tool_calls"],
+                "tool_calls": result["bug_state"]["tool_calls_made"] + result["vuln_state"]["tool_calls_made"]
+            })
+        return state
