@@ -208,3 +208,73 @@ BUG_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_EXCEEDED = \
     {repo_summary}
     
     Additional Instructions:
+    {additional_instructions}
+    
+    Provide your answer as valid JSON formatted like this: 
+    ```json
+    {{
+        "issues": [
+            {{
+                "location": "line X",
+                "file": "file_path",
+                "type": "bug",
+                "description": "...",
+                "certainty": "high/medium/low"
+            }}
+        ]
+    }}
+    ```
+    """
+BUG_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_NOT_EXCEEDED = \
+    """
+    You are an AI bug detection agent. Your task is to analyze this code diff for potential bugs.
+    If you need context, a tool call may have already been made and the context is in the previous message (specifically Tool Message). But if not atleast make one. And if you already made one and you got no context, then move on with the analysis.
+    
+    Tool calls made till now:
+    {tool_calls_made}
+    
+    Code diff:
+    {diff_content}
+    
+    Here is the summary of the repository for context:
+    {repo_summary}
+    
+    Additional Instructions:
+    {additional_instructions}
+
+    Provide your answer as valid JSON formatted like this:
+    ```json
+    {{
+        "issues": [
+            {{
+                "location": "line X",
+                "file": "file_path",
+                "type": "bug",
+                "description": "...",
+                "certainty": "high/medium/low"
+            }}
+        ]
+    }}
+    ```
+    """
+ERROR_SUMMARIZER_PROMPT_TEMPLATE = \
+    """
+    Synthesize these findings into a unified report:
+    , ensuring to aggregate issues based on their type (vulnerability or bug)
+    {results}
+    
+    Provide your answer as valid JSON formatted like this:
+    ```json
+    {{
+        "summary": "overall_analysis",
+        "file: "file_path",
+        "issues": [
+            {{
+                "type": "vulnerability|bug|other",
+                "locations": ["line X", ...],
+                "descriptions": ["...", ...]
+            }}
+        ]
+    }}
+    ```
+    """
