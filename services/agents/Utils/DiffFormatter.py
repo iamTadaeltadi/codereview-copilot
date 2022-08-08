@@ -207,3 +207,72 @@ def get_pr_metadata(owner: str, repo: str, pull_number: str, user_github_token: 
     user_github_token = user_github_token if user_github_token else Config.GITHUB_TOKEN
     data = requests.get(
         PR_URL.format(
+            owner=owner,
+            repo=repo,
+            pull_number=pull_number,
+        ),
+        headers= {        
+                "Accept": "application/vnd.github.v3+json",
+                "Authorization": f"Bearer {user_github_token}" if user_github_token else ""
+            }
+    ).json()
+
+    response = {
+        "title": data.get("title", ""),
+        "comments": data.get("comments", ""),
+        "commits": data.get("commits", ""),
+        "additions": data.get("additions", ""),
+        "deletions": data.get("deletions", ""),
+        "changed_files": data.get("changed_files", ""),
+        "head": {
+            "user": data["head"]["label"].split(":")[0] if "head" in data and "label" in data["head"] else "",
+            "ref": data["head"]["ref"] if "head" in data and "ref" in data["head"] else "",
+            "sha": data["head"]["sha"] if "head" in data and "sha" in data["head"] else "",
+        },
+        "base": {
+            "user": data["base"]["label"].split(":")[0] if "base" in data and "label" in data["base"] else "",
+            "ref": data["base"]["ref"] if "base" in data and "ref" in data["base"] else "",
+            "sha": data["base"]["sha"] if "base" in data and "sha" in data["base"] else "",
+        },
+    }
+    return response
+
+def get_commit_diff(owner: str, repo: str, commit_sha: str, user_github_token: t.Optional[str] = None) -> str:
+    """
+    Get .diff text for a specific commit.
+    This typically shows changes introduced by this commit compared to its parent(s).
+    """
+    user_github_token = user_github_token if user_github_token else Config.GITHUB_TOKEN
+    url = f"{GITHUB_API_BASE_URL}/repos/{owner}/{repo}/commits/{commit_sha}"
+    headers = {"Accept": "application/vnd.github.v3.diff"}
+    if user_github_token:
+        headers["Authorization"] = f"Bearer {user_github_token}"
+    
+    response = requests.get(url, headers=headers)
+    response.raise_for_status() # Raise an exception for HTTP errors
+    return DiffFormatter(response.text).parse_and_format()
+
+def get_commit_metadata(owner: str, repo: str, commit_sha: str, user_github_token: t.Optional[str] = None) -> t.Dict:
+    """
+    Get metadata for a specific commit.
+    """
+    user_github_token = user_github_token if user_github_token else Config.GITHUB_TOKEN
+    url = f"{GITHUB_API_BASE_URL}/repos/{owner}/{repo}/commits/{commit_sha}"
+    headers = {"Accept": "application/vnd.github.v3+json"}
+    if user_github_token:
+        headers["Authorization"] = f"Bearer {user_github_token}"
+            
+    response = requests.get(url, headers=headers)
+    response.raise_for_status()
+    data = response.json()
+    
+    # Extract relevant information, e.g., parent shas, author, date, associated branch (if possible)
+    # For simplicity, returning basic info. You might need more, like default_branch if cloning.
+    return {
+        "sha": data.get("sha"),
+        "parents": [p["sha"] for p in data.get("parents", [])],
+        "author_name": data.get("commit", {}).get("author", {}).get("name"),
+        "date": data.get("commit", {}).get("author", {}).get("date"),
+        # Determining the "branch at the time of commit" is complex.
+        # It's usually better to clone a known main branch and then checkout the commit.
+    }
