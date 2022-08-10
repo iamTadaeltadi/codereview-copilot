@@ -239,3 +239,83 @@ class CommitViewSet(viewsets.ModelViewSet):
         # Check for existing reviews that are completed or in progress
         existing_reviews = ReviewModel.objects.filter(
             commit=commit_instance,
+            status__in=['completed', 'in_progress', 'pending', 'processing', 'pending_analysis']
+        ).order_by('-created_at') # Order to get the latest if multiple exist
+        
+        if existing_reviews.exists():
+            latest_review = existing_reviews.first()
+            return Response({
+                "detail": f"A review for this commit already exists or is in progress with status '{latest_review.status}'.",
+                "review_id": latest_review.id,
+                "status": latest_review.status
+            }, status=status.HTTP_409_CONFLICT)
+        
+        # Create a new review
+        review = ReviewModel.objects.create(
+            repository=repository,
+            commit=commit_instance,
+            status='pending',
+            review_data={'message': 'Commit review manually triggered by user.'}
+        )
+        
+        # Prepare data for the Celery task
+        author_username, author_email = None, None
+        if commit_instance.author_github_id:
+            author_user = User.objects.filter(github_id=commit_instance.author_github_id).first()
+            if author_user:
+                author_username = author_user.username
+                author_email = author_user.email
+
+        committer_username, committer_email = None, None
+        if commit_instance.committer_github_id:
+            committer_user = User.objects.filter(github_id=commit_instance.committer_github_id).first()
+            if committer_user:
+                committer_username = committer_user.username
+                committer_email = committer_user.email
+        
+        event_data = {
+            'commit': {
+                'id': commit_instance.commit_hash, # Using commit_hash as 'id' for consistency
+                'sha': commit_instance.commit_hash,
+                'message': commit_instance.message,
+                'url': commit_instance.url,
+                'author': {
+                    'id': commit_instance.author_github_id,
+                    'name': author_username, 
+                    'email': author_email   
+                },
+                'committer': {
+                    'id': commit_instance.committer_github_id,
+                    'name': committer_username, 
+                    'email': committer_email    
+                },
+                'timestamp': commit_instance.timestamp.isoformat() if commit_instance.timestamp else None
+            },
+            'repository': {
+                'id': repository.github_native_id,
+                'full_name': repository.repo_name,
+                'owner': {'login': repository.owner.username}
+            },
+            'action': 'manual_trigger_commit_review',
+            'triggered_by_user_id': request.user.id 
+        }
+        
+        process_commit_review.delay(event_data, repository.id, commit_instance.id)
+        
+        return Response({
+            "detail": "AI review has been triggered for the commit.",
+            "review_id": review.id,
+            "status": review.status
+        }, status=status.HTTP_201_CREATED)
+        # """
+        # Manually trigger an AI review for a commit.
+        
+        # Args:
+        #     commit_hash: The hash of the Commit model instance
+        
+        # Returns:
+        #     Response with the review ID and status
+        # """
+        # # Get the commit
+        # commit = self.get_object()
+        # repository = commit.repository
