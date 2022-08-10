@@ -192,3 +192,67 @@ def generate_html_report(review_data):
             </div>
         </div>
 
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+        <!-- Added markdown library -->
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {{
+                // Convert markdown in .fixes divs to HTML using marked.parse after JSON.parse the attribute content
+                document.querySelectorAll('.fixes').forEach(el => {{
+                    const markdownContent = el.getAttribute('data-markdown');
+                    el.innerHTML = marked.parse(markdownContent);
+                }});
+                // Add smooth scrolling
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {{
+                    anchor.addEventListener('click', function (e) {{
+                        e.preventDefault();
+                        document.querySelector(this.getAttribute('href')).scrollIntoView({{
+                            behavior: 'smooth'
+                        }});
+                    }});
+                }});
+                // Expand/collapse functionality
+                document.querySelectorAll('.card').forEach(card => {{
+                    card.addEventListener('click', function() {{
+                        this.classList.toggle('collapsed');
+                    }});
+                }});
+            }});
+        </script>
+    </body>
+    </html>
+    '''
+
+    return html_content
+
+# Save HTML to file
+def save_html_report(html_content, output_path):
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(html_content)
+
+# Main function to generate report
+def generate_review_report(json_path, output_folder):
+    # Load the JSON data
+    review_data = load_review_json(json_path)
+    
+    # Generate HTML content
+    html_content = generate_html_report(review_data)
+    
+    # Create output directory if it doesn't exist
+    output_dir = Path(output_folder)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Save HTML file
+    output_path = output_dir / "code_review_report.html"
+    save_html_report(html_content, output_path)
+    
+    print(f"Report generated successfully at: {output_path}")
+
+# Example usage
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate HTML report from JSON review data.')
+    parser.add_argument('json_path', type=str, help='Path to the JSON file containing review data')
+    parser.add_argument('output_folder', type=str, help='Path to the output folder where the HTML report will be saved')
+    
+    args = parser.parse_args()
+    generate_review_report(args.json_path, args.output_folder)
