@@ -224,3 +224,78 @@ class PullRequestViewSet(viewsets.ModelViewSet):
                 logger.error(f"GitHub API error fetching PR #{pr_number} for repo {repository.id}: {e.response.text if e.response else str(e)}")
                 return Response({"detail": f"GitHub API error: {e.response.status_code if e.response else 'Unknown'}"}, status=status.HTTP_502_BAD_GATEWAY)
             except Exception as e:
+                logger.error(f"Unexpected error fetching or saving PR #{pr_number} for repo {repository.id} from GitHub: {e}", exc_info=True)
+                return Response({"detail": "An unexpected error occurred while fetching PR from GitHub."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Check if PR is open
+        # if pr.status != 'open':
+        #     return Response(
+        #         {"detail": "Cannot trigger review for a PR that is not open."},
+        #         status=status.HTTP_400_BAD_REQUEST
+        #     )
+        
+        # Check for existing reviews that are completed or in progress
+        existing_reviews = ReviewModel.objects.filter(
+            pull_request=pr,
+            status__in=['completed', 'in_progress', 'pending']
+        )
+        
+        if existing_reviews.exists():
+            # Return the most recent review
+            latest_review = existing_reviews.order_by('-created_at').first()
+            return Response({
+                "detail": f"A review for this PR already exists with status '{latest_review.status}'.",
+                "review_id": latest_review.id,
+                "status": latest_review.status
+            }, status=status.HTTP_409_CONFLICT)
+        
+        # Create a new review
+        review = ReviewModel.objects.create(
+            repository=repository,
+            pull_request=pr,
+            status='pending',
+            review_data={'message': 'Review manually triggered by user.'}
+        )
+        
+        # Prepare data for the Celery task
+        author_user = User.objects.filter(github_id=pr.author_github_id).first()
+        author_login = author_user.username if author_user else None
+
+        event_data = {
+            'pull_request': {
+                'number': pr.pr_number,
+                'id': pr.pr_github_id, # Ensure this field is populated on PRModel
+                'title': pr.title,
+                'body': pr.body,
+                'html_url': pr.url,
+                'state': pr.status,
+                'head': {'sha': pr.head_sha},
+                'base': {'sha': pr.base_sha},
+                'user': {
+                    'id': pr.author_github_id, # Ensure this field is populated
+                    'login': author_login 
+                },
+                'base': { 
+                    'repo': {
+                        'owner': {'login': repository.owner.username},
+                        'name': repository.repo_name.split('/')[-1]
+                    }
+                }
+            },
+            'repository': {
+                'id': repository.github_native_id, # Ensure this field is populated
+                'full_name': repository.repo_name,
+                'owner': {'login': repository.owner.username}
+            },
+            'action': 'manual_trigger_general' 
+        }
+        
+        # Enqueue the review task
+        process_pr_review.delay(event_data, repository.id, pr.id, triggering_user_id=request.user.id)
+        
+        # Return response
+        return Response({
+            "detail": "AI review has been triggered.",
+            "review_id": review.id,
+            "status": review.status
+        }, status=status.HTTP_201_CREATED)
