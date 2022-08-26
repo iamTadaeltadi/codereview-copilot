@@ -208,3 +208,72 @@ class RepositoryViewSet(viewsets.ModelViewSet):
                 owner_login = repository.owner.username # Assumes User model has username as GitHub login
                 repo_name_only = repository.repo_name.split('/')[-1]
                 
+                gh_pr_data = get_single_pull_request_from_github(
+                    github_token=request.user.github_access_token,
+                    owner_login=owner_login,
+                    repo_name=repo_name_only,
+                    pr_number=int(pr_number)
+                )
+                
+                # Transform GitHub data to fit PRSerializer structure
+                user_data = gh_pr_data.get('user', {})
+                head_data = gh_pr_data.get('head', {})
+                base_data = gh_pr_data.get('base', {})
+                transformed_data = {
+                    'pr_github_id': gh_pr_data.get('id'),
+                    'pr_number': gh_pr_data.get('number'),
+                    'title': gh_pr_data.get('title'),
+                    'body': gh_pr_data.get('body'),
+                    'author_github_id': str(user_data.get('id')) if user_data else None,
+                    'status': gh_pr_data.get('state'), # 'open', 'closed'
+                    'url': gh_pr_data.get('html_url'),
+                    'head_sha': head_data.get('sha'),
+                    'base_sha': base_data.get('sha'),
+                    'user_login': user_data.get('login'), # From PRSerializer fields
+                    'user_avatar_url': user_data.get('avatar_url'), # From PRSerializer fields
+                    'created_at_gh': gh_pr_data.get('created_at'), # From PRSerializer fields
+                    'updated_at_gh': gh_pr_data.get('updated_at'), # From PRSerializer fields
+                    'closed_at_gh': gh_pr_data.get('closed_at'), # From PRSerializer fields
+                    'merged_at_gh': gh_pr_data.get('merged_at'), # From PRSerializer fields
+                    'repository_id': repository.id, # Link to our DB repository ID
+                    # 'source' will be added after serialization if needed, or serializer can handle it
+                }
+                
+                serializer = PRSerializer(data=transformed_data)
+                if serializer.is_valid():
+                    # Optionally, save this fetched PR to DB if it wasn't found
+                    # pr_to_save = serializer.save() # This would create it
+                    # data_to_return = PRSerializer(pr_to_save).data # Reserialize to include all fields
+                    data_to_return = serializer.data # Use validated data
+                    data_to_return['source'] = 'github'
+                    return Response(data_to_return)
+                else:
+                    logger.error(f"GitHub PR data for repo {repository.id}, PR #{pr_number} not valid for serializer: {serializer.errors}")
+                    return Response({"detail": "Error processing PR data from GitHub.", "errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    return Response({"detail": f"Pull Request #{pr_number} not found on GitHub for repository {repository.repo_name}."}, status=status.HTTP_404_NOT_FOUND)
+                logger.error(f"GitHub API error fetching PR #{pr_number} for repo {repository.id}: {e.response.text}")
+                return Response({"detail": f"GitHub API error: {e.response.status_code}"}, status=status.HTTP_502_BAD_GATEWAY)
+            except Exception as e:
+                logger.error(f"Unexpected error fetching PR #{pr_number} for repo {repository.id}: {e}")
+                return Response({"detail": "An unexpected error occurred while fetching PR from GitHub."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['get'], url_path='commits/sha/(?P<commit_sha>[0-9a-fA-F]{7,40})')
+    def retrieve_commit_by_sha(self, request, pk=None, commit_sha=None): # Renamed for clarity
+        repository = self.get_object() # pk is repo_id, permission check
+
+        try:
+            # For exact match, use commit_hash=commit_sha. If short SHAs are possible from client,
+            # and DB stores full SHAs, this direct lookup might miss.
+            # GitHub API handles short SHAs if they are unique.
+            commit_instance = CommitModel.objects.get(repository=repository, commit_hash=commit_sha)
+            serializer = CommitSerializer(commit_instance)
+            data = serializer.data
+            data['source'] = 'db'
+            return Response(data)
+        except CommitModel.DoesNotExist:
+            # If client sent a short SHA, and it wasn't found as full SHA in DB, try GitHub
+            pass # Fall through to GitHub fetch
+        except CommitModel.MultipleObjectsReturned: # Should not happen if commit_hash is unique per repo
