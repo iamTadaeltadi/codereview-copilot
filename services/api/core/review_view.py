@@ -223,3 +223,78 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 }
             })
             
+            return Response({
+                'review_id': new_review.id,
+                'status': 'pending'
+            })
+        except Exception as e:
+            logger.error(f"Error requesting re-review: {str(e)}")
+            return Response(
+                {"detail": "Error requesting re-review"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['post'])
+    def submit_ai_rating(self, request, pk=None):
+        """
+        Submit a rating and feedback about the AI review quality
+        
+        Args:
+            pk: The ID of the Review model instance
+            
+        Request body:
+            rating: int (1-5)
+            feedback: str
+            
+        Returns:
+            Response with success message
+        """
+        review = self.get_object()
+        
+        # Validate input
+        rating = request.data.get('rating')
+        feedback_text = request.data.get('feedback')
+        
+        if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
+            return Response(
+                {"detail": "Rating must be an integer between 1 and 5"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        if not feedback_text:
+            return Response(
+                {"detail": "Feedback text is required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        # Create or update a ReviewFeedback with a specific feedback_type
+        feedback, created = ReviewFeedback.objects.update_or_create(
+            review=review,
+            user=request.user,
+            defaults={
+                'rating': rating,
+                'feedback': feedback_text
+            }
+        )
+        
+        # Track token usage for this feedback
+        try:
+            # Create a minimal LLMUsage entry for the rating submission
+            # This helps track user engagement with the system
+            LLMUsageModel.objects.create(
+                review=review,
+                user=request.user,
+                llm_model=review.repository.llm_preference or settings.DEFAULT_LLM_MODEL,
+                input_tokens=0,  # No tokens used for ratings
+                output_tokens=0,  # No tokens used for ratings
+                cost=0.0
+            )
+        except Exception as e:
+            logger.warning(f"Failed to record LLM usage for rating: {str(e)}")
+            # Continue even if tracking fails
+            
+        return Response({
+            "detail": "Thank you for your feedback!",
+            "review_id": review.id,
+            "rating": rating
+        })
