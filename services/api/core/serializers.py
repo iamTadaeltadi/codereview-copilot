@@ -231,3 +231,80 @@ class CommentSerializer(serializers.ModelSerializer):
         # Create a new context with incremented depth
         new_context = self.context.copy()
         new_context['depth'] = self.context.get('depth', 0) + 1
+        
+        replies = Comment.objects.filter(parent_comment=obj)
+        return CommentSerializer(replies, many=True, read_only=True, context=new_context).data
+
+
+    def create(self, validated_data):
+        validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class ThreadSerializer(serializers.ModelSerializer):
+    review = serializers.PrimaryKeyRelatedField(queryset=Review.objects.all())
+    comments = CommentSerializer(many=True, read_only=True) # Nested comments
+    comment_count = serializers.SerializerMethodField()
+    created_by = UserSerializer(read_only=True) # Comment is always by the logged-in user
+    class Meta:
+        model = Thread
+        fields = ['id', 'review', 'created_by', 'status', 'thread_id', 'title', 'thread_type', 'comments', 'comment_count', 'created_at', 'updated_at', 'last_comment_at']
+        read_only_fields = ['id', 'comments', 'comment_count', 'created_at', 'created_by', 'updated_at', 'last_comment_at']
+
+    def get_comment_count(self, obj):
+        return obj.comments.count()
+
+    def create(self, validated_data):
+        # Review is typically set from the context (e.g., URL in ReviewViewSet.create_thread)
+        # or passed in validated_data if creating a thread directly.
+        return super().create(validated_data)
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+
+        if 'comments' in data and data['comments']:
+            comments_data = data['comments']
+            for i, comment_dict in enumerate(comments_data):
+                # Ensure 'replies' is removed (already handled by CommentSerializer's Meta)
+                comment_dict.pop('replies', None)
+
+                if 'comment_data' in comment_dict and comment_dict['comment_data'] is not None:
+                    original_comment_data_dict = comment_dict['comment_data']
+                    filtered_comment_data = {}
+                    
+                    if isinstance(original_comment_data_dict, dict):
+                        base_fields_to_keep = [
+                            'repo', 'user', 'pr_id', 'feedback', 'llm_model', 
+                            'standards', 'metrics', 'reviewer_id', 'feedback_status', 
+                            'feedback_suggestion', 'feedback_explanation'
+                        ]
+                        for field in base_fields_to_keep:
+                            if field in original_comment_data_dict:
+                                filtered_comment_data[field] = original_comment_data_dict[field]
+
+                        # For the last comment's comment_data, include additional fields
+                        if i == len(comments_data) - 1:
+                            additional_fields_for_last = ['messages', 'original_review', 'updated_review']
+                            for field in additional_fields_for_last:
+                                if field in original_comment_data_dict:
+                                    filtered_comment_data[field] = original_comment_data_dict[field]
+                        
+                        comment_dict['comment_data'] = filtered_comment_data if filtered_comment_data else None
+                    else:
+                        # If original_comment_data_dict is not a dict, set to None
+                        comment_dict['comment_data'] = None
+                # If comment_data was None or not present, it remains as is (None or not present)
+        return data
+class ReviewSerializer(serializers.ModelSerializer):
+    repository_id = serializers.PrimaryKeyRelatedField(
+        queryset=DBRepository.objects.all(), source='repository', write_only=True
+    )
+    pull_request_id = serializers.PrimaryKeyRelatedField(
+        queryset=PullRequest.objects.all(), source='pull_request', allow_null=True, required=False, write_only=True
+    )
+    commit_id = serializers.PrimaryKeyRelatedField(
+        queryset=Commit.objects.all(), source='commit', allow_null=True, required=False, write_only=True
+    )
+    parent_review_id = serializers.PrimaryKeyRelatedField(
+        queryset=Review.objects.all(), source='parent_review', allow_null=True, required=False, write_only=True
+    )
+
+    # For read operations, use nested serializers or string representations
