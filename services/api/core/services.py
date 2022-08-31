@@ -215,3 +215,75 @@ class LangGraphService:
         from .langgraph_client.client import LangGraphClient
 
         async def _execute():
+            client = LangGraphClient()
+            await client.initialize()
+            return await client.generate_review(
+                pr_data=pr_data,
+                repo_settings=repo_settings,
+                user_id=user_github_id,
+            )
+
+        return self._run(_execute())
+
+    def get_thread_state(self, thread_id):
+        """Get the current state of a LangGraph thread."""
+        from .langgraph_client.client import LangGraphClient
+
+        async def _execute():
+            client = LangGraphClient()
+            await client.initialize()
+            return await client.client.threads.get_state(thread_id)
+
+        return self._run(_execute())
+
+    def handle_feedback(self, thread_id, feedback, user_id, is_first_message=False, review_data=None, repo_settings=None):
+        """Submit feedback to LangGraph and return the resulting state."""
+        from .langgraph_client.client import LangGraphClient
+
+        async def _execute():
+            client = LangGraphClient()
+            await client.initialize()
+            return await client.handle_feedback(
+                feedback=feedback,
+                thread_id=thread_id,
+                user_id=user_id,
+                is_first_message=is_first_message,
+                review_data=review_data,
+                repo_settings=repo_settings,
+            )
+
+        return self._run(_execute())
+
+    def get_review_feedback(self, thread_id, user_feedback, original_review, reviewer_id, user, repo, pr_id):
+        """Compatibility wrapper for older callers."""
+        repo_settings = {
+            'llm_preference': settings.DEFAULT_LLM_MODEL,
+            'coding_standards': [],
+            'code_metrics': [],
+        }
+        review_data = {
+            'review_data': {'final_result': original_review},
+            'repository': {'owner': {'username': user}, 'repo_name': f'{user}/{repo}'},
+            'pull_request': {'pr_number': pr_id},
+        }
+        return self.handle_feedback(
+            thread_id=thread_id,
+            feedback=user_feedback,
+            user_id=reviewer_id,
+            is_first_message=True,
+            review_data=review_data,
+            repo_settings=repo_settings,
+        )
+
+class GitHubService:
+    """Service class for interacting with the GitHub API."""
+    
+    def __init__(self, user_token=None):
+        """
+        Initialize the GitHub service with optional user token.
+        
+        Args:
+            user_token (str, optional): GitHub access token. If None, use app-level authentication.
+        """
+        self.token = user_token
+        self.headers = {
