@@ -235,3 +235,81 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
         comment_body = (
             f"🤖 AI Code Review Complete!\n\n"
             f"Status: {review.status}\n"
+            f"View the full report: {review_url}\n"
+            f"(Review ID: {review.id})"
+        )
+
+        logger.info(f"PROCESS_PR_REVIEW_TASK: Posting comment to GitHub PR {pr.pr_number} in repo {repo.repo_name}")
+        owner_login, repo_name = repo.repo_name.split('/')
+        # Run async post_pr_comment
+        # Only works if a reviewer requests a re-review
+        # loop.run_until_complete(github_service.post_pr_comment(
+        #     owner_login=owner_login,
+        #     repo_name=repo_name,
+        #     pr_number=pr.pr_number,
+        #     body=comment_body
+        # ))
+        # logger.info(f"PROCESS_PR_REVIEW_TASK: Comment posted to GitHub for review {review.id}")
+
+    except PullRequest.DoesNotExist:
+        logger.error(f"PROCESS_PR_REVIEW_TASK: PullRequest ID {pr_model_id} not found for repo {repository_id}.")
+    except Repository.DoesNotExist:
+        logger.error(f"PROCESS_PR_REVIEW_TASK: Repository ID {repository_id} not found.")
+    except Exception as e:
+        task_id = self.request.id if self.request else "N/A"
+        logger.error(f"PROCESS_PR_REVIEW_TASK: Unhandled error in task {task_id} for Review ID {review.id if review else 'N/A'}: {str(e)}", exc_info=True)
+        if review and review.status != 'completed':
+            review.status = 'failed'
+            review.error_message = str(e)[:1023]
+            review.save(update_fields=['status', 'error_message'])
+        raise
+    finally:
+        # Ensure the loop is closed
+        loop.close()
+        asyncio.set_event_loop(None) # Clear the event loop for the current thread
+@shared_task(bind=True)
+def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, commit_model_id: int) -> None:
+    """
+    Process an AI review for a standalone commit.
+    
+    Args:
+        event_data: Dictionary of GitHub webhook data or manually prepared data
+        repository_id: ID of the Repository model instance
+        commit_model_id: ID of the Commit model instance
+    """
+    logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Starting for Commit ID {commit_model_id}, Repo ID {repository_id}")
+    review = None
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        repo = Repository.objects.get(id=repository_id)
+        commit = Commit.objects.get(id=commit_model_id, repository=repo)
+        
+        # Get or create a pending review
+        review, created = Review.objects.get_or_create(
+            repository=repo,
+            commit=commit,
+            status='pending',
+            defaults={'status': 'in_progress', 'review_data': {'message': 'Commit review picked up by Celery task.'}}
+        )
+        if not created and review.status == 'pending':
+            review.status = 'in_progress'
+            review.save(update_fields=['status'])
+        elif review.status != 'in_progress':
+            logger.warning(f"PROCESS_COMMIT_REVIEW_TASK: Review {review.id} for Commit {commit.id} is not 'pending' or 'in_progress' (current: {review.status}). Skipping.")
+            return
+        
+        logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Processing review {review.id} for Commit {commit.id}")
+        
+        # Initialize LangGraph client
+        client = LangGraphClient()
+        loop.run_until_complete(client.initialize())
+        
+        if not client.review_agent:
+            logger.error("PROCESS_COMMIT_REVIEW_TASK: LangGraph review agent not available after initialization.")
+            raise Exception("LangGraph review agent not available.")
+        
+        # Prepare commit data for LangGraph
+        commit_github_data = event_data.get('commit', {})
+        if not commit_github_data:
+            # If not provided in event_data, construct from our DB model
