@@ -181,3 +181,64 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 comment=actual_ai_message, # Use extracted message
                 type='response',
                 parent_comment=user_comment,
+                comment_data=filtered_feedback_data # Store the relevant part of the response
+            )
+            
+            # Update thread with last_comment reference and timestamp
+            # thread.last_comment = ai_comment
+            thread.last_comment_at = timezone.now()
+            thread.save(update_fields=['last_comment_at'])
+            
+            # Record token usage
+            if token_usage:
+                LLMUsageModel.objects.create(
+                    review=thread.review,
+                    user=request.user,
+                    llm_model=thread.review.repository.llm_preference or settings.DEFAULT_LLM_MODEL,
+                    input_tokens=token_usage.get('input_tokens', 0),
+                    output_tokens=token_usage.get('output_tokens', 0),
+                    cost=calculate_cost(token_usage, thread.review.repository.llm_preference or settings.DEFAULT_LLM_MODEL),
+                )
+            
+            # Return both user comment and AI response
+            return Response({
+                'user_comment': CommentSerializer(user_comment).data,
+                'ai_response': CommentSerializer(ai_comment).data,
+                'token_usage': token_usage
+            })
+            
+        except Exception as e:
+            logger.error(f"Error processing thread reply: {str(e)}", exc_info=True)
+            
+            # If we fail, we should still show the user's comment but explain the error
+            error_message = f"I'm sorry, I couldn't process your request: {str(e)}"
+            
+            # Try to create an error response from the AI
+            try:
+                ai_comment = CommentModel.objects.create(
+                    thread=thread,
+                    user=ai_user,
+                    parent_comment=user_comment,
+                    comment=error_message,
+                    type='note',
+                    comment_data={'error': str(e)}
+                )
+                
+                # thread.last_comment = ai_comment
+                thread.last_comment_at = timezone.now()
+                thread.save(update_fields=['last_comment_at'])
+                
+                return Response({
+                    'user_comment': CommentSerializer(user_comment).data,
+                    'ai_response': CommentSerializer(ai_comment).data,
+                    'error': str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+            except Exception as inner_e:
+                logger.error(f"Failed to create error comment: {str(inner_e)}")
+                # Return just the user comment if everything else fails
+                return Response({
+                    'user_comment': CommentSerializer(user_comment).data,
+                    'error': str(e)
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
