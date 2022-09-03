@@ -233,3 +233,81 @@ class CodeGraph:
                     )
 
         elif file_extension == ".js":
+            extends_clause_node = next((c for c in class_node.children if c.type == "extends_clause"), None)
+            if extends_clause_node:
+                parent_identifier = next((c for c in extends_clause_node.children if c.type == "identifier"), None)
+                if parent_identifier:
+                    parent_cls = parent_identifier.text.decode("utf-8")
+                    inheritance_tags.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[class_node.start_point[0] + 1, class_node.end_point[0] + 1],
+                            name=f"{class_name}->{parent_cls}",
+                            kind="inherits",
+                            category="class_inheritance",
+                            info={"child_class": class_name, "parent_class": parent_cls}
+                        )
+                    )
+        # C has no built-in class inheritance
+        return inheritance_tags
+
+    def extract_tags(self, node, rel_fname):
+        """
+        Recursively extract tags (classes, functions, calls, var_deps, etc.) from a tree-sitter node.
+        """
+        tags = []
+        for child in node.children:
+            # Identify classes or functions
+            if child.type in [
+                "class",
+                "class_definition",
+                "function",
+                "function_definition",
+                "function_declaration",
+                "class_declaration",
+                "method_declaration",
+            ]:
+                name_node = next((c for c in child.children if c.type == "identifier"), None)
+                name = name_node.text.decode("utf-8") if name_node else "unknown"
+                start_line, end_line = child.start_point[0] + 1, child.end_point[0] + 1
+
+                kind = (
+                    "class"
+                    if child.type in ["class", "class_definition", "class_declaration"]
+                    else "function"
+                )
+
+                # Tag for the class or function definition
+                tags.append(Tag(
+                    rel_fname=rel_fname,
+                    fname=None,
+                    line=[start_line, end_line],
+                    name=name,
+                    kind="def",
+                    category=kind,
+                    info=""
+                ))
+
+                # If it's a class, handle inheritance + gather methods
+                if kind == "class":
+                    file_extension = os.path.splitext(rel_fname)[1]
+                    inheritance_tags = self.extract_inheritance_tags(child, file_extension, rel_fname, name)
+                    tags.extend(inheritance_tags)
+
+
+                    # Recursively gather method definitions inside the class
+                    methods = self.extract_tags(child, rel_fname)
+                    # Mark them as "method" (but also keep them as "function" category)
+                    for method in methods:
+                        if method.category == "function":
+                            method_info = {"name": method.name}
+                            tags.append(Tag(
+                                rel_fname=rel_fname,
+                                fname=None,
+                                line=method.line,
+                                name=method.name,
+                                kind="method",
+                                category="function",
+                                info=method_info
+                            ))
