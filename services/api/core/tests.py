@@ -241,3 +241,84 @@ class UserViewTests(TestCase):
         self.assertTrue(registered[321]["is_registered_in_system"])
         self.assertEqual(registered[321]["system_id"], repository.id)
         self.assertFalse(registered[322]["is_registered_in_system"])
+
+    def test_user_repositories_view_requires_github_token(self):
+        self.user.github_access_token = None
+        self.user.save(update_fields=["github_access_token"])
+        request = self.factory.get("/api/v1/user/repos/")
+        force_authenticate(request, user=self.user)
+
+        response = UserRepositoriesView.as_view()(request)
+
+        self.assertEqual(response.status_code, 400)
+
+
+class AuthViewTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    @patch("core.auth_view.generate_oauth_state", return_value="oauth-state")
+    @patch("core.auth_view.get_github_oauth_redirect_url", return_value="https://github.com/login/oauth/authorize?state=oauth-state")
+    def test_github_login_view_redirects_to_github(self, mock_redirect_url, mock_generate_state):
+        request = self.factory.get("/api/v1/auth/github/login/")
+
+        response = GitHubLoginView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("github.com/login/oauth/authorize", response.url)
+        mock_generate_state.assert_called_once()
+        mock_redirect_url.assert_called_once_with("oauth-state")
+
+    @patch("core.auth_view.validate_oauth_state", return_value=True)
+    @patch("core.auth_view.exchange_code_for_github_token", return_value="gh-token")
+    @patch("core.auth_view.get_github_user_info")
+    def test_github_callback_creates_user_and_redirects_with_token(self, mock_get_user, mock_exchange, mock_validate):
+        mock_get_user.return_value = {"id": 7001, "login": "gh-user", "email": "gh@example.com"}
+        request = self.factory.get("/api/v1/auth/github/callback/?code=abc&state=valid")
+        request.session = {}
+
+        response = GitHubCallbackView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/auth/callback?token=", response.url)
+        self.assertTrue(get_user_model().objects.filter(github_id="7001", username="gh-user").exists())
+
+    @patch("core.auth_view.validate_oauth_state", return_value=False)
+    def test_github_callback_rejects_invalid_state(self, mock_validate):
+        request = self.factory.get("/api/v1/auth/github/callback/?code=abc&state=invalid")
+        request.session = {}
+
+        response = GitHubCallbackView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("Invalid%20OAuth%20state.", response.url)
+
+
+class ThreadSerializerTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(github_id="8001", username="thread-user", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.user,
+            repo_name="thread-user/thread-repo",
+            repo_url="https://github.com/thread-user/thread-repo",
+        )
+        self.pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="thread-pr-1",
+            pr_number=15,
+            title="Thread review",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/thread-user/thread-repo/pull/15",
+        )
+        self.review = Review.objects.create(repository=self.repository, pull_request=self.pull_request)
+        self.thread = Thread.objects.create(review=self.review, thread_id="thread-serializer")
+
+    def test_thread_serializer_reports_comment_count(self):
+        Comment.objects.create(thread=self.thread, user=self.user, comment="one", type="note")
+        Comment.objects.create(thread=self.thread, user=self.user, comment="two", type="request")
+
+        serializer = ThreadSerializer(self.thread)
+
+        self.assertEqual(serializer.data["comment_count"], 2)
+
