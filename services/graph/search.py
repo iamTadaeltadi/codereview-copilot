@@ -220,3 +220,76 @@ def show_call_chain(G, start_func_node_id, end_func_node_id):
         return nx.shortest_path(
             G, 
             source=start_func_node_id, 
+            target=end_func_node_id, 
+            weight=None, 
+            method='dijkstra' if nx.is_weighted(G) else 'unweighted'
+        )
+    except nx.NetworkXNoPath:
+        return None
+
+
+def unused_imports(G):
+    """
+    Which files or modules are imported but never used?
+    """
+    results = {}
+    for file_id in G.nodes:
+        if G.nodes[file_id]["type"] != "file":
+            continue
+        imported_files = G.nodes[file_id]["metadata"].get("dependencies", [])
+        if not imported_files:
+            continue
+        usage_list = []
+        for imported_fid in imported_files:
+            is_used = False
+            # Heuristic: check if any function/class/variable from the imported file is referenced.
+            for node2 in G.nodes:
+                if G.nodes[node2]["type"] in ("function", "class", "variable") and \
+                   G.nodes[node2]["relative_path"] == G.nodes[imported_fid]["relative_path"]:
+                    for (src, dst, e_data) in G.edges(data=True):
+                        if dst == node2:
+                            if G.nodes[src]["type"] in ("function", "class", "variable") and \
+                               G.nodes[src]["relative_path"] == G.nodes[file_id]["relative_path"]:
+                                is_used = True
+                                break
+                    if is_used:
+                        break
+            usage_list.append((imported_fid, is_used))
+        results[file_id] = usage_list
+    return results
+
+def class_dependency_graph(G):
+    """
+    Generate a subgraph of classes only, focusing on 'inherits_from' and 'contains' edges.
+    """
+    class_graph = nx.MultiDiGraph()
+    for node_id in G.nodes:
+        ntype = G.nodes[node_id]["type"]
+        if ntype in ("class", "function"):
+            class_graph.add_node(node_id, **G.nodes[node_id])
+    for (u, v, data) in G.edges(data=True):
+        if u in class_graph.nodes and v in class_graph.nodes:
+            if data.get("label") in ("inherits_from", "contains"):
+                class_graph.add_edge(u, v, **data)
+    return class_graph
+
+# ----------------------------------------------------------------------
+# NEW: Helper to return node metadata (like in tags.json)
+# ----------------------------------------------------------------------
+
+def get_node_metadata(G, node_id):
+    """
+    Given a node_id, return a dictionary with its metadata similar to what was saved in tags.json.
+    """
+    if node_id not in G.nodes:
+        return None
+    data = G.nodes[node_id]
+    return {
+        "Node_id": node_id,
+        "Node_type": data.get("type"),
+        "name": data.get("name"),
+        "filepath": data.get("relative_path"),
+        "start_line": data.get("line_range", [None, None])[0],
+        "end_line": data.get("line_range", [None, None])[1],
+        "Info": data.get("metadata", {})
+    }
