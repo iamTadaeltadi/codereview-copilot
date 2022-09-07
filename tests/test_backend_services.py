@@ -223,3 +223,78 @@ class GitHubApiServiceEdgeCaseTests(unittest.TestCase):
         response.raise_for_status.return_value = None
         response.json.return_value = {'sha': 'abc123'}
         mock_get.return_value = response
+
+        result = services.get_single_commit_from_github('token-123', 'owner', 'repo', 'abc123')
+
+        self.assertEqual(result['sha'], 'abc123')
+
+    @patch('core.services.requests.get')
+    def test_get_all_repo_collaborators_returns_empty_when_first_page_empty(self, mock_get):
+        empty_page = Mock()
+        empty_page.raise_for_status.return_value = None
+        empty_page.json.return_value = []
+        mock_get.return_value = empty_page
+
+        result = services.get_all_repo_collaborators_from_github('owner', 'repo', 'token-123')
+
+        self.assertEqual(result, [])
+        mock_get.assert_called_once()
+
+
+class LangGraphServiceTests(unittest.TestCase):
+    def _patch_langgraph_client(self):
+        client_instance = Mock()
+        client_instance.initialize = AsyncMock()
+        client_instance.generate_review = AsyncMock(return_value={'review_id': 'rvw-1'})
+        client_instance.handle_feedback = AsyncMock(return_value={'status': 'updated'})
+        client_instance.client = Mock()
+        client_instance.client.threads = Mock()
+        client_instance.client.threads.get_state = AsyncMock(return_value={'thread_id': 'thread-1'})
+        return patch('core.langgraph_client.client.LangGraphClient', return_value=client_instance), client_instance
+
+    def test_run_executes_async_coroutine(self):
+        service = services.LangGraphService()
+
+        result = service._run(self._sample_coroutine())
+
+        self.assertEqual(result, 'done')
+
+    async def _sample_coroutine(self):
+        return 'done'
+
+    def test_initialize_review_delegates_to_langgraph_client(self):
+        patcher, client_instance = self._patch_langgraph_client()
+        service = services.LangGraphService()
+        with patcher:
+            result = service.initialize_review({'pr_number': 1}, {'llm_preference': 'test-model'}, 'user-1')
+
+        self.assertEqual(result['review_id'], 'rvw-1')
+        client_instance.generate_review.assert_awaited_once()
+
+    def test_get_thread_state_delegates_to_langgraph_client(self):
+        patcher, client_instance = self._patch_langgraph_client()
+        service = services.LangGraphService()
+        with patcher:
+            result = service.get_thread_state('thread-1')
+
+        self.assertEqual(result['thread_id'], 'thread-1')
+        client_instance.client.threads.get_state.assert_awaited_once_with('thread-1')
+
+    def test_handle_feedback_delegates_to_langgraph_client(self):
+        patcher, client_instance = self._patch_langgraph_client()
+        service = services.LangGraphService()
+        with patcher:
+            result = service.handle_feedback('thread-1', 'please revise', 'user-1', is_first_message=True)
+
+        self.assertEqual(result['status'], 'updated')
+        client_instance.handle_feedback.assert_awaited_once()
+
+    def test_get_review_feedback_builds_repo_settings(self):
+        patcher, _client_instance = self._patch_langgraph_client()
+        service = services.LangGraphService()
+        with patcher, patch.object(service, 'handle_feedback', return_value={'status': 'ok'}) as mock_handle_feedback:
+            result = service.get_review_feedback('thread-1', 'feedback', {'summary': 'before'}, 'reviewer', 'user', 'repo', 'pr-1')
+
+        self.assertEqual(result['status'], 'ok')
+        self.assertTrue(mock_handle_feedback.called)
+
