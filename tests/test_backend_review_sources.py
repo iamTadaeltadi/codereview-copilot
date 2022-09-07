@@ -240,3 +240,83 @@ class ReviewSourceEndpointTests(unittest.TestCase):
         self.authenticate(self.owner)
         response = self.client.get(f"/api/v1/commits/?repo_id={self.repo.id}")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["commit_hash"], "abc123")
+
+    def test_commit_trigger_review_requires_fields(self):
+        self.authenticate(self.owner)
+        response = self.client.post("/api/v1/commits/trigger-review/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_commit_trigger_review_rejects_invalid_repository_id(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            "/api/v1/commits/trigger-review/",
+            {"repository_id": "abc", "commit_hash": "abc123"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_commit_trigger_review_returns_conflict_for_existing_review(self):
+        Review.objects.create(repository=self.repo, commit=self.commit, status="pending")
+        self.authenticate(self.owner)
+        response = self.client.post(
+            "/api/v1/commits/trigger-review/",
+            {"repository_id": self.repo.id, "commit_hash": self.commit.commit_hash},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+
+    def test_commit_trigger_review_requires_github_token_for_missing_commit(self):
+        self.owner.github_access_token = None
+        self.owner.save(update_fields=["github_access_token"])
+        self.authenticate(self.owner)
+        response = self.client.post(
+            "/api/v1/commits/trigger-review/",
+            {"repository_id": self.repo.id, "commit_hash": "missing"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    @patch("core.commit_view.process_commit_review.delay")
+    @patch("core.commit_view.get_single_commit_from_github")
+    def test_commit_trigger_review_fetches_missing_commit_and_creates_review(self, mock_get_commit, mock_delay):
+        self.authenticate(self.owner)
+        mock_get_commit.return_value = {
+            "sha": "newsha",
+            "html_url": "https://github.com/owner/repo/commit/newsha",
+            "commit": {
+                "message": "Fetched commit",
+                "author": {"date": "2026-05-05T00:00:00Z"},
+            },
+            "author": {"id": 1},
+            "committer": {"id": 1},
+        }
+        response = self.client.post(
+            "/api/v1/commits/trigger-review/",
+            {"repository_id": self.repo.id, "commit_hash": "newsha"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(Review.objects.filter(commit__commit_hash="newsha").exists())
+        mock_delay.assert_called_once()
+
+    def test_llm_usage_list_returns_summary_for_collaborator(self):
+        self.authenticate(self.collaborator)
+        response = self.client.get("/api/v1/llm-usage/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total_usage"]["total_input"], 17)
+        self.assertEqual(len(response.data["usage_by_model"]), 2)
+
+    def test_llm_usage_summary_returns_summary_for_admin(self):
+        self.authenticate(self.admin)
+        response = self.client.get("/api/v1/llm-usage/summary/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["total_usage"]["total_output"], 13)
+        models = {item["llm_model"] for item in response.data["usage_by_model"]}
+        self.assertEqual(models, {"gpt-test", "claude-test"})
+
+
+if __name__ == "__main__":
+    unittest.main()
+
