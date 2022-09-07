@@ -226,3 +226,79 @@ class BackendApiFlowTests(unittest.TestCase):
             f"/api/v1/reviews/{self.review.id}/submit_ai_rating/",
             {"rating": 4},
             format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_submit_ai_rating_creates_feedback_and_usage(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/reviews/{self.review.id}/submit_ai_rating/",
+            {"rating": 4, "feedback": "Useful overall"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["rating"], 4)
+        self.assertTrue(LLMUsage.objects.filter(review=self.review, user=self.owner, input_tokens=0).exists())
+
+    def test_thread_reply_requires_message(self):
+        self.authenticate(self.owner)
+        response = self.client.post(f"/api/v1/threads/{self.thread.id}/reply/", {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_thread_reply_rejects_unknown_parent_comment(self):
+        self.authenticate(self.owner)
+        response = self.client.post(
+            f"/api/v1/threads/{self.thread.id}/reply/",
+            {"message": "Follow-up", "parent_comment_id": 999999},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @patch("core.thread_view.calculate_cost", return_value=0.25)
+    @patch("core.thread_view.LangGraphClient")
+    def test_thread_reply_creates_user_and_ai_comments(self, mock_langgraph_client, _mock_cost):
+        self.authenticate(self.owner)
+        client_instance = mock_langgraph_client.return_value
+        client_instance.initialize = AsyncMock()
+        client_instance.handle_feedback = AsyncMock(
+            return_value={
+                "feedback_data": {"messages": [("ai", "Here is an answer")]},
+                "token_usage": {"input_tokens": 11, "output_tokens": 7},
+            }
+        )
+        response = self.client.post(
+            f"/api/v1/threads/{self.thread.id}/reply/",
+            {"message": "Can you clarify?", "parent_comment_id": self.comment.id},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["ai_response"]["comment"], "Here is an answer")
+        self.assertEqual(Comment.objects.filter(thread=self.thread).count(), 3)
+        self.assertTrue(LLMUsage.objects.filter(review=self.review, user=self.owner).exists())
+
+    @patch("core.thread_view.LangGraphClient")
+    def test_thread_reply_returns_error_payload_when_processing_fails(self, mock_langgraph_client):
+        self.authenticate(self.owner)
+        client_instance = mock_langgraph_client.return_value
+        client_instance.initialize = AsyncMock()
+        client_instance.handle_feedback = AsyncMock(side_effect=RuntimeError("service down"))
+        response = self.client.post(
+            f"/api/v1/threads/{self.thread.id}/reply/",
+            {"message": "Please retry"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertIn("error", response.data)
+        self.assertTrue(Comment.objects.filter(thread=self.thread, type="note").exists())
+
+    def test_admin_stats_requires_admin_user(self):
+        self.authenticate(self.owner)
+        response = self.client.get("/api/v1/admin/stats/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_admin_stats_returns_aggregate_counts(self):
+        self.authenticate(self.admin)
+        response = self.client.get("/api/v1/admin/stats/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(response.data["users"], 3)
+        self.assertGreaterEqual(response.data["repositories"], 1)
