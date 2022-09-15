@@ -194,3 +194,68 @@ class CloneRepositoryTests(unittest.TestCase):
 class RepositoryUtilityTests(unittest.TestCase):
     def test_clone_repo_uses_default_token_and_checks_out_commit(self):
         module = build_repository_module()
+
+        with patch.object(module, "clone_repository") as mock_clone_repository, patch.object(
+            module.uuid, "uuid4", return_value="repo-uuid"
+        ), patch.object(module.subprocess, "run") as mock_run:
+            repo_path = module.clone_repo(
+                user="octocat",
+                repo="demo",
+                branch_name="main",
+                commit_hash="abcdef1234567890",
+            )
+
+        self.assertEqual(repo_path, "./tmp/repo/demo-abcdef1-repo-uuid")
+        mock_clone_repository.assert_called_once_with(
+            "https://default-token@github.com/octocat/demo.git",
+            "main",
+            "./tmp/repo/demo-abcdef1-repo-uuid",
+        )
+        mock_run.assert_called_once_with(
+            ["git", "checkout", "abcdef1234567890"],
+            cwd="./tmp/repo/demo-abcdef1-repo-uuid",
+            check=True,
+            capture_output=True,
+        )
+
+    def test_clone_repo_raises_clean_value_error_when_checkout_fails(self):
+        module = build_repository_module()
+        checkout_error = subprocess.CalledProcessError(
+            1, ["git", "checkout"], stderr=b"missing commit"
+        )
+
+        with patch.object(module, "clone_repository"), patch.object(
+            module.uuid, "uuid4", return_value="repo-uuid"
+        ), patch.object(module.subprocess, "run", side_effect=checkout_error):
+            with self.assertRaisesRegex(ValueError, "missing commit"):
+                module.clone_repo(
+                    user="octocat",
+                    repo="demo",
+                    branch_name="main",
+                    commit_hash="abcdef1234567890",
+                )
+
+    def test_setup_local_repo_from_files_writes_nested_tree(self):
+        module = build_repository_module()
+        files = {
+            "src/app.py": "print('hi')\n",
+            "README.md": "# Demo\n",
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            with patch.object(module.uuid, "uuid4", return_value="repo-uuid"):
+                repo_root = module.setup_local_repo_from_files(files, base_tmp_dir=tmpdir)
+
+            self.assertEqual(repo_root, os.path.join(tmpdir, "local-repo-repo-uuid"))
+            with open(os.path.join(repo_root, "src/app.py"), "r", encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "print('hi')\n")
+            with open(os.path.join(repo_root, "README.md"), "r", encoding="utf-8") as handle:
+                self.assertEqual(handle.read(), "# Demo\n")
+
+
+class MemoryManagerTests(unittest.TestCase):
+    def test_save_review_and_get_pr_state(self):
+        module = build_memory_module()
+        manager = module.MemoryManager()
+
+        manager.save_review(
