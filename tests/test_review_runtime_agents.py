@@ -241,3 +241,83 @@ class AgentWrapperTests(unittest.TestCase):
             {"Prompts": prompts, "Utils": utils, "jmespath": jmespath_module},
         )
         llm = Mock()
+        llm.invoke.return_value = Response(
+            '{"queries": ["review.final[0]"], "instruction": "focus on null checks"}'
+        )
+
+        result = module.ReReviewInstructionGeneratorAgent(llm).re_review_instruction_generator(
+            {"src/app.py": ["final"]},
+            {"review": {"error_analysis": []}},
+            "please fix",
+            "prefers terse responses",
+            ["old context"],
+        )
+
+        self.assertEqual(result["src/app.py"]["final"]["instruction"], "focus on null checks")
+        self.assertIn("current", result["src/app.py"]["final"]["current_section"])
+
+    def test_long_term_memory_agent_analyzes_and_updates_preferences(self):
+        module = load_module(
+            "memory_agent_module",
+            "agent_runtime/Agents/memory_agent.py",
+            {"Prompts": fake_prompts_module(), "Utils.LLMHelper": base_utils_module()},
+        )
+        llm = Mock()
+        llm.invoke.return_value = Response('[{"preference": "concise", "confidence": 0.9}]')
+        manage_tool = Mock()
+        search_tool = Mock()
+        agent = module.LongTermMemoryAgent(llm, manage_tool, search_tool)
+
+        prefs = agent.analyze_preferences("feedback", [{"preference": "concise"}])
+        agent.update_preferences(prefs, {"configurable": {"user": "demo"}})
+
+        self.assertEqual(prefs[0]["preference"], "concise")
+        self.assertEqual(manage_tool.invoke.call_count, 1)
+
+
+class DynamicReviewExecutorTests(unittest.TestCase):
+    def test_execute_review_applies_requested_steps_and_fallback_sections(self):
+        class FakeSyntaxChecker:
+            def __init__(self, llm):
+                self.llm = llm
+
+            def analyze(self, diff, additional_instructions=""):
+                return {"syntax": diff["file_path"], "instruction": additional_instructions}
+
+        class FakeStandardChecker:
+            def __init__(self, llm, standards):
+                self.llm = llm
+                self.standards = standards
+
+            def check_compliance(self, diff, additional_instructions=""):
+                return {"standards": diff["file_path"], "instruction": additional_instructions}
+
+        class FakeErrorAgent:
+            def __init__(self, llm, tools, max_tool_calls):
+                self.graph = Mock()
+                self.graph.invoke.return_value = {
+                    "messages": ["ok"],
+                    "issues": {"bug": ["b"], "vulnerability": []},
+                    "total_tool_calls": 2,
+                    "bug_state": {"tool_calls_made": ["bug-call"]},
+                    "vuln_state": {"tool_calls_made": ["vuln-call"]},
+                }
+
+        class FakeFixAgent:
+            def __init__(self, llm):
+                self.llm = llm
+
+            def generate_fix(self, diff, current_review, repo_summary, additional_instructions=""):
+                return f"fix:{diff['file_path']}:{additional_instructions}:{bool(current_review['syntax'])}"
+
+        class FakeReviewer:
+            def __init__(self, llm, metrics):
+                self.llm = llm
+                self.metrics = metrics
+
+            def generate_review(self, current_review, repo_summary, additional_instructions=""):
+                return [{"final": current_review["syntax"][0], "instruction": additional_instructions}]
+
+        agents_pkg = types.ModuleType("Agents")
+        agents_pkg.__path__ = []
+        syntax_mod = types.ModuleType("Agents.syntax_checker_agent")
