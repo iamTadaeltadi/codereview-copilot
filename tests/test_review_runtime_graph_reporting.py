@@ -222,3 +222,77 @@ class HtmlReportTests(unittest.TestCase):
         self.assertIn("Missing colon", html)
         self.assertIn("Use snake_case", html)
 
+    def test_generate_review_report_reads_json_and_writes_html_file(self):
+        module = build_html_report_module()
+        review_data = {
+            "review": {"final": [], "syntax": [], "standards": []},
+            "artifacts": {},
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            json_path = os.path.join(tmpdir, "review.json")
+            with open(json_path, "w", encoding="utf-8") as handle:
+                json.dump(review_data, handle)
+
+            module.generate_review_report(json_path, tmpdir)
+
+            output_path = os.path.join(tmpdir, "code_review_report.html")
+            self.assertTrue(os.path.exists(output_path))
+            self.assertIn("Code Review Report", Path(output_path).read_text(encoding="utf-8"))
+
+
+class MarkdownReportTests(unittest.TestCase):
+    def test_generate_markdown_includes_key_review_sections(self):
+        module = build_markdown_module()
+        review_data = {
+            "status": "completed",
+            "review": {
+                "syntax": [{"issues": [{"file": "app.py", "location": 10, "description": "Unexpected indent"}]}],
+                "standards": [{"issues": [{"file": "app.py", "location": 12, "standard": "Prefer snake_case"}]}],
+                "error_analysis": [
+                    {
+                        "messages": ["Review failed on test case A"],
+                        "current_diff": {"content": "+ print('fixed')"},
+                        "issues": {"summary": "One bug", "file": "app.py", "issues": [{"type": "bug", "locations": ["12"], "descriptions": ["Null path"]}]},
+                        "tool_calls_made": ["retrieve_graph(app.py::function::run)"],
+                    }
+                ],
+                "final": [
+                    {
+                        "file": "app.py",
+                        "summary": "Looks better",
+                        "ratings": {"maintainability": "8/10"},
+                        "critical_issues": ["Add validation"],
+                    }
+                ],
+            },
+            "artifacts": {"fixes": ["patch diff"], "summary": "Final summary"},
+        }
+
+        markdown = module.generate_markdown(review_data)
+
+        self.assertIn("## Syntax Issues", markdown)
+        self.assertIn("## Standards Issues", markdown)
+        self.assertIn("## Error Analysis", markdown)
+        self.assertIn("## Final Review", markdown)
+        self.assertIn("## Artifacts", markdown)
+
+    def test_main_writes_markdown_output_file(self):
+        module = build_markdown_module()
+        review_data = {"status": "ok", "review": {}, "artifacts": {}}
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            json_path = os.path.join(tmpdir, "review.json")
+            output_path = os.path.join(tmpdir, "review.md")
+            with open(json_path, "w", encoding="utf-8") as handle:
+                json.dump(review_data, handle)
+
+            with patch.object(sys, "argv", ["MDReport.py", json_path, output_path]):
+                module.main()
+
+            self.assertTrue(os.path.exists(output_path))
+            self.assertIn("# Code Review Report", Path(output_path).read_text(encoding="utf-8"))
+
+
+if __name__ == "__main__":
+    unittest.main()
