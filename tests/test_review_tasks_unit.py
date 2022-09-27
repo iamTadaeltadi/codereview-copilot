@@ -225,3 +225,78 @@ class ProcessCommitReviewTests(unittest.TestCase):
         client.generate_review = AsyncMock(
             return_value={
                 "review_data": {"reviews": []},
+                "thread_id": "thread-9",
+                "token_usage": {"input_tokens": 10, "output_tokens": 4},
+            }
+        )
+        user_cls.objects.get_or_create.return_value = (MagicMock(username="dev"), True)
+
+        with patch.object(review_tasks, "settings") as settings_mock:
+            settings_mock.FRONTEND_URL = "https://app.example.com"
+            settings_mock.DEFAULT_LLM_MODEL = "gpt-4"
+            review_tasks.process_commit_review({}, 1, 2)
+
+        self.assertEqual(review.status, "completed")
+        thread_cls.objects.create.assert_called_once()
+        usage_cls.objects.create.assert_called_once()
+
+
+    @patch("core.tasks.review_tasks.LangGraphClient")
+    @patch("core.tasks.review_tasks.Review")
+    @patch("core.tasks.review_tasks.PullRequest")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_marks_review_failed_when_agent_unavailable(
+        self, repo_cls, pr_cls, review_cls, client_cls
+    ):
+        repo = MagicMock(repo_name="octo/repo")
+        repo.owner.id = 1
+        repo_cls.objects.get.return_value = repo
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        pr_cls.objects.get.return_value = MagicMock(id=5)
+        pr_cls.DoesNotExist = _exception_class("PrMissing")
+        review = MagicMock(id=3, status="in_progress")
+        review_cls.objects.get_or_create.return_value = (review, True)
+
+        client = client_cls.return_value
+        client.initialize = AsyncMock()
+        client.review_agent = None  # agent not available -> task raises
+
+        with patch.object(review_tasks, "settings") as settings_mock:
+            settings_mock.DEFAULT_LLM_MODEL = "gpt-4"
+            with self.assertRaises(Exception):
+                review_tasks.process_pr_review({"pull_request": {"user": {}}}, 1, 5)
+
+        self.assertEqual(review.status, "failed")
+        review.save.assert_called()
+
+    @patch("core.tasks.review_tasks.PullRequest")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_missing_pull_request_is_handled(self, repo_cls, pr_cls):
+        repo_cls.objects.get.return_value = MagicMock(id=1)
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        pr_cls.DoesNotExist = _exception_class("PrMissing")
+        pr_cls.objects.get.side_effect = pr_cls.DoesNotExist
+
+        # Should not raise; handled by the PullRequest.DoesNotExist branch.
+        review_tasks.process_pr_review({"pull_request": {}}, 1, 5)
+
+
+class ProcessCommitReviewErrorTests(unittest.TestCase):
+    @patch("core.tasks.review_tasks.Repository")
+    def test_missing_repository_is_handled(self, repo_cls):
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        repo_cls.objects.get.side_effect = repo_cls.DoesNotExist
+        review_tasks.process_commit_review({}, 1, 2)
+
+    @patch("core.tasks.review_tasks.Commit")
+    @patch("core.tasks.review_tasks.Repository")
+    def test_missing_commit_is_handled(self, repo_cls, commit_cls):
+        repo_cls.objects.get.return_value = MagicMock(id=1)
+        repo_cls.DoesNotExist = _exception_class("RepoMissing")
+        commit_cls.DoesNotExist = _exception_class("CommitMissing")
+        commit_cls.objects.get.side_effect = commit_cls.DoesNotExist
+        review_tasks.process_commit_review({}, 1, 2)
+
+
+if __name__ == "__main__":
+    unittest.main()
