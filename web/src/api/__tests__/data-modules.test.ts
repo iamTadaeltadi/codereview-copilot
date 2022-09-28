@@ -189,3 +189,66 @@ describe('frontend data api modules', () => {
               id: 50,
               thread_id: 'thread-1',
               title: '',
+              status: 'open',
+              created_at: '2026-05-20T00:00:00Z',
+              updated_at: '2026-05-20T01:00:00Z',
+              comments: [
+                {
+                  id: 1,
+                  user: { username: 'alice', is_ai_user: false },
+                  comment: 'Please update this.',
+                  created_at: '2026-05-20T00:00:00Z',
+                  type: 'note',
+                },
+                {
+                  id: 2,
+                  user: { username: 'bot', is_ai_user: true },
+                  comment: 'Done.',
+                  created_at: '2026-05-20T00:01:00Z',
+                  type: 'response',
+                },
+              ],
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: 40,
+            status: 'failed',
+            created_at: '2026-05-20T00:00:00Z',
+            updated_at: '2026-05-20T00:10:00Z',
+            error_message: 'boom',
+            thread_count: 2,
+            review_data: { some: 'data' },
+          },
+        ],
+      })
+    client.post
+      .mockResolvedValueOnce({
+        data: {
+          id: 51,
+          thread_id: 'thread-2',
+          title: 'Manual thread',
+          status: 'open',
+          created_at: '2026-05-20T00:00:00Z',
+          updated_at: '2026-05-20T00:00:00Z',
+          comments: [],
+        },
+      })
+      .mockResolvedValueOnce({ data: {} })
+
+    const review = await module.getCodeReview(40)
+    const history = await module.getReviewHistory('pr', 17)
+    const thread = await module.createReviewThread(40, 'Manual thread')
+    await module.replyToReviewThread(51, 'Thanks')
+
+    expect(review.contextRoute).toBe('/repos/9/pulls/17')
+    expect(review.chatThread).toHaveLength(2)
+    expect(review.activeThreadId).toBe(50)
+    expect(history[0].hasReviewData).toBe(true)
+    expect(thread.title).toBe('Manual thread')
+    expect(client.post).toHaveBeenLastCalledWith('/threads/51/reply/', { message: 'Thanks' })
+  })
+})
