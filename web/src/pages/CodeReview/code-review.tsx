@@ -217,3 +217,76 @@ const CodeReviewPage: React.FC = () => {
               Messages below are loaded from the backend review threads. Sending feedback will call the thread reply endpoint and refresh the review state.
               {!review.activeThreadId && " A discussion thread will be created automatically when you send your first message."}
             </p>
+            <div className="border bg-gray-50 h-64 overflow-y-auto p-4 rounded">
+              {review.chatThread.length === 0 ? (
+                <div className="text-sm text-gray-500 text-center py-8">
+                  <div className="mb-2">💬</div>
+                  <div>No discussion messages yet.</div>
+                  <div>Send the first message to start the review feedback conversation.</div>
+                </div>
+              ) : review.chatThread.map((m) => (
+                <div key={m.id} className={`mb-3 p-3 rounded ${m.isAI ? "bg-blue-50 ml-4" : "bg-gray-200 mr-4"}`}>
+                  <div className="flex justify-between mb-1">
+                    <span className={m.isAI ? "text-blue-600 font-semibold" : "font-semibold"}>
+                      {m.isAI ? "🤖 AI Assistant" : `👤 ${m.author}`}
+                    </span>
+                    <span className="text-xs text-gray-500">{new Date(m.timestamp).toLocaleString()}</span>
+                  </div>
+                  <div className="whitespace-pre-wrap">{m.text}</div>
+                </div>
+              ))}
+              {sending && (
+                <div className="mb-3 p-3 rounded bg-blue-50 ml-4 opacity-75">
+                  <div className="flex justify-between mb-1">
+                    <span className="text-blue-600 font-semibold">🤖 AI Assistant</span>
+                    <span className="text-xs text-gray-500">Processing...</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <span className="text-sm text-gray-600">Analyzing your message and generating response...</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {sendError && (
+              <div className="mt-3 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <div className="font-semibold mb-1">❌ Error sending message</div>
+                <div>{sendError}</div>
+              </div>
+            )}
+
+            <div className="flex mt-3 gap-2">
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendChat()}
+                className="flex-1 border rounded p-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="Ask the review assistant to clarify, re-check something, or provide more details..."
+                disabled={sending}
+              />
+              <button
+                onClick={handleSendChat}
+                disabled={sending || !chatInput.trim()}
+                className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition-colors disabled:bg-indigo-300 disabled:cursor-not-allowed min-w-[80px]"
+              >
+                {sending ? (
+                  <div className="flex items-center gap-1">
+                    <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white"></div>
+                    <span className="text-xs">Sending</span>
+                  </div>
+                ) : 'Send'}
+              </button>
+            </div>
+            
+            <div className="mt-2 text-xs text-gray-500">
+              💡 Tip: Press Enter to send, Shift+Enter for new line
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CodeReviewPage;
