@@ -206,3 +206,72 @@ const RepoSettingsPage: React.FC = () => {
                     id="llmModel"
                     value={settings.llmModel}
                     onChange={(e) => setSettings((prev) => ({ ...prev, llmModel: e.target.value }))}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  >
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gpt-4o">GPT-4o</option>
+                    <option value="claude-3.5-sonnet">Claude 3.5 Sonnet</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="codeStandards" className="block text-sm font-medium text-gray-700">Coding Standards</label>
+                <textarea
+                  id="codeStandards"
+                  rows={4}
+                  value={settings.codeStandards}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, codeStandards: e.target.value }))}
+                  placeholder="DRY, SOLID, secure input validation"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="evaluationMetrics" className="block text-sm font-medium text-gray-700">Evaluation Metrics</label>
+                <textarea
+                  id="evaluationMetrics"
+                  rows={4}
+                  value={settings.evaluationMetrics}
+                  onChange={(e) => setSettings((prev) => ({ ...prev, evaluationMetrics: e.target.value }))}
+                  placeholder="complexity, duplication, maintainability"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 space-y-1">
+            <div className="flex items-start gap-2">
+              <FiInfo className="mt-0.5 flex-shrink-0" />
+              <div>
+                <p>Collaborator invitations, repository visibility, and webhook secret rotation are owned by the backend and GitHub integration, not this page.</p>
+                <p>Parsed standards: {parsed.standards.length ? parsed.standards.join(', ') : 'none'}</p>
+                <p>Parsed metrics: {parsed.metrics.length ? parsed.metrics.join(', ') : 'none'}</p>
+              </div>
+            </div>
+          </div>
+
+          {status === 'failed' && error ? (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>
+          ) : null}
+
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={`inline-flex items-center px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 ${
+                isSaving ? 'opacity-80 cursor-not-allowed' : ''
+              }`}
+            >
+              <FiSave className="mr-2" />
+              {isSaving ? 'Saving...' : 'Save Settings'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default RepoSettingsPage;
