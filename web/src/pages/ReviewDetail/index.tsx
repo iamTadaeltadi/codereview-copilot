@@ -215,3 +215,75 @@ const PullRequestDetail: React.FC = () => {
                       <span className="text-sm text-gray-500">{new Date(review.submitted_at).toLocaleDateString()}</span>
                     </div>
                     <p className="mt-2 text-gray-700">{review.body}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h2 className="text-lg font-medium text-gray-900">Comments</h2>
+        </div>
+        <div className="divide-y divide-gray-200">
+          {currentPR.comments.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <FiMessageSquare className="w-8 h-8 text-gray-400 mb-2" />
+              <p className="text-gray-500">No comments are attached to this response.</p>
+            </div>
+          ) : (
+            currentPR.comments.map((comment: PRComment) => (
+              <div key={comment.id} className="p-6">
+                <div className="flex items-start gap-4">
+                  <img src={comment.user.avatar_url} alt={comment.user.login} className="w-10 h-10 rounded-full" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-gray-900">{comment.user.login}</span>
+                      <span className="text-sm text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p className="mt-2 text-gray-700">{comment.body}</p>
+                    {comment.path && (
+                      <div className="mt-2 text-sm text-gray-500">
+                        <span className="font-mono">{comment.path}</span>
+                        {comment.line && <span className="ml-2">Line {comment.line}</span>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const GitHubReviewStateBadge = ({ state }: { state: string }) => {
+  switch (state) {
+    case 'APPROVED':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><FiCheck className="w-3 h-3 mr-1" />Approved</span>;
+    case 'CHANGES_REQUESTED':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"><FiX className="w-3 h-3 mr-1" />Changes requested</span>;
+    default:
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700"><FiMessageSquare className="w-3 h-3 mr-1" />Commented</span>;
+  }
+};
+
+const ReviewStatusBadge = ({ status }: { status: string }) => {
+  switch (status) {
+    case 'completed':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><FiCheck className="w-3 h-3 mr-1" />Completed</span>;
+    case 'failed':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700"><FiX className="w-3 h-3 mr-1" />Failed</span>;
+    case 'in_progress':
+    case 'processing':
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700"><FiClock className="w-3 h-3 mr-1" />In progress</span>;
+    default:
+      return <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700"><FiAlertCircle className="w-3 h-3 mr-1" />Pending</span>;
+  }
+};
+
+export default PullRequestDetail;
