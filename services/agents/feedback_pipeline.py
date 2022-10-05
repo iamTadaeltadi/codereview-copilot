@@ -314,3 +314,81 @@ class FeedbackPipeline:
             
             repo_folder_path = clone_repo(metadata_user_for_clone, repo, branch_for_clone_or_checkout, user_github_token=user_github_token)
             diffs_data = get_pr_diff(user, repo, pr_id, user_github_token=user_github_token)
+        else:
+            raise ValueError("Insufficient information for repository setup. Provide PR, commit, or local files+diffs.")
+
+        if not repo_folder_path or not os.path.exists(repo_folder_path):
+             raise ValueError(f"Repository folder path not established or does not exist: {repo_folder_path}")
+
+        # Generate and save code graph (common logic)
+        # Ensure graph_folder_path is unique
+        mode_identifier = "local"
+        graph_repo_id = repo if repo else "local_project"
+        if pr_id: mode_identifier = f"pr-{pr_id}"
+        elif commit_hash: mode_identifier = f"commit-{commit_hash[:7]}"
+
+        G = generate_code_graph(repo_folder_path)
+        # graph_folder_path needs to be unique and stored in state if _needs_setup is false later
+        # The original logic used repo-branch-uuid. Let's try to stick to that pattern.
+        graph_folder_path_name_part = branch_for_clone_or_checkout if branch_for_clone_or_checkout else mode_identifier
+        graph_folder_path = os.path.join(".", "tmp", "graph", f"{graph_repo_id}-{graph_folder_path_name_part}-{uuid.uuid4()}")
+        
+        print_graph_info(G, repo_folder_path)
+        save_graph(graph_folder_path, G)
+        
+        # Initialize tools and get repo summary
+        self.tools = toolOrganizer(G, graph_folder_path)
+        summarizer = RepoSummarizerAgent(self.llm)
+        repo_summary = summarizer.summarize_repository(repo_folder_path)
+        
+        # Get PR diffs
+        diffs = diffs_data
+        diff_map = {diff["file_path"]: (i, diff) for i, diff in enumerate(diffs)}
+        
+        updates.update({
+            "user_github_token": "", # user github token is not used in the pipeline after this, so should be empty so that it won't get exposed later 
+            "files": "", # files are not used after this, so should be empty so that it won't get exposed later
+            "diff_str": "", # diff_str is not used after this, so should be empty so that it won't get exposed later
+            "repo_folder_path": repo_folder_path,
+            "graph_folder_path": graph_folder_path,
+            "repo_summary": repo_summary,
+            "diff_map": diff_map,
+            "reviews": {
+                "syntax": [None] * len(diffs),
+                "standards": [None] * len(diffs),
+                "error_analysis": [None] * len(diffs),
+                "final": [None] * len(diffs)
+            },
+            "fixes": [None] * len(diffs)
+        })
+        
+        return updates
+
+    def _initialize_llm(self, state: FeedbackState) -> dict:
+        provider, model_name = state["llm_model"].split("::")
+        provider_map = {
+            "HYPERBOLIC": Config.HYPERBOLIC,
+            "CEREBRAS": Config.CEREBRAS,
+            "OPENROUTER": Config.OPENROUTER
+        }
+        selected_config = provider_map.get(provider, Config.CEREBRAS)
+        
+        self.llm = CustomLLM(
+            openai_api_key=selected_config["api_key"],
+            model=model_name,
+            openai_api_base=selected_config["api_base_url"],
+            temperature=state["temperature"],
+            max_tokens=state["max_tokens"]
+        )
+        self.standards = state["standards"]
+        self.metrics = state["metrics"]
+        
+        return {}
+
+    def _reset_review_state(self) -> dict:
+        return {
+            "re_run_plan": None,
+            "instructions": None,
+            "feedback_status": None,
+            "feedback_explanation": None,
+            "feedback_suggestion": None,
