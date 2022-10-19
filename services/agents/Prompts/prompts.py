@@ -278,3 +278,73 @@ ERROR_SUMMARIZER_PROMPT_TEMPLATE = \
     }}
     ```
     """
+GUARDRAIL_CHECKER_PROMPT_TEMPLATE = \
+    """
+    Analyze the following feedback for relevance to code review improvement. Feedback is relevant if it:
+    - Mentions specific files (e.g., 'file1.py'), code issues (e.g., 'syntax error'), or review sections ('syntax', 'standards','fixes','error analysis').
+    - Provides actionable suggestions tied to code or review quality.
+    Feedback is irrelevant if it:
+    - Is general praise (e.g., 'good job'), criticism without context, or off-topic.
+    Provide a JSON response with:
+    - classification: 'relevant' or 'irrelevant'
+    - explanation: Detailed reason for the classification
+    - suggestion: If irrelevant, how to make it relevant
+    Feedback: {feedback}
+    Format: {{"classification": "relevant/irrelevant", "explanation": "reason", "suggestion": "how to improve if irrelevant"}}
+    """
+REVIEW_STRUCTURE_PROMPT_TEMPLATE = \
+    """
+    The review has sections: syntax, standards, error_analysis, final, each containing lists of issues per file.
+    {{
+        "review": {{
+            "syntax": [ # syntax issues per file
+                {{
+                    "issues": [
+                        {{
+                            "location": "line number",
+                            "file": "file name",
+                            "description": "description text"
+                        }},
+                        {{
+                            ...
+                        }}
+                    ]
+                }},
+                {{
+                    ...
+                }}
+            ],
+            "standards": [ # coding standards issues per file
+                {{
+                    "issues": [
+                        {{
+                            "location": "line number",
+                            "file": "file name",
+                            "standard": "standards text"
+                        }},
+                        {{
+                            ...
+                        }}
+                    ]
+                }},
+                {{
+                    ...
+                }}
+            ],
+            "error_analysis": [ # error analysis per file
+                {{
+                    "messages": [
+                        "analysis message"
+                    ],
+                    "issues": {{
+                        "summary": "summary text",
+                        "file": "file name",
+                        "issues": [
+                            {{
+                                "type": "bug or vulnerability or others",
+                                "locations": [
+                                    "line numbers"
+                                ],
+                                "descriptions": [
+                                    "description text"
+                                ],
