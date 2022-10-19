@@ -319,3 +319,83 @@ class CommitViewSet(viewsets.ModelViewSet):
         # # Get the commit
         # commit = self.get_object()
         # repository = commit.repository
+        
+        # # Check permissions (must be owner or collaborator)
+        # if not CanAccessRepository().has_object_permission(request, self, repository):
+        #     raise PermissionDenied("You do not have permission to trigger reviews for this repository.")
+        
+        # # Check for existing reviews that are completed or in progress
+        # existing_reviews = ReviewModel.objects.filter(
+        #     commit=commit,
+        #     status__in=['completed', 'in_progress', 'pending']
+        # )
+        
+        # if existing_reviews.exists():
+        #     # Return the most recent review
+        #     latest_review = existing_reviews.order_by('-created_at').first()
+        #     return Response({
+        #         "detail": f"A review for this commit already exists with status '{latest_review.status}'.",
+        #         "review_id": latest_review.id,
+        #         "status": latest_review.status
+        #     }, status=status.HTTP_409_CONFLICT)
+        
+        # # Create a new review
+        # review = ReviewModel.objects.create(
+        #     repository=repository,
+        #     commit=commit,
+        #     status='pending',
+        #     review_data={'message': 'Commit review manually triggered by user.'}
+        # )
+        
+        # # Prepare data for the Celery task
+        # event_data = {
+        #     'commit': {
+        #         'id': commit.commit_hash,
+        #         'sha': commit.commit_hash,
+        #         'message': commit.message,
+        #         'url': commit.url,
+        #         'author': {
+        #             'id': commit.author_github_id,
+        #             'name': (
+        #                 User.objects.filter(github_id=commit.author_github_id).values_list('username', flat=True).first() 
+        #                 if commit.author_github_id and User.objects.filter(github_id=commit.author_github_id).exists()
+        #                 else None
+        #             ),
+        #             'email': (
+        #                 User.objects.filter(github_id=commit.author_github_id).values_list('email', flat=True).first()
+        #                 if commit.author_github_id and User.objects.filter(github_id=commit.author_github_id).exists()
+        #                 else None
+        #             )
+        #         },
+        #         'committer': {
+        #             'id': commit.committer_github_id,
+        #             'name': (
+        #                 User.objects.filter(github_id=commit.committer_github_id).values_list('username', flat=True).first()
+        #                 if commit.committer_github_id and User.objects.filter(github_id=commit.committer_github_id).exists()
+        #                 else None
+        #             ),
+        #             'email': (
+        #                 User.objects.filter(github_id=commit.committer_github_id).values_list('email', flat=True).first()
+        #                 if commit.committer_github_id and User.objects.filter(github_id=commit.committer_github_id).exists()
+        #                 else None
+        #             )
+        #         },
+        #         'timestamp': commit.timestamp.isoformat() if commit.timestamp else None
+        #     },
+        #     'repository': {
+        #         'id': repository.github_native_id,
+        #         'full_name': repository.repo_name,
+        #         'owner': {'login': repository.owner.username}
+        #     },
+        #     'action': 'manual_trigger'
+        # }
+        
+        # # Enqueue the review task
+        # process_commit_review.delay(event_data, repository.id, commit.id)
+        
+        # # Return response
+        # return Response({
+        #     "detail": "AI review has been triggered for the commit.",
+        #     "review_id": review.id,
+        #     "status": review.status
+        # }, status=status.HTTP_201_CREATED)
