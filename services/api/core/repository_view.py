@@ -277,3 +277,72 @@ class RepositoryViewSet(viewsets.ModelViewSet):
             # If client sent a short SHA, and it wasn't found as full SHA in DB, try GitHub
             pass # Fall through to GitHub fetch
         except CommitModel.MultipleObjectsReturned: # Should not happen if commit_hash is unique per repo
+             logger.error(f"Multiple commits found for SHA {commit_sha} in repo {repository.id}. This should not happen.")
+             return Response({"detail": "Internal error: Ambiguous commit SHA in database."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+        if not request.user.github_access_token:
+            return Response({"detail": "Commit not found in DB and no GitHub token available to fetch from GitHub."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            owner_login = repository.owner.username
+            repo_name_only = repository.repo_name.split('/')[-1]
+
+            gh_commit_data = get_single_commit_from_github(
+                github_token=request.user.github_access_token,
+                owner_login=owner_login,
+                repo_name=repo_name_only,
+                commit_sha=commit_sha
+            )
+
+            # Transform GitHub data to fit CommitSerializer structure
+            commit_details = gh_commit_data.get('commit', {})
+            author_details = commit_details.get('author', {}) # Git author
+            committer_details = commit_details.get('committer', {}) # Git committer
+            gh_author_user = gh_commit_data.get('author') # GitHub user object for author
+            gh_committer_user = gh_commit_data.get('committer') # GitHub user object for committer
+            transformed_data = {
+                'commit_hash': gh_commit_data.get('sha'),
+                'message': commit_details.get('message'),
+                'author_name': author_details.get('name'),
+                'author_email': author_details.get('email'),
+                'committer_name': committer_details.get('name'),
+                'committer_email': committer_details.get('email'),
+                'timestamp': author_details.get('date'), # Main timestamp from git author date
+                'url': gh_commit_data.get('html_url'),
+                'author_github_id': str(gh_author_user.get('id')) if gh_author_user else None,
+                'committer_github_id': str(gh_committer_user.get('id')) if gh_committer_user else None,
+                'repository_id': repository.id,
+                'source': 'github', # Indicate source
+            }
+            serializer = CommitSerializer(data=transformed_data)
+            if serializer.is_valid():
+                # final_output will contain the representation of model fields
+                final_output = serializer.data 
+                
+                # Now, add the non-model, read-only fields directly from the GitHub data
+                # to the response. These were not processed by serializer.is_valid()
+                # for input, and serializer.data wouldn't include them unless they were
+                # attributes of a model instance.
+                # final_output['author_name'] = transformed_data.get('author_name')
+                # final_output['author_email'] = transformed_data.get('author_email')
+                # final_output['committer_name'] = transformed_data.get('committer_name')
+                # final_output['committer_email'] = transformed_data.get('committer_email')
+                # final_output['committed_date'] = transformed_data.get("committed_date")
+                
+                # final_output['source'] = 'github'
+                return Response(final_output)
+            else:
+                logger.error(f"GitHub commit data for repo {repository.id}, SHA {commit_sha} not valid for serializer: {serializer.errors}")
+                return Response({"detail": "Error processing commit data from GitHub.", "errors": serializer.errors}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                return Response({"detail": f"Commit with SHA {commit_sha} not found on GitHub for repository {repository.repo_name}."}, status=status.HTTP_404_NOT_FOUND)
+            if e.response.status_code == 422: # Often for invalid SHA format or non-existent commit
+                 return Response({"detail": f"Invalid SHA or commit {commit_sha} not found on GitHub (422)."}, status=status.HTTP_422_UNPROCESSABLE_ENTITY)
+            logger.error(f"GitHub API error fetching commit SHA {commit_sha} for repo {repository.id}: {e.response.text}")
+            return Response({"detail": f"GitHub API error: {e.response.status_code}"}, status=status.HTTP_502_BAD_GATEWAY)
+        except Exception as e:
+            logger.error(f"Unexpected error fetching commit SHA {commit_sha} for repo {repository.id}: {e}")
+            return Response({"detail": "An unexpected error occurred while fetching commit from GitHub."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
