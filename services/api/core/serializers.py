@@ -308,3 +308,80 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     # For read operations, use nested serializers or string representations
+    repository = RepositorySerializer(read_only=True)
+    pull_request = PRSerializer(read_only=True)
+    commit = CommitSerializer(read_only=True)
+    parent_review = serializers.PrimaryKeyRelatedField(read_only=True)
+    
+    # Add threads relationship
+    threads = ThreadSerializer(many=True, read_only=True)
+    thread_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Review
+        fields = [
+            'id', 
+            'repository', 'repository_id', 
+            'pull_request', 'pull_request_id',
+            'commit', 'commit_id', 
+            'parent_review', 'parent_review_id',
+            'status', 'review_data', 'threads', 'thread_count', 'error_message',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'repository', 'pull_request', 'commit', 'parent_review', 'threads', 'thread_count']
+        extra_kwargs = {
+            'status': {'required': False},  # Often auto-set
+            'review_data': {'required': False},  # Often set by system processes
+        }
+    
+    def get_thread_count(self, obj):
+        return obj.threads.count()
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        
+        # Include threads with comments if requested
+        if self.context.get('include_threads'):
+            thread_serializer = ThreadSerializer(
+                instance.threads.all(),
+                many=True,
+                context=self.context
+            )
+            data['threads'] = thread_serializer.data
+        
+        return data
+class LLMUsageSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    review = serializers.PrimaryKeyRelatedField(queryset=Review.objects.all(), allow_null=True, required=False)
+
+    class Meta:
+        model = LLMUsage
+        fields = ['id', 'user', 'review', 'llm_model', 'input_tokens', 'output_tokens', 'cost', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'user', 'created_at', 'updated_at', 'llm_model', 'input_tokens', 'output_tokens', 'cost']
+
+    def create(self, validated_data):
+        # If user is not part of the input, set it from context (e.g., request.user)
+        if 'user' not in validated_data and self.context.get('request'):
+            validated_data['user'] = self.context['request'].user
+        return super().create(validated_data)
+
+class AdminUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'is_admin', 'is_staff', 'is_active'] # Fields admin can update
+        # Ensure that sensitive fields like password, github_id, github_access_token are not here
+
+# Add other serializers here as we migrate endpoints
+class WebhookEventLogSerializer(serializers.ModelSerializer):
+    repository_id = serializers.PrimaryKeyRelatedField(
+        queryset=DBRepository.objects.all(), source='repository', write_only=True, required=False
+    )
+    repository = RepositorySerializer(read_only=True)
+    
+    class Meta:
+        model = WebhookEventLog
+        fields = [
+            'id', 'repository', 'repository_id', 'event_id', 'event_type', 
+            'payload', 'headers', 'status', 'error_message', 
+            'processed_at', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'repository']
