@@ -322,3 +322,84 @@ class ThreadSerializerTests(TestCase):
 
         self.assertEqual(serializer.data["comment_count"], 2)
 
+    def test_thread_serializer_filters_comment_data_for_non_last_comment(self):
+        Comment.objects.create(
+            thread=self.thread,
+            user=self.user,
+            comment="first",
+            type="note",
+            comment_data={
+                "repo": "thread-repo",
+                "feedback": "keep",
+                "messages": ["hidden"],
+                "original_review": {"a": 1},
+            },
+        )
+        Comment.objects.create(
+            thread=self.thread,
+            user=self.user,
+            comment="second",
+            type="response",
+            comment_data={
+                "repo": "thread-repo",
+                "feedback": "keep",
+                "messages": ["shown"],
+                "original_review": {"a": 1},
+                "updated_review": {"b": 2},
+            },
+        )
+
+        serializer = ThreadSerializer(self.thread)
+        comments = serializer.data["comments"]
+
+        self.assertEqual(comments[0]["comment_data"], {"repo": "thread-repo", "feedback": "keep"})
+        self.assertIn("messages", comments[1]["comment_data"])
+        self.assertIn("updated_review", comments[1]["comment_data"])
+
+
+class ReviewModelTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(github_id="3001", username="review-user", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.user,
+            repo_name="review-user/review-repo",
+            repo_url="https://github.com/review-user/review-repo",
+        )
+
+    def test_review_can_be_created_for_pull_request_context(self):
+        pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="9001",
+            pr_number=12,
+            title="Add review flow",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/review-user/review-repo/pull/12",
+        )
+
+        review = Review.objects.create(
+            repository=self.repository,
+            pull_request=pull_request,
+            status="pending",
+            review_data={"summary": "pending analysis"},
+        )
+
+        self.assertEqual(review.pull_request, pull_request)
+        self.assertEqual(str(review), "Review for PR #12")
+
+
+class PermissionNegativeTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.user_model = get_user_model()
+        self.owner = self.user_model.objects.create_user(github_id="4101", username="negative-owner", password="pw")
+        self.other = self.user_model.objects.create_user(github_id="4102", username="negative-other", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.owner,
+            repo_name="negative-owner/negative-repo",
+            repo_url="https://github.com/negative-owner/negative-repo",
+        )
+        self.pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="neg-pr-1",
+            pr_number=21,
