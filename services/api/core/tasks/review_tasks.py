@@ -313,3 +313,81 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
         commit_github_data = event_data.get('commit', {})
         if not commit_github_data:
             # If not provided in event_data, construct from our DB model
+            commit_github_data = {
+                'sha': commit.commit_hash,
+                'message': commit.message,
+                'url': commit.url,
+                'author': {
+                    'name': getattr(commit, 'author_name', None),
+                    'email': getattr(commit, 'author_email', None),
+                    'date': commit.timestamp.isoformat() if commit.timestamp else None
+                },
+                'committer': {
+                    'name': getattr(commit, 'committer_name', None),
+                    'email': getattr(commit, 'committer_email', None)
+                }
+            }
+        
+        # If we need to fetch more detailed commit data from GitHub
+        # Here we could use GitHubService to get more info if needed
+        
+        # Get repo settings
+        repo_settings = {
+            'coding_standards': repo.coding_standards or [],
+            'code_metrics': repo.code_metrics or [],
+            'llm_preference': repo.llm_preference or settings.DEFAULT_LLM_MODEL,
+        }
+        
+        # Author identification for LLM usage tracking
+        commit_author_github_id = commit.author_github_id
+        commit_author_name = getattr(commit, 'author_name', 'unknown_user')
+        
+        # Generate review using LangGraph
+        logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Calling LangGraph to generate review for commit review ID {review.id}")
+        
+        # Transform the commit data to match what LangGraph expects
+        # The structure may need adjustment based on your LangGraph agent's expectations
+        input_data = {
+            'commit': commit_github_data,
+            'repository': {
+                'id': repo.github_native_id,
+                'full_name': repo.repo_name,
+                'owner': {'login': repo.owner.username}
+            },
+            'commit_sha': commit.commit_hash
+        }
+        review_result = loop.run_until_complete(
+            client.generate_review(
+                pr_data=input_data,  # We reuse the PR review function but with commit data
+                repo_settings=repo_settings,
+                user_id=repo.owner.github_id if repo.owner else None,)
+        )
+        logger.info(f"PROCESS_COMMIT_REVIEW_TASK: LangGraph review generated for review ID {review.id}")
+        
+        raw_review_data = review_result.get('review_data', {})
+        allowed_review_keys = ["repo", "user", "fixes", "metrics", "reviews", "llm_model", "standards",'final_result']
+        filtered_review_data = {key: raw_review_data[key] for key in allowed_review_keys if key in raw_review_data}
+        
+        review.review_data = filtered_review_data
+        review.status = 'completed'
+        review.save()
+        logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Review {review.id} updated and saved as completed.")
+        
+        # Create a main thread for this review
+        thread_id = review_result.get('thread_id')
+        if thread_id:
+            Thread.objects.create(
+                review=review,
+                thread_id=thread_id,
+                thread_type='main',
+                title='Initial Commit AI Review',
+                status='open'
+            )
+            logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Created main thread for review {review.id}")
+        
+        # Record token usage
+        token_usage_data = review_result.get('token_usage', {})
+        if token_usage_data:
+            author_user, _ = User.objects.get_or_create(
+                github_id=repo.owner.github_id if repo.owner.github_id else f"unknown_{commit_author_name}",
+                defaults={
