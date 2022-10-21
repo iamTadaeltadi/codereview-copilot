@@ -287,3 +287,75 @@ class GitHubService:
         """
         self.token = user_token
         self.headers = {
+            "Accept": "application/vnd.github.v3+json",
+        }
+        
+        if self.token:
+            self.headers["Authorization"] = f"token {self.token}"
+            
+    async def get_user_info(self):
+        """Get authenticated user information."""
+        if not self.token:
+            raise ValueError("Authentication token required for this operation")
+            
+        async with aiohttp.ClientSession() as session:
+            async with session.get(GITHUB_API_USER_URL, headers=self.headers) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def get_repositories(self, page=1, per_page=30):
+        """Get user repositories."""
+        if not self.token:
+            raise ValueError("Authentication token required for this operation")
+            
+        params = {"per_page": per_page, "page": page, "sort": "updated", "direction": "desc"}
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f"{GITHUB_API_USER_URL}/repos", headers=self.headers, params=params) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def get_pull_request(self, owner_login, repo_name, pr_number):
+        """Get specific pull request details."""
+        url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/pulls/{pr_number}"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=self.headers) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def get_commit(self, owner_login, repo_name, commit_sha):
+        """Get specific commit details."""
+        url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/commits/{commit_sha}"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=self.headers) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def post_pr_comment(self, owner_login, repo_name, pr_number, body):
+        """Post a comment on a pull request."""
+        url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/issues/{pr_number}/comments"
+        payload = {"body": body}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=self.headers, json=payload) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def post_commit_comment(self, owner_login, repo_name, commit_sha, body):
+        """Post a comment on a commit."""
+        url = f"{GITHUB_API_BASE_URL}/repos/{owner_login}/{repo_name}/commits/{commit_sha}/comments"
+        payload = {"body": body}
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, headers=self.headers, json=payload) as response:
+                response.raise_for_status()
+                return await response.json()
+    
+    async def verify_webhook_signature(self, payload, signature, secret):
+        """Verify the webhook signature from GitHub."""
+        expected_signature = hmac.new(
+            secret.encode('utf-8'),
+            payload,
+            hashlib.sha256
+        ).hexdigest()
+        
+        return hmac.compare_digest(f"sha256={expected_signature}", signature)
