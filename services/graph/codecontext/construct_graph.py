@@ -311,3 +311,81 @@ class CodeGraph:
                                 category="function",
                                 info=method_info
                             ))
+                    tags.extend(methods)
+                else:
+                    # If it's a function, extract function calls & var/attr dependencies
+                    calls = self.extract_function_calls(child, rel_fname, current_function=name)
+                    tags.extend(calls)
+
+                    var_deps = self.extract_variable_attributes(child, rel_fname, current_function=name)
+                    tags.extend(var_deps)
+
+            # Recurse deeper
+            tags.extend(self.extract_tags(child, rel_fname))
+
+        return tags
+
+    def extract_imports(self, node, file_extension, rel_fname):
+        """
+        Recursively extract import statements (#include in C or import in others).
+        """
+        imports = []
+        for child in node.children:
+            if file_extension == ".py":
+                if child.type in ["import_statement", "import_from_statement"]:
+                    imported_mod = child.text.decode("utf-8").strip()
+                    imports.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[child.start_point[0] + 1, child.end_point[0] + 1],
+                            name=imported_mod,
+                            kind="import",
+                            category="import",
+                            info={}
+                        )
+                    )
+            elif file_extension == ".js":
+                if child.type == "import_statement":
+                    imported_mod = child.text.decode("utf-8").strip()
+                    imports.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[child.start_point[0] + 1, child.end_point[0] + 1],
+                            name=imported_mod,
+                            kind="import",
+                            category="import",
+                            info={}
+                        )
+                    )
+            elif file_extension == ".java":
+                if child.type == "import_declaration":
+                    imported_mod = child.text.decode("utf-8").strip()
+                    imports.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[child.start_point[0] + 1, child.end_point[0] + 1],
+                            name=imported_mod,
+                            kind="import",
+                            category="import",
+                            info={}
+                        )
+                    )
+            elif file_extension == ".c":
+                if child.type == "preproc_include":
+                    imported_mod = child.text.decode("utf-8").strip()
+                    imports.append(
+                        Tag(
+                            rel_fname=rel_fname,
+                            fname=None,
+                            line=[child.start_point[0] + 1, child.end_point[0] + 1],
+                            name=imported_mod,
+                            kind="import",
+                            category="import",
+                            info={}
+
+                        )
+                    )
+
