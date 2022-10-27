@@ -321,3 +321,83 @@ class DynamicReviewExecutorTests(unittest.TestCase):
         agents_pkg = types.ModuleType("Agents")
         agents_pkg.__path__ = []
         syntax_mod = types.ModuleType("Agents.syntax_checker_agent")
+        syntax_mod.SyntaxCheckerAgent = FakeSyntaxChecker
+        standard_mod = types.ModuleType("Agents.standard_checker_agent")
+        standard_mod.StandardCheckerAgent = FakeStandardChecker
+        error_mod = types.ModuleType("Agents.error_analysis_agent")
+        error_mod.ErrorAnalysisAgent = FakeErrorAgent
+        fix_mod = types.ModuleType("Agents.code_fix_agent")
+        fix_mod.CodeFixAgent = FakeFixAgent
+        review_mod = types.ModuleType("Agents.code_reviewer_agent")
+        review_mod.CodeReviewerAgent = FakeReviewer
+
+        module = load_module(
+            "dynamic_review_executor_module",
+            "agent_runtime/Agents/dynamic_review_executor_agent.py",
+            {
+                "Agents": agents_pkg,
+                "Agents.syntax_checker_agent": syntax_mod,
+                "Agents.standard_checker_agent": standard_mod,
+                "Agents.error_analysis_agent": error_mod,
+                "Agents.code_fix_agent": fix_mod,
+                "Agents.code_reviewer_agent": review_mod,
+            },
+        )
+
+        agent = module.DynamicReviewExecutorAgent(Mock(), ["snake_case"], ["tool"], ["quality"], 3)
+        reviews = {
+            "syntax": [None],
+            "standards": [None],
+            "error_analysis": [None],
+            "final": [None],
+        }
+        fixes = [None]
+        diff_map = {"src/app.py": (0, {"file_path": "src/app.py", "content": "+ value"})}
+        original_review = {
+            "review": {
+                "syntax": [{"orig": "syntax"}],
+                "standards": [{"orig": "std"}],
+                "error_analysis": [{"orig": "err"}],
+            }
+        }
+
+        updated_reviews, updated_fixes = agent.execute_review(
+            {"src/app.py": ["syntax", "standards", "error_analysis"]},
+            {
+                "src/app.py": {
+                    "syntax": {"instruction": "syntax-focus"},
+                    "standards": {"instruction": "style-focus"},
+                    "error_analysis": {"instruction": "bug-focus"},
+                    "fix": {"instruction": "patch-it"},
+                    "final": {"instruction": "summarize-it"},
+                }
+            },
+            reviews,
+            fixes,
+            diff_map,
+            {"repo": "summary"},
+            original_review,
+        )
+
+        self.assertEqual(updated_reviews["syntax"][0]["instruction"], "syntax-focus")
+        self.assertEqual(updated_reviews["final"][0]["instruction"], "summarize-it")
+        self.assertIn("patch-it", updated_fixes[0])
+
+
+class ErrorAnalysisAgentTests(unittest.TestCase):
+    def test_error_analysis_summarizer_and_checker_variants(self):
+        prompts = fake_prompts_module()
+        utils = base_utils_module()
+        fn_call_module = types.ModuleType("langchain_core.utils.function_calling")
+        fn_call_module.convert_to_openai_function = lambda tool: {"name": tool.name}
+
+        summarizer_module = load_module(
+            "error_summarizer_module",
+            "agent_runtime/Agents/error_analysis_agent/error_analysis_summarizer.py",
+            {"Prompts": prompts, "Utils": utils},
+        )
+
+        llm = Mock()
+        llm.invoke.return_value = Response('{"summary": "done"}')
+        self.assertEqual(
+            summarizer_module.ErrorAnalysisSummarizer(llm).summarize({"bug": [], "vulnerability": []})["summary"],
