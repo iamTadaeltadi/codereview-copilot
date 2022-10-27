@@ -302,3 +302,78 @@ class BackendApiFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(response.data["users"], 3)
         self.assertGreaterEqual(response.data["repositories"], 1)
+
+    def test_admin_user_update_persists_changes(self):
+        self.authenticate(self.admin)
+        response = self.client.put(
+            f"/api/v1/admin/users/{self.owner.id}/",
+            {"email": "updated@example.com", "is_admin": True},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.owner.refresh_from_db()
+        self.assertEqual(self.owner.email, "updated@example.com")
+        self.assertTrue(self.owner.is_admin)
+
+    def _signed_webhook_headers(self, payload_bytes, secret, delivery_id="delivery-1", event_type="push"):
+        digest = hmac.new(secret.encode("utf-8"), payload_bytes, hashlib.sha256).hexdigest()
+        return {
+            "HTTP_X_HUB_SIGNATURE_256": f"sha256={digest}",
+            "HTTP_X_GITHUB_EVENT": event_type,
+            "HTTP_X_GITHUB_DELIVERY": delivery_id,
+            "content_type": "application/json",
+        }
+
+    def test_github_webhook_requires_signature_headers(self):
+        response = self.client.post(
+            "/api/v1/webhook/github/",
+            data=json.dumps({"repository": {"full_name": self.repo.repo_name}}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_github_webhook_rejects_invalid_signature(self):
+        payload = json.dumps({"repository": {"full_name": self.repo.repo_name}}).encode("utf-8")
+        headers = self._signed_webhook_headers(payload, "wrong-secret")
+        response = self.client.post("/api/v1/webhook/github/", data=payload, **headers)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    @patch("core.webhook_view.process_webhook_event.delay")
+    def test_github_webhook_accepts_valid_repo_specific_signature(self, mock_delay):
+        payload_dict = {
+            "repository": {"full_name": self.repo.repo_name},
+            "ref": "refs/heads/main",
+            "commits": [],
+        }
+        payload = json.dumps(payload_dict).encode("utf-8")
+        headers = self._signed_webhook_headers(payload, self.repo.webhook_secret, delivery_id="delivery-success")
+        response = self.client.post("/api/v1/webhook/github/", data=payload, **headers)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        mock_delay.assert_called_once_with("push", payload_dict)
+
+    @patch("core.webhook_view.process_webhook_event.delay")
+    def test_github_webhook_falls_back_to_global_secret_for_unknown_repo(self, mock_delay):
+        payload_dict = {
+            "repository": {"full_name": "missing/repo"},
+            "action": "opened",
+        }
+        payload = json.dumps(payload_dict).encode("utf-8")
+        headers = self._signed_webhook_headers(payload, settings.GITHUB_WEBHOOK_SECRET, delivery_id="delivery-global", event_type="pull_request")
+        response = self.client.post("/api/v1/webhook/github/", data=payload, **headers)
+        self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
+        mock_delay.assert_called_once_with("pull_request", payload_dict)
+
+    def test_github_webhook_invalid_json_after_headers_returns_verification_error(self):
+        payload = b"{invalid-json"
+        headers = self._signed_webhook_headers(payload, settings.GITHUB_WEBHOOK_SECRET, delivery_id="delivery-json")
+        response = self.client.post("/api/v1/webhook/github/", data=payload, **headers)
+        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+def tearDownModule():
+    teardown_databases(_DB_CONFIG, verbosity=0)
+    teardown_test_environment()
