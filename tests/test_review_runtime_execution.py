@@ -259,3 +259,68 @@ class MemoryManagerTests(unittest.TestCase):
         manager = module.MemoryManager()
 
         manager.save_review(
+            "pr-12",
+            {
+                "review": {"final": []},
+                "fixes": ["apply patch"],
+                "summary": "ready",
+            },
+        )
+
+        self.assertEqual(
+            manager.get_pr_state("pr-12"),
+            {
+                "review": {"final": []},
+                "status": "completed",
+                "artifacts": {"fixes": ["apply patch"], "summary": "ready"},
+            },
+        )
+        self.assertIsNone(manager.get_pr_state("missing"))
+
+    def test_save_to_file_writes_review_json_and_calls_report_generator(self):
+        module = build_memory_module()
+        manager = module.MemoryManager()
+        manager.pr_states["pr-9"] = {
+            "review": {"final": []},
+            "status": "completed",
+            "artifacts": {"fixes": [], "summary": "done"},
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            previous_cwd = os.getcwd()
+            os.chdir(tmpdir)
+            try:
+                with patch.object(module, "generate_review_report") as mock_report:
+                    output_path = manager.save_to_file("pr-9")
+            finally:
+                os.chdir(previous_cwd)
+
+            self.assertTrue(output_path.startswith("./reviews/pr-9_"))
+            stored_file = os.path.join(tmpdir, output_path.removeprefix("./"))
+            self.assertTrue(os.path.exists(stored_file))
+            with open(stored_file, "r", encoding="utf-8") as handle:
+                stored = json.load(handle)
+
+        self.assertEqual(stored["status"], "completed")
+        mock_report.assert_called_once_with(output_path, "./reviews")
+
+
+class PreProcessingStepTests(unittest.TestCase):
+    def test_preprocessing_clones_repo_builds_graph_and_persists_it(self):
+        module = build_preprocessing_module()
+
+        with patch.object(module.uuid, "uuid4", return_value="graph-uuid"):
+            graph_folder_path, repo_folder_path = module.preProcessingStep(
+                "octocat", "demo", "main"
+            )
+
+        self.assertEqual(repo_folder_path, "./tmp/repo/demo-main")
+        self.assertEqual(graph_folder_path, "./tmp/graph/demo-main-graph-uuid")
+        module.clone_repo.assert_called_once_with("octocat", "demo", "main")
+        module.generate_code_graph.assert_called_once_with("./tmp/repo/demo-main")
+        module.print_graph_info.assert_called_once_with("graph-object", "./tmp/repo/demo-main")
+        module.save_graph.assert_called_once_with("./tmp/graph/demo-main-graph-uuid", "graph-object")
+
+
+if __name__ == "__main__":
+    unittest.main()
