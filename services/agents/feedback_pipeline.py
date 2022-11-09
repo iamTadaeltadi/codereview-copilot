@@ -392,3 +392,81 @@ class FeedbackPipeline:
             "feedback_status": None,
             "feedback_explanation": None,
             "feedback_suggestion": None,
+            "sufficiency": None,
+            "sufficiency_explanation": None,
+            "sufficiency_suggestion": None,
+        }
+
+    @with_error_handling(default_value={"sufficiency": "insufficient", "sufficiency_explanation": "Error during check", "sufficiency_suggestion": "Please try again"})
+    def sufficiency_checker(self, state: FeedbackState):
+        print("--- Running Sufficiency Checker ---")
+        feedback = state["feedback"]
+        current_review = state.get("updated_review", state.get("original_review", {}))
+        
+        config = self._get_episodic_config(state)
+        episodic_query = f"Feedback and actions for thread {state['thread_id']} in {state['repo']}"
+        episodic_results = self.episodic_search_tool.invoke(
+            {"query": episodic_query},
+            config=config
+        )
+        episodic_context = episodic_results if episodic_results else []
+        episodic_context = json.loads(episodic_context)
+        
+        sufficiency_checker = SufficiencyCheckerAgent(self.llm)
+        result = sufficiency_checker.sufficiency_checker(
+            feedback=feedback,
+            original_review=current_review,
+            episodic_context="\n".join([episode.get('value', {}).get('content', '') for episode in episodic_context])
+        )
+        
+        updates = {}
+        if result:
+            updates["sufficiency"] = result.get("classification", "insufficient")
+            updates["sufficiency_explanation"] = result.get("explanation", "No explanation provided.")
+            updates["sufficiency_suggestion"] = result.get("suggestion", "")
+        else:
+            updates["sufficiency"] = "insufficient"
+            updates["sufficiency_explanation"] = "Failed to parse sufficiency response."
+            updates["sufficiency_suggestion"] = "Include specific files or issues to address."
+        
+        updates.update(self._log_action("sufficiency_checker", {
+            "status": updates["sufficiency"],
+            "feedback_snippet": feedback[:50]
+        }))
+        return updates
+
+    @with_error_handling(default_value={"instructions": {}})
+    def instruction_generator(self, state: FeedbackState):
+        print("--- Running Instruction Generator ---")
+        re_run_plan = state.get("re_run_plan", {})
+        feedback = state.get("feedback")
+        current_review = state.get("updated_review", state.get("original_review", {}))
+
+        # Retrieve relevant episodic memory
+        episodic_config = self._get_episodic_config(state)
+        episodic_query = f"Previous review actions and feedback for PR {state['pr_id']} in thread {state['thread_id']}"
+        episodic_results = self.episodic_search_tool.invoke(
+            {"query": episodic_query, "limit": 5},
+            config=episodic_config
+        )
+        episodic_context = episodic_results if episodic_results else []
+        episodic_context = json.loads(episodic_context)
+        
+        # Extract relevant context from episodic memory
+        episodic_summary = self._process_episodic_memory(episodic_context)
+
+        # Retrieve analyzed preferences
+        ltm_config = self._get_ltm_config(state)
+        preferences = self.long_term_search_tool.invoke(
+            {"query": "user preferences and review style", "limit": 10},
+            config=ltm_config
+        )
+        
+        # Prepare preference context
+        preference_context = self._process_preferences(json.loads(preferences))
+        
+        rereview_instruction_generator = ReReviewInstructionGeneratorAgent(self.llm)
+        instructions = rereview_instruction_generator.re_review_instruction_generator(
+            re_run_plan=re_run_plan,
+            feedback=feedback,
+            original_review=current_review,
