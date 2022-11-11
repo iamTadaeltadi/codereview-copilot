@@ -391,3 +391,81 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
             author_user, _ = User.objects.get_or_create(
                 github_id=repo.owner.github_id if repo.owner.github_id else f"unknown_{commit_author_name}",
                 defaults={
+                    'username': commit_author_name,
+                    'email': getattr(commit, 'author_email', None)
+                }
+            )
+            LLMUsage.objects.create(
+                review=review,
+                user=author_user,
+                llm_model=repo_settings['llm_preference'],
+                input_tokens=token_usage_data.get('input_tokens', 0),
+                output_tokens=token_usage_data.get('output_tokens', 0),
+                cost=calculate_cost(token_usage_data, repo_settings['llm_preference'])
+            )
+            logger.info(f"PROCESS_COMMIT_REVIEW_TASK: LLM usage recorded for review {review.id}")
+        
+        # Post a comment to GitHub if possible
+        github_service = GitHubService()
+        review_url = f"{settings.FRONTEND_URL}/reviews/{review.id}"
+        comment_body = (
+            f"🤖 AI Code Review Complete for Commit {commit.commit_hash[:7]}!\n\n"
+            f"Status: {review.status}\n"
+            f"View the full report: {review_url}\n"
+            f"(Review ID: {review.id})"
+        )
+        
+        # try:
+        #     logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Posting comment to GitHub commit {commit.commit_hash} in repo {repo.repo_name}")
+        #     owner_login, repo_name = repo.repo_name.split('/')
+        #     loop.run_until_complete(
+        #         github_service.post_commit_comment(
+        #             owner_login=owner_login,
+        #             repo_name=repo_name,
+        #             commit_sha=commit.commit_hash,
+        #             body=comment_body
+        #         )
+        #     )
+        #     logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Comment posted to GitHub for review {review.id}")
+        # except Exception as e:
+        #     logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Failed to post GitHub comment: {str(e)}", exc_info=True)
+        #     # We continue even if comment posting fails - the review is still available in our system
+    
+    except Commit.DoesNotExist:
+        logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Commit ID {commit_model_id} not found for repo {repository_id}.")
+    except Repository.DoesNotExist:
+        logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Repository ID {repository_id} not found.")
+    except Exception as e:
+        task_id = self.request.id if self.request else "N/A"
+        logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Unhandled error in task {task_id} for Review ID {review.id if review else 'N/A'}: {str(e)}", exc_info=True)
+        if review and review.status != 'completed':
+            review.status = 'failed'
+            review.error_message = str(e)[:1023]
+            review.save(update_fields=['status', 'error_message'])
+        raise
+
+def calculate_cost(token_usage: Dict[str, int], model: str) -> float:
+    """Calculate the cost of token usage based on the model."""
+    input_cost_per_token = 0.00001  # Default
+    output_cost_per_token = 0.00002 # Default
+
+    model_key = model.lower()
+    PRICING = {
+        "gpt-4": {"input": 0.00003, "output": 0.00006},
+        "cerebras::llama-3.3-70b": {"input": 0.0000026, "output": 0.0000035},
+        "default": {"input": 0.00001, "output": 0.00002}
+    }
+
+    for key_part in PRICING:
+        if key_part in model_key:
+            input_cost_per_token = PRICING[key_part]["input"]
+            output_cost_per_token = PRICING[key_part]["output"]
+            break
+    
+    input_tokens = token_usage.get('input_tokens', 0) or 0
+    output_tokens = token_usage.get('output_tokens', 0) or 0
+    
+    input_cost = input_tokens * input_cost_per_token
+    output_cost = output_tokens * output_cost_per_token
+    
+    return round(input_cost + output_cost, 6)
