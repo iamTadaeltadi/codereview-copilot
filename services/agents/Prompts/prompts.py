@@ -348,3 +348,72 @@ REVIEW_STRUCTURE_PROMPT_TEMPLATE = \
                                 "descriptions": [
                                     "description text"
                                 ],
+                                "certainty": [
+                                    "certainty level"
+                                ]
+                            }},
+                            {{
+                                ...
+                            }}
+                        ]
+                    }},
+                    "current_diff": {{
+                        "id": "diff id",
+                        "file_path": "file name",
+                        "content": "diff content"
+                    }},
+                    "tool_calls": [
+                        "tool call detail"
+                    ]
+                }},
+                {{
+                    ...
+                }}
+            ],
+            "final": [ # final review per file
+                {{
+                    "summary": "final summary",
+                    "file": "file name",
+                    "ratings": {{
+                        "Rating Criteria for code quality": "rating value",
+                        ...
+                    }},
+                    "critical_issues": [
+                        "issue description",
+                        ...
+                    ]
+                }},
+                {{
+                    ...
+                }}
+            ]
+        }},
+        "status": "completed",
+        "artifacts": {{
+            "fixes": [
+                "fix detail or diff content",
+                ...
+            ],
+            "summary": "consolidated diff summary"
+        }}
+    }}
+    """
+REREVIEW_PLANNER_PROMPT_TEMPLATE = \
+    """
+    Based on the feedback and previous context, identify which files and review steps (syntax, standards, error_analysis, final) need re-running.
+    {review_structure}
+    
+    Current Feedback: {feedback}
+    
+    Previous Context:
+    {episodic_context}
+    Output a JSON like: {{"filename_1.py": ["syntax", "standards"], "filename_2.py": ["error_analysis"]}}
+    """
+REREVIEW_INSTRUCTION_GENERATOR_PROMPT_TEMPLATE = \
+    """
+    For the file {file} regarding the {step} step, based on:
+    - Current feedback: '{feedback}'
+    - User preferences: {preference_context}
+    - Previous context: {episodic_context}
+    
+    Using the following code‐review JSON structure:
