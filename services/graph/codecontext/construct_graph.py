@@ -389,3 +389,81 @@ class CodeGraph:
                         )
                     )
 
+            # Recurse deeper
+            imports.extend(self.extract_imports(child, file_extension, rel_fname))
+
+        return imports
+
+    def get_tags(self, fname, rel_fname):
+        """Get tags for a given file by reading it from disk and parsing."""
+        try:
+            with open(fname, "r", encoding="utf-8") as f:
+                code = f.read()
+        except Exception as e:
+            print(f"Error reading file {fname}: {e}")
+            return []
+
+        file_extension = os.path.splitext(fname)[1]
+        tree = self.parse_tree(code, file_extension)
+        if tree is None:
+            # Language not available, return empty tags
+            return []
+
+        def_tags = self.extract_tags(tree.root_node, rel_fname)
+        import_tags = self.extract_imports(tree.root_node, file_extension, rel_fname)
+        return def_tags + import_tags
+
+    def get_code_graph(self, other_files, mentioned_fnames=None):
+        """Build a code graph from extracted tags for the given list of file paths."""
+        if self.max_map_tokens <= 0 or not other_files:
+            return None, None
+        if not mentioned_fnames:
+            mentioned_fnames = set()
+
+        tags = []
+        for file_path in other_files:
+            rel_fname = self.get_rel_fname(file_path)
+            tags.extend(self.get_tags(file_path, rel_fname))
+
+        code_graph = self.tag_to_graph(tags)
+        return tags, code_graph
+
+    def is_local_import(self, imported_module: str) -> bool:
+        """
+        Check if this 'imported_module' is local vs. built-in/external.
+        """
+        # Case: C #include "something.h"
+        if imported_module.startswith("#include") and '"' in imported_module:
+            match = re.search(r'#include\s+"([^"]+)"', imported_module)
+            if match:
+                possible_local_header = match.group(1).split(".")[0]
+                for fpath in self.all_source_files:
+                    base = os.path.splitext(os.path.basename(fpath))[0]
+                    if base == possible_local_header:
+                        return True
+            return False
+
+        # Case: Python import or from import
+        match = re.match(r'(?:from\s+([\w\.]+)\s+import)|(?:import\s+([\w\.]+))', imported_module)
+        if not match:
+            return False
+
+        mod_name = match.group(1) or match.group(2)
+        mod_name = mod_name.split('.')[0]
+
+        for fpath in self.all_source_files:
+            base = os.path.splitext(os.path.basename(fpath))[0]
+            if base == mod_name:
+                return True
+        return False
+
+    def tag_to_graph(self, tags):
+        """
+        Convert extracted tags into a NetworkX graph.
+
+        We do NOT directly write the final JSON here.
+        Instead, we store enough info in the graph so we can later
+        produce the final metadata structure.
+        """
+        G = nx.MultiDiGraph()
+
