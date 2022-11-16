@@ -403,3 +403,84 @@ class PermissionNegativeTests(TestCase):
             repository=self.repository,
             pr_github_id="neg-pr-1",
             pr_number=21,
+            title="Negative permissions",
+            author_github_id=self.owner.github_id,
+            status="open",
+            url="https://github.com/negative-owner/negative-repo/pull/21",
+        )
+        self.review = Review.objects.create(repository=self.repository, pull_request=self.pull_request)
+        self.thread = Thread.objects.create(review=self.review, thread_id="negative-thread")
+
+    def test_is_repository_owner_rejects_non_owner(self):
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(IsRepositoryOwner().has_object_permission(request, None, self.repository))
+
+    def test_can_access_repository_rejects_user_without_token_or_membership(self):
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(CanAccessRepository().has_object_permission(request, None, self.repository))
+
+    @patch("core.permissions.get_repo_collaborators_from_github", side_effect=Exception("github down"))
+    def test_can_access_repository_returns_false_when_github_lookup_fails(self, _mock_get_collabs):
+        self.other.github_access_token = "token"
+        self.other.save(update_fields=["github_access_token"])
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(CanAccessRepository().has_object_permission(request, None, self.repository))
+
+    def test_is_assigned_reviewer_for_thread_rejects_non_thread_objects(self):
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(IsAssignedReviewerForThread().has_object_permission(request, None, self.repository))
+
+    def test_is_assigned_reviewer_for_thread_rejects_user_without_token(self):
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(IsAssignedReviewerForThread().has_object_permission(request, None, self.thread))
+
+    @patch("core.permissions.get_single_pull_request_from_github", return_value={"requested_reviewers": []})
+    def test_is_assigned_reviewer_for_thread_rejects_unassigned_user(self, _mock_get_pr):
+        self.other.github_access_token = "token"
+        self.other.save(update_fields=["github_access_token"])
+        request = self.factory.get("/")
+        request.user = self.other
+        self.assertFalse(IsAssignedReviewerForThread().has_object_permission(request, None, self.thread))
+
+
+class UserOrganizationViewTests(TestCase):
+    def setUp(self):
+        self.factory = APIRequestFactory()
+        self.user = get_user_model().objects.create_user(
+            github_id="5101",
+            username="org-view-user",
+            password="pw",
+            github_access_token="token-xyz",
+        )
+
+    @patch("core.user_view.get_user_orgs_from_github")
+    def test_user_organizations_view_returns_serialized_orgs(self, mock_get_orgs):
+        from core.user_view import UserOrganizationsView
+
+        mock_get_orgs.return_value = [
+            {
+                "login": "afterquery",
+                "id": 11,
+                "node_id": "abc",
+                "url": "https://api.github.com/orgs/afterquery",
+                "repos_url": "https://api.github.com/orgs/afterquery/repos",
+                "events_url": "https://api.github.com/orgs/afterquery/events",
+                "hooks_url": "https://api.github.com/orgs/afterquery/hooks",
+                "issues_url": "https://api.github.com/orgs/afterquery/issues{/number}",
+                "members_url": "https://api.github.com/orgs/afterquery/members{/member}",
+                "public_members_url": "https://api.github.com/orgs/afterquery/public_members{/member}",
+                "avatar_url": "https://avatars.githubusercontent.com/u/1?v=4",
+                "description": "AI review",
+            }
+        ]
+        request = self.factory.get("/api/v1/user/orgs/?page=2&per_page=10")
+        force_authenticate(request, user=self.user)
+
+        response = UserOrganizationsView.as_view()(request)
+
+        self.assertEqual(response.status_code, 200)
