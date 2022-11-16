@@ -401,3 +401,83 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
         llm.invoke.return_value = Response('{"summary": "done"}')
         self.assertEqual(
             summarizer_module.ErrorAnalysisSummarizer(llm).summarize({"bug": [], "vulnerability": []})["summary"],
+            "done",
+        )
+
+        agent_runtime_pkg = types.ModuleType("agent_runtime")
+        agent_runtime_pkg.__path__ = []
+        agents_pkg = types.ModuleType("agent_runtime.Agents")
+        agents_pkg.__path__ = []
+        analysis_state_module = types.ModuleType("agent_runtime.Agents.error_analysis_agent")
+        analysis_state_module.__path__ = []
+        analysis_state_module.AnalysisState = dict
+
+        class FakeCheckerAgent:
+            def __init__(self, llm, tools, analysis_type, max_tool_calls):
+                self.llm = llm
+                self.tools = tools
+                self.analysis_type = analysis_type
+                self.max_tool_calls = max_tool_calls
+
+        analysis_state_module.CheckerAgent = FakeCheckerAgent
+
+        bug_module = load_module(
+            "agent_runtime.Agents.error_analysis_agent.bug_checker",
+            "agent_runtime/Agents/error_analysis_agent/bug_checker.py",
+            {
+                "Prompts": prompts,
+                "Utils": utils,
+                "langchain_core.utils.function_calling": fn_call_module,
+                "agent_runtime": agent_runtime_pkg,
+                "agent_runtime.Agents": agents_pkg,
+                "agent_runtime.Agents.error_analysis_agent": analysis_state_module,
+            },
+        )
+        vuln_module = load_module(
+            "agent_runtime.Agents.error_analysis_agent.vulnerability_checker",
+            "agent_runtime/Agents/error_analysis_agent/vulnerability_checker.py",
+            {
+                "Prompts": prompts,
+                "Utils": utils,
+                "langchain_core.utils.function_calling": fn_call_module,
+                "agent_runtime": agent_runtime_pkg,
+                "agent_runtime.Agents": agents_pkg,
+                "agent_runtime.Agents.error_analysis_agent": analysis_state_module,
+            },
+        )
+
+        llm = Mock()
+        llm.invoke.return_value = Response('{"tool_calls": []}')
+        bug_state = {
+            "current_diff": {"content": "+ bug"},
+            "repo_summary": {"repo": "summary"},
+            "instruction": "focus",
+            "bug_state": {"issues": [], "tool_calls_made": [], "tool_call_count": 0},
+        }
+        vuln_state = {
+            "current_diff": {"content": "+ vuln"},
+            "repo_summary": {"repo": "summary"},
+            "instruction": "focus",
+            "vuln_state": {"issues": [], "tool_calls_made": ["prior"], "tool_call_count": 3},
+        }
+
+        bug_result = bug_module.BugChecker(llm, [types.SimpleNamespace(name="retrieve")], max_tool_calls=3).analyze(bug_state)
+        vuln_result = vuln_module.VulnerabilityAgent(llm, [types.SimpleNamespace(name="retrieve")], max_tool_calls=3).analyze(vuln_state)
+
+        self.assertEqual(len(bug_result["bug_state"]["issues"]), 1)
+        self.assertEqual(len(vuln_result["vuln_state"]["issues"]), 1)
+
+    def test_checker_agent_tools_condition_and_handle_tools(self):
+        class FakeToolMessage:
+            pass
+
+        class FakeAIMessage:
+            def __init__(self, content):
+                self.content = content
+
+        class FakeStateGraph:
+            def __init__(self, state_type):
+                self.nodes = []
+                self.entry = None
+
+            def add_node(self, name, fn):
