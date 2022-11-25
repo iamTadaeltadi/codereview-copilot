@@ -470,3 +470,81 @@ class FeedbackPipeline:
             re_run_plan=re_run_plan,
             feedback=feedback,
             original_review=current_review,
+            preference_context=preference_context,
+            episodic_context=episodic_summary
+        )
+        
+        updates = {"instructions": instructions}
+        updates.update(self._log_action("instruction_generator", {
+            "files_instructed": list(instructions.keys()) if instructions else [],
+            "episodic_memory_used": len(episodic_summary)
+        }))
+        return updates
+
+    @with_error_handling(default_value={"action_log": []})
+    def log_memory(self, state: FeedbackState):
+        print("--- Logging and Updating Memory ---")
+        updates = {"action_log": []}
+
+        # 1. Log to Episodic Memory if feedback is sufficient and relevant
+        if state.get("sufficiency") == "sufficient" and state.get("feedback_status") != "irrelevant":
+            updates.update(self._log_episodic_memory(state))
+
+        # 2. Update Long-Term Memory (Preferences)
+        updates.update(self._update_long_term_memory(state))
+
+        return updates
+
+    def _log_episodic_memory(self, state: FeedbackState) -> dict:
+        """Helper method to log to episodic memory."""
+        turn_summary = {
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "feedback_received": state["feedback"],
+            "ai_response_snippet": state.get("messages", [])[-1].content if state.get("messages") else "N/A"
+        }
+        
+        try:
+            config = self._get_episodic_config(state)
+            print(f"episodic turn_summary: {turn_summary}")
+            self.episodic_manage_tool.invoke(
+                {
+                    "content": json.dumps(turn_summary),
+                    "action": "create"
+                },
+                config=config
+            )
+            return self._log_action("log_memory_episodic", {
+                "status": "Turn summary logged to episodic memory"
+            })
+        except Exception as e:
+            print(f"Error logging to episodic memory: {e}")
+            return self._log_action("log_memory_episodic", {
+                "status": "Failed",
+                "error": str(e)
+            })
+
+    def _update_long_term_memory(self, state: FeedbackState) -> dict:
+        """Helper method to update long-term memory using LongTermMemoryAgent."""
+        try:
+            # Initialize LongTermMemoryAgent
+            memory_agent = LongTermMemoryAgent(
+                llm=self.llm,
+                long_term_manage_tool=self.long_term_manage_tool,
+                long_term_search_tool=self.long_term_search_tool
+            )
+
+            # Prepare current interaction summary
+            current_interaction = {
+                "feedback": state["feedback"],
+                "ai_response": state.get("messages", [])[-1].content if state.get("messages") else "",
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat()
+            }
+
+            # Get existing preferences
+            config = self._get_ltm_config(state)
+            existing_preferences = self.long_term_search_tool.invoke(
+                {"query": "user preferences and review style", "limit": 10},
+                config=config
+            )
+
+            # Analyze and update preferences
