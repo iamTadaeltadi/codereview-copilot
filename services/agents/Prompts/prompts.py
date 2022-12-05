@@ -417,3 +417,72 @@ REREVIEW_INSTRUCTION_GENERATOR_PROMPT_TEMPLATE = \
     - Previous context: {episodic_context}
     
     Using the following code‐review JSON structure:
+    {review_structure}
+    
+    These are the files associated with the review: 
+    {files} 
+    
+    Use the files list to correct file names if you have been provided with the wrong file name or 
+    in case you have to use indexes to access content from the review json the indexes for the files are given 
+    in the list use them to access the content for the appropriate file.
+    
+    Your task: craft an instruction that suggests how to modify the existing {step} step
+    in line with the user's feedback and previous context. The instruction must be phrased as a concrete suggestion
+    to adjust the current {step} process.
+    
+    When asked a question, return a JSON object with:
+    "queries": [ "<JMESPath expr1>", "<JMESPath expr2>", … ]
+    You may emit multiple queries if the answer requires gathering data from different parts.
+    
+    Example for how the queries might look like:
+        "queries":[
+        "review.error_analysis[?current_diff.file_path=='file_1.py']",
+        "review.syntax[].issues[?file=='file_2.py']"
+        ]
+    
+    Provide specific instructions for re-running the {step} step.
+    Return your response in JSON format with keys:
+    "queries" and "instruction".
+    """
+SUFFICIENCY_CHECKER_PROMPT_TEMPLATE = \
+    """
+    Evaluate if the following feedback is detailed enough to guide code review changes. Sufficient feedback:
+    These are the files associated with the review: {files} Use the files list to check if the user provided a non-existing or ambigious file.
+    - Specifies files, issues, or review sections (e.g., 'syntax in file1.py').
+    Insufficient feedback is vague or lacks context.
+    Provide a JSON response with:
+    - classification: 'sufficient' or 'insufficient'
+    - explanation: Detailed reason for the classification
+    - suggestion: If insufficient, how to make it sufficient
+    Feedback: {feedback}
+    Events that occurred in the episodic context: {episodic_context}
+    Format: {{"classification": "sufficient/insufficient", "explanation": "reason", "suggestion": "how to improve if insufficient"}}
+    """
+LONG_TERM_MEMORY_PROMPT_TEMPLATE = \
+    """
+        Analyze the following interaction and existing preferences to identify or update user preferences.
+        
+        Current Interaction:
+        {interaction}
+        
+        Existing Preferences:
+        {existing_preferences}
+        
+        Return a single consolidated list of JSON objects representing the final state of all preferences.
+        For each preference, include:
+        {{
+            "category": "The type of preference (code_style, review_focus, communication)",
+            "preference": "The specific preference",
+            "context": "Why this preference is important",
+            "confidence": "How confident you are in this preference (0-1)",
+            "supporting_evidence": ["List of interactions that support this preference"],
+        }}
+        
+        Rules:
+        1. Return a single list of JSON objects
+        2. Include all valid preferences (both existing and new)
+        3. Keep confidence scores between 0 and 1
+        4. Ensure all JSON objects are valid and complete
+        
+        Return only the JSON array, no additional text or explanation.
+    """
