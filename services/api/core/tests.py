@@ -484,3 +484,84 @@ class UserOrganizationViewTests(TestCase):
         response = UserOrganizationsView.as_view()(request)
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data[0]["login"], "afterquery")
+        mock_get_orgs.assert_called_once_with("token-xyz", page=2, per_page=10)
+
+    def test_user_organizations_view_requires_token(self):
+        from core.user_view import UserOrganizationsView
+
+        self.user.github_access_token = None
+        self.user.save(update_fields=["github_access_token"])
+        request = self.factory.get("/api/v1/user/orgs/")
+        force_authenticate(request, user=self.user)
+
+        response = UserOrganizationsView.as_view()(request)
+
+        self.assertEqual(response.status_code, 400)
+
+    @patch("core.user_view.get_user_orgs_from_github", side_effect=Exception("boom"))
+    def test_user_organizations_view_handles_unexpected_errors(self, _mock_get_orgs):
+        from core.user_view import UserOrganizationsView
+
+        request = self.factory.get("/api/v1/user/orgs/")
+        force_authenticate(request, user=self.user)
+
+        response = UserOrganizationsView.as_view()(request)
+
+        self.assertEqual(response.status_code, 500)
+
+
+class AuthViewExtraTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+
+    def test_github_callback_rejects_missing_code(self):
+        request = self.factory.get("/api/v1/auth/github/callback/?state=only-state")
+        request.session = {}
+
+        response = GitHubCallbackView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("Missing%20code%20or%20state", response.url)
+
+    @patch("core.auth_view.validate_oauth_state", return_value=True)
+    @patch("core.auth_view.exchange_code_for_github_token", side_effect=Exception("token exchange failed"))
+    def test_github_callback_redirects_to_error_when_exchange_fails(self, _mock_exchange, _mock_validate):
+        request = self.factory.get("/api/v1/auth/github/callback/?code=abc&state=valid")
+        request.session = {}
+
+        response = GitHubCallbackView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("An%20unexpected%20error%20occurred", response.url)
+
+    @patch("core.auth_view.validate_oauth_state", return_value=True)
+    @patch("core.auth_view.exchange_code_for_github_token", return_value=None)
+    def test_github_callback_redirects_to_error_when_token_missing(self, _mock_exchange, _mock_validate):
+        request = self.factory.get("/api/v1/auth/github/callback/?code=abc&state=valid")
+        request.session = {}
+
+        response = GitHubCallbackView.as_view()(request)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("Failed%20to%20retrieve%20GitHub%20access%20token", response.url)
+
+
+class SerializerRepresentationTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(github_id="9101", username="serializer-user", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.user,
+            repo_name="serializer-user/serializer-repo",
+            repo_url="https://github.com/serializer-user/serializer-repo",
+        )
+
+    def test_github_repository_serializer_sets_registration_defaults(self):
+        from core.serializers import GitHubRepositorySerializer
+
+        serializer = GitHubRepositorySerializer(
+            {
+                "id": 1,
+                "name": "serializer-repo",
+                "full_name": "serializer-user/serializer-repo",
+                "private": False,
