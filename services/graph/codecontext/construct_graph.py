@@ -467,3 +467,81 @@ class CodeGraph:
         """
         G = nx.MultiDiGraph()
 
+        # 1) Create a node for each file we see in tags
+        all_files = set(t.rel_fname for t in tags)
+        for f in all_files:
+            abs_path = os.path.join(self.root, f)
+            file_name = os.path.basename(abs_path)
+            try:
+                size = os.path.getsize(abs_path)
+                created_at = os.path.getctime(abs_path)
+                updated_at = os.path.getmtime(abs_path)
+                with open(abs_path, "r", encoding="utf-8") as temp_f:
+                    total_lines = sum(1 for _ in temp_f)
+            except:
+                size = 0
+                created_at = 0
+                updated_at = 0
+                total_lines = 0
+
+
+            # Add as a "file" node
+            node_data = {
+                "relative_path": f,
+                "file_name": file_name,
+                "name": file_name,
+                "type": "file",
+                "line_range": [1, total_lines if total_lines else 1],
+                "metadata": {
+                    "language": os.path.splitext(file_name)[1].lstrip('.'),
+                    "size": size,
+                    "created_at": created_at,
+                    "updated_at": updated_at,
+                    "dependencies": [],
+                    "total_lines": total_lines
+                },
+            }
+            G.add_node(f, **node_data)
+
+        # 2) Create nodes for classes, functions, variables, etc.
+        for tag in tags:
+            # Skip external imports from being nodes
+            if tag.category == 'import' and not self.is_local_import(tag.name):
+                continue
+
+            node_key = self._get_node_key(tag)
+            # Some ephemeral tags (inherits, call, etc.) might only be edges
+            if tag.kind in ["inherits", "call"]:
+                continue
+
+            if not G.has_node(node_key):
+                # Determine node "type"
+                if tag.kind in ["def", "method"] and tag.category == "class":
+                    node_type = "class"
+                elif tag.kind in ["def", "method"] and tag.category == "function":
+                    node_type = "function"
+                elif tag.kind == "import":
+                    # We'll only add file->file edges for imports
+                    continue
+                elif tag.kind in ["write", "read"]:
+                    node_type = "variable"
+                else:
+                    node_type = "unknown"
+
+                relative_path = tag.rel_fname
+                file_name = os.path.basename(tag.rel_fname)
+                start_line, end_line = tag.line if tag.line else [1, 1]
+
+                node_data = {
+                    "relative_path": relative_path,
+                    "file_name": file_name,
+                    "name": tag.name,
+                    "type": node_type,
+                    "line_range": [start_line, end_line],
+                    "metadata": {}
+                }
+
+                if node_type == "class":
+                    node_data["metadata"] = {
+                        "parent_classes": [],
+                        "methods": [],
