@@ -481,3 +481,83 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
                 self.entry = None
 
             def add_node(self, name, fn):
+                self.nodes.append(name)
+
+            def add_conditional_edges(self, *args, **kwargs):
+                pass
+
+            def add_edge(self, *args, **kwargs):
+                pass
+
+            def set_entry_point(self, entry):
+                self.entry = entry
+
+            def compile(self):
+                return {"entry": self.entry, "nodes": self.nodes}
+
+        class FakeBasicToolNode:
+            def __init__(self, tools):
+                self.tools = tools
+
+            def __call__(self, inputs):
+                inputs["issues"].append(FakeToolMessage())
+                return inputs
+
+        tools_pkg = types.ModuleType("Tools")
+        tools_pkg.BasicToolNode = FakeBasicToolNode
+        graph_module = types.ModuleType("langgraph.graph")
+        graph_module.StateGraph = FakeStateGraph
+        messages_module = types.ModuleType("langchain_core.messages")
+        messages_module.ToolMessage = FakeToolMessage
+        messages_module.AIMessage = FakeAIMessage
+        pydantic_module = types.ModuleType("pydantic")
+        pydantic_module.BaseModel = object
+        agent_runtime_pkg = types.ModuleType("agent_runtime")
+        agent_runtime_pkg.__path__ = []
+        agents_pkg = types.ModuleType("agent_runtime.Agents")
+        agents_pkg.__path__ = []
+        parent_pkg = types.ModuleType("agent_runtime.Agents.error_analysis_agent")
+        parent_pkg.__path__ = []
+        parent_pkg.AnalysisState = dict
+
+        module = load_module(
+            "agent_runtime.Agents.error_analysis_agent.error_checker",
+            "agent_runtime/Agents/error_analysis_agent/error_checker.py",
+            {
+                "Tools": tools_pkg,
+                "langgraph.graph": graph_module,
+                "langchain_core.messages": messages_module,
+                "pydantic": pydantic_module,
+                "agent_runtime": agent_runtime_pkg,
+                "agent_runtime.Agents": agents_pkg,
+                "agent_runtime.Agents.error_analysis_agent": parent_pkg,
+            },
+        )
+
+        class ConcreteChecker(module.CheckerAgent):
+            def analyze(self, state):
+                return state
+
+        checker = ConcreteChecker(Mock(), ["tool"], "bug", 3)
+        self.assertEqual(checker.build_graph()["entry"], "analyze")
+        with self.assertRaises(ValueError):
+            checker.tools_condition({"bug_state": {"issues": []}})
+
+        handle = checker.tools_condition(
+            {
+                "bug_state": {
+                    "issues": [FakeAIMessage('{"tool_calls": [{"function_call": {"name": "x", "args": {}}}]}')]
+                }
+            }
+        )
+        self.assertEqual(handle, "handle_tools")
+        end = checker.tools_condition({"bug_state": {"issues": [FakeAIMessage("plain text")]}})
+        self.assertEqual(end, "__end__")
+
+        handled = checker.handle_tools(
+            {
+                "bug_state": {
+                    "issues": [
+                        FakeAIMessage('{"tool_calls": [{"function_call": {"name": "x", "args": {}}}]}')
+                    ]
+                }
