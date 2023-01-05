@@ -548,3 +548,81 @@ class FeedbackPipeline:
             )
 
             # Analyze and update preferences
+            preferences = memory_agent.analyze_preferences(
+                interaction=json.dumps(current_interaction),
+                existing_preferences=[p.get("value", {}).get("content", {}) for p in json.loads(existing_preferences)]
+            )
+            print(f"long term memory preferences: {preferences}")
+
+            # Update preferences in long-term memory
+            memory_agent.update_preferences(preferences, config)
+
+            return self._log_action("log_memory_ltm", {
+                "status": "LTM preferences updated",
+                "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                "preferences_updated": len(preferences)
+            })
+
+        except Exception as e:
+            print(f"Error during LTM preference update: {e}")
+            return self._log_action("log_memory_ltm", {
+                "status": "LTM update failed",
+                "error": str(e)
+            })
+
+    @with_error_handling(default_value={
+        "feedback_status": "irrelevant",
+        "feedback_explanation": "Error during guardrail check",
+        "feedback_suggestion": "Please provide feedback related to specific code or review aspects."
+    })
+    def guardrail_checker(self, state: FeedbackState):
+        print("--- Running Guardrail Checker ---")
+        feedback = state["feedback"]
+        guardrail_checker = GuardrailCheckerAgent(self.llm)
+        result = guardrail_checker.guardrail_checker(feedback)
+        
+        if not result:
+            return {
+                "feedback_status": "irrelevant",
+                "feedback_explanation": "Failed to parse guardrail response.",
+                "feedback_suggestion": "Provide feedback related to specific code or review aspects."
+            }
+        
+        return {
+            "feedback_status": result.get("classification", "irrelevant"),
+            "feedback_explanation": result.get("explanation", "No explanation provided."),
+            "feedback_suggestion": result.get("suggestion", "")
+        }
+
+    @with_error_handling(default_value={"re_run_plan": {}})
+    def plan_generator(self, state: FeedbackState):
+        print("--- Running Re-Review Planner ---")
+        feedback = state["feedback"]
+        
+        config = self._get_episodic_config(state)
+        episodic_query = f"Previous review actions and feedback for PR {state['pr_id']} in thread {state['thread_id']}"
+        episodic_results = self.episodic_search_tool.invoke(
+            {"query": episodic_query, "limit": 5},
+            config=config
+        )
+        episodic_context = episodic_results if episodic_results else []
+        episodic_context = json.loads(episodic_context)
+        
+        episodic_summary = self._process_episodic_memory(episodic_context)
+        
+        rereview_planner = ReReviewPlannerAgent(self.llm)
+        re_run_plan = rereview_planner.re_review_planner(
+            feedback=feedback,
+            episodic_context=episodic_summary
+        )
+        
+        updates = {"re_run_plan": re_run_plan}
+        updates.update(self._log_action("plan_generator", {
+            "episodic_memory_used": len(episodic_summary),
+            "plan_generated": bool(re_run_plan)
+        }))
+        return updates
+
+    @with_error_handling(default_value={"reviews": {}, "fixes": []})
+    def dynamic_review_executor(self, state: FeedbackState):
+        print("--- Running Dynamic Review Executor ---")
