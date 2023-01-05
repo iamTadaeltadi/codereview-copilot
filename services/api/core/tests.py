@@ -565,3 +565,84 @@ class SerializerRepresentationTests(TestCase):
                 "name": "serializer-repo",
                 "full_name": "serializer-user/serializer-repo",
                 "private": False,
+                "html_url": "https://github.com/serializer-user/serializer-repo",
+                "owner": {"login": "serializer-user"},
+            }
+        )
+
+        self.assertFalse(serializer.data["is_registered_in_system"])
+
+    def test_github_organization_serializer_allows_blank_description(self):
+        from core.serializers import GitHubOrganizationSerializer
+
+        serializer = GitHubOrganizationSerializer(
+            {
+                "login": "afterquery",
+                "id": 5,
+                "node_id": "node-5",
+                "url": "https://api.github.com/orgs/afterquery",
+                "repos_url": "https://api.github.com/orgs/afterquery/repos",
+                "events_url": "https://api.github.com/orgs/afterquery/events",
+                "hooks_url": "https://api.github.com/orgs/afterquery/hooks",
+                "issues_url": "https://api.github.com/orgs/afterquery/issues{/number}",
+                "members_url": "https://api.github.com/orgs/afterquery/members{/member}",
+                "public_members_url": "https://api.github.com/orgs/afterquery/public_members{/member}",
+                "avatar_url": "https://avatars.githubusercontent.com/u/5?v=4",
+                "description": "",
+            }
+        )
+
+        self.assertEqual(serializer.data["description"], "")
+
+    def test_pr_serializer_representation_includes_initial_data_fields(self):
+        from core.serializers import PRSerializer
+
+        serializer = PRSerializer(
+            data={
+                "repository_id": self.repository.id,
+                "pr_github_id": "1",
+                "pr_number": 44,
+                "title": "Serializer PR",
+                "body": "Details",
+                "author_github_id": self.user.github_id,
+                "status": "open",
+                "url": "https://github.com/serializer-user/serializer-repo/pull/44",
+                "head_sha": "abc",
+                "base_sha": "def",
+                "user_login": "serializer-user",
+                "user_avatar_url": "https://avatars.githubusercontent.com/u/9101?v=4",
+            }
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        self.assertEqual(serializer.data["user_login"], "serializer-user")
+        self.assertEqual(serializer.data["source"], None)
+
+    def test_pr_serializer_representation_uses_context_source(self):
+        from core.serializers import PRSerializer
+
+        pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="5",
+            pr_number=45,
+            title="Context PR",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/serializer-user/serializer-repo/pull/45",
+        )
+        serializer = PRSerializer(pull_request, context={"source": "github"})
+
+        self.assertEqual(serializer.data["source"], "github")
+
+    def test_commit_serializer_representation_includes_initial_data_fields(self):
+        from core.serializers import CommitSerializer
+
+        serializer = CommitSerializer(
+            data={
+                "repository_id": self.repository.id,
+                "commit_hash": "abc1234",
+                "message": "Commit serializer",
+                "url": "https://github.com/serializer-user/serializer-repo/commit/abc1234",
+                "timestamp": "2026-05-19T00:00:00Z",
+                "author_name": "Serializer User",
+                "author_email": "serializer@example.com",
