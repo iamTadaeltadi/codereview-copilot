@@ -545,3 +545,81 @@ class CodeGraph:
                     node_data["metadata"] = {
                         "parent_classes": [],
                         "methods": [],
+                        "variables": [],
+                    }
+                elif node_type == "function":
+                    node_data["metadata"] = {
+                        "parameters": [],
+                        "parent_class": None,
+                        "calls": [],
+                        "reads": [],
+                        "writes": [],
+                    }
+                elif node_type == "variable":
+                    is_attr = (isinstance(tag.info, dict) and tag.info.get("is_attribute")) or False
+                    node_data["metadata"] = {
+                        "is_attribute": is_attr,
+                        "accessed_by": [],
+                        "modified_by": [],
+                    }
+
+                G.add_node(node_key, **node_data)
+
+        # 3) file -> class/function edges (containment)
+        for tag in tags:
+            if tag.kind == 'def' and tag.category in ['class', 'function']:
+                file_node = tag.rel_fname
+                node_key = self._get_node_key(tag)
+                if G.has_node(file_node) and G.has_node(node_key):
+                    G.add_edge(file_node, node_key, label='contains')
+
+
+        # 4) class -> method edges. Also link method’s parent_class
+        for tag in tags:
+            if tag.category == 'class':
+                class_key = self._get_node_key(tag)
+                # Check method tags that lie within the class range
+                for possible_method in tags:
+                    if possible_method.kind == 'method' and possible_method.rel_fname == tag.rel_fname:
+                        # If method lines are inside the class lines
+                        if (possible_method.line[0] >= tag.line[0]) and (possible_method.line[1] <= tag.line[1]):
+                            method_key = self._get_node_key(possible_method)
+                            if G.has_node(class_key) and G.has_node(method_key):
+                                G.add_edge(class_key, method_key, label='contains')
+                                # Also record parent_class in method's metadata
+                                G.nodes[method_key]["metadata"]["parent_class"] = tag.name
+
+        # 5) file->file edges from imports
+        for tag in tags:
+            if tag.category == 'import':
+                importing_file_node = tag.rel_fname
+                imported_module_string = tag.name
+
+                # Skip external
+                if not self.is_local_import(imported_module_string):
+                    continue
+
+                # For C #include "...":
+                if imported_module_string.startswith("#include"):
+                    match = re.search(r'#include\s+"([^"]+)"', imported_module_string)
+                    if match:
+                        local_header_basename = os.path.splitext(match.group(1))[0]
+                        for f in G.nodes:
+                            if G.nodes[f].get('type') == 'file':
+                                base = os.path.splitext(os.path.basename(f))[0]
+                                if base == local_header_basename:
+                                    G.add_edge(importing_file_node, f, label='imports')
+                                    G.nodes[importing_file_node]["metadata"]["dependencies"].append(f)
+                else:
+                    # Python/JS/Java
+                    base_match = re.match(
+                        r'(?:from\s+([\w\.]+)\s+import)|(?:import\s+([\w\.]+))',
+                        imported_module_string
+                    )
+                    if base_match:
+                        mod_name = base_match.group(1) or base_match.group(2)
+                        mod_name = mod_name.split('.')[0]
+                        for f in G.nodes:
+                            if G.nodes[f].get('type') == 'file':
+                                base = os.path.splitext(os.path.basename(f))[0]
+                                if base == mod_name:
