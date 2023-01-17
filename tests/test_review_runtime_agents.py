@@ -561,3 +561,83 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
                         FakeAIMessage('{"tool_calls": [{"function_call": {"name": "x", "args": {}}}]}')
                     ]
                 }
+            }
+        )
+        self.assertEqual(handled["bug_state"]["tool_call_count"], 1)
+
+    def test_error_analysis_base_aggregate_results_filters_tool_call_messages(self):
+        class FakeAIMessage:
+            def __init__(self, content):
+                self.content = content
+
+        class FakeStateGraph:
+            def __init__(self, state_type):
+                self.state_type = state_type
+
+            def add_node(self, *args, **kwargs):
+                pass
+
+            def add_edge(self, *args, **kwargs):
+                pass
+
+            def set_entry_point(self, *args, **kwargs):
+                pass
+
+            def compile(self):
+                return "compiled"
+
+        agent_runtime_pkg = types.ModuleType("agent_runtime")
+        agent_runtime_pkg.__path__ = []
+        agents_pkg = types.ModuleType("agent_runtime.Agents")
+        agents_pkg.__path__ = []
+        parent_module = types.ModuleType("agent_runtime.Agents.error_analysis_agent")
+        parent_module.__path__ = []
+        parent_module.AnalysisState = dict
+        parent_module.ErrorAnalysisSummarizer = lambda llm: types.SimpleNamespace(
+            summarize=lambda issues: {"summary": issues}
+        )
+        parent_module.VulnerabilityAgent = lambda llm, tools, max_tool_calls=3: types.SimpleNamespace(
+            build_graph=lambda: "vuln-graph"
+        )
+        parent_module.BugChecker = lambda llm, tools, max_tool_calls=3: types.SimpleNamespace(
+            build_graph=lambda: "bug-graph"
+        )
+        graph_module = types.ModuleType("langgraph.graph")
+        graph_module.StateGraph = FakeStateGraph
+        messages_module = types.ModuleType("langchain_core.messages")
+        messages_module.AIMessage = FakeAIMessage
+
+        module = load_module(
+            "agent_runtime.Agents.error_analysis_agent.base",
+            "agent_runtime/Agents/error_analysis_agent/base.py",
+            {
+                "agent_runtime.Agents.error_analysis_agent": parent_module,
+                "agent_runtime": agent_runtime_pkg,
+                "agent_runtime.Agents": agents_pkg,
+                "langgraph.graph": graph_module,
+                "langchain_core.messages": messages_module,
+            },
+        )
+
+        agent = module.ErrorAnalysisAgent(Mock(), ["tool"], max_tool_calls=2)
+        result = agent.aggregate_results(
+            {
+                "current_diff": {"file_path": "src/app.py"},
+                "vuln_state": {
+                    "issues": [FakeAIMessage("tool_calls"), FakeAIMessage("vulnerability found")],
+                    "tool_call_count": 1,
+                },
+                "bug_state": {
+                    "issues": [FakeAIMessage("bug found")],
+                    "tool_call_count": 2,
+                },
+            }
+        )
+
+        self.assertEqual(result["total_tool_calls"], 3)
+        self.assertIn("vulnerability", result["issues"]["summary"])
+        self.assertEqual(agent.start({"ok": True}), {"ok": True})
+
+
+if __name__ == "__main__":
+    unittest.main()
