@@ -626,3 +626,81 @@ class FeedbackPipeline:
     @with_error_handling(default_value={"reviews": {}, "fixes": []})
     def dynamic_review_executor(self, state: FeedbackState):
         print("--- Running Dynamic Review Executor ---")
+        if not self.tools:
+            raise ValueError("Tools not initialized.")
+        
+        re_run_plan = state.get("re_run_plan", {})
+        instructions = state.get("instructions", {})
+        diff_map = state.get("diff_map", {})
+        repo_summary = state.get("repo_summary", {})
+        current_review = state.get("updated_review", state.get("original_review", {}))
+        
+        dynamic_review_executor = DynamicReviewExecutorAgent(
+            self.llm, self.standards, self.tools, self.metrics, state["max_tool_calls"]
+        )
+        reviews, fixes = dynamic_review_executor.execute_review(
+            re_run_plan=re_run_plan,
+            instructions=instructions,
+            diff_map=diff_map,
+            repo_summary=repo_summary,
+            original_review=current_review,
+            fixes=state.get("fixes", []),
+            reviews=state.get("reviews", {})
+        )
+        
+        updates = {"reviews": reviews, "fixes": fixes}
+        updates.update(self._log_action("dynamic_review_executor", {
+            "reviews_generated_steps": {
+                "syntax": sum(1 for x in reviews.get("syntax", []) if x is not None) if reviews else 0,
+                "standard": sum(1 for x in reviews.get("standard", []) if x is not None) if reviews else 0,
+                "error_analysis": sum(1 for x in reviews.get("error_analysis", []) if x is not None) if reviews else 0,
+                "final": sum(1 for x in reviews.get("final", []) if x is not None) if reviews else 0
+            },
+            "fixes_generated_count": sum(1 for fix in fixes if fix is not None) if fixes else 0
+        }))
+        return updates
+    @with_error_handling(default_value={
+        "action_log": [{
+            "node": "review_integrator",
+            "status": "error",
+            "error": "Failed to integrate review"
+        }]
+    })
+    def review_integrator(self, state: FeedbackState):
+        print("--- Running Review Integrator ---")
+        integrated_review = json.loads(json.dumps(state.get("updated_review", state.get("original_review", {}))))
+        turn_reviews = state.get("reviews", {})
+        turn_fixes = state.get("fixes", {})
+        re_run_plan = state.get("re_run_plan", {})
+        diff_map = state.get("diff_map", {})
+
+        if not diff_map:
+            print("Warning: diff_map is empty in review_integrator. Integration might be incomplete.")
+            return {
+                "updated_review": integrated_review,
+                "action_log": [{
+                    "node": "review_integrator",
+                    "status": "warning",
+                    "message": "Integration potentially incomplete due to empty diff_map"
+                }]
+            }
+
+        integrated_files = 0
+        for file_path, steps in re_run_plan.items():
+            if file_path not in diff_map:
+                print(f"Warning: File '{file_path}' from re_run_plan not found in diff_map. Skipping integration for this file.")
+                continue
+            
+            file_index = diff_map[file_path][0]
+            for step in steps:
+                if step in turn_reviews and turn_reviews[step][file_index]:
+                    integrated_review["review"][step][file_index] = turn_reviews[step][file_index]
+            if turn_fixes[file_index]:
+                integrated_review["artifacts"]["fixes"][file_index] = turn_fixes[file_index]
+            if turn_reviews["final"][file_index]:
+                integrated_review["review"]["final"][file_index] = turn_reviews["final"][file_index]
+            integrated_files += 1
+
+        return {
+            "updated_review": integrated_review,
+            "action_log": [{
