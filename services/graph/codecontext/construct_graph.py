@@ -623,3 +623,81 @@ class CodeGraph:
                             if G.nodes[f].get('type') == 'file':
                                 base = os.path.splitext(os.path.basename(f))[0]
                                 if base == mod_name:
+                                    G.add_edge(importing_file_node, f, label='imports')
+                                    G.nodes[importing_file_node]["metadata"]["dependencies"].append(f)
+
+        # 6) function->function edges from calls
+        for tag in tags:
+            if tag.kind == 'call' and tag.category == 'function_call':
+                caller = tag.fname
+                callee = tag.name
+                if not caller or not callee:
+                    continue
+
+                caller_node_key = self._get_func_node_key(tag.rel_fname, caller)
+                callee_node_key = self._get_func_node_key(tag.rel_fname, callee)
+
+
+                # Ensure we have a node for caller
+                if not G.has_node(caller_node_key):
+                    G.add_node(
+                        caller_node_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=caller,
+                        type="function",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "parameters": [],
+                            "parent_class": None,
+                            "calls": [],
+                            "reads": [],
+                            "writes": [],
+                        }
+                    )
+                # Ensure we have a node for callee
+                if not G.has_node(callee_node_key):
+                    G.add_node(
+                        callee_node_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=callee,
+                        type="function",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "parameters": [],
+                            "parent_class": None,
+                            "calls": [],
+                            "reads": [],
+                            "writes": [],
+                        }
+                    )
+
+                # Add edge
+                G.add_edge(caller_node_key, callee_node_key, label='calls')
+                # Record in caller’s metadata
+                G.nodes[caller_node_key]["metadata"]["calls"].append(callee_node_key)
+
+        # 7) class inheritance edges
+        for tag in tags:
+            if tag.kind == 'inherits' and tag.category == 'class_inheritance':
+                child_cls = tag.info.get("child_class")
+                parent_cls = tag.info.get("parent_class")
+                if not child_cls or not parent_cls:
+                    continue
+
+                child_key = self._get_class_node_key(tag.rel_fname, child_cls)
+                parent_key = self._get_class_node_key(tag.rel_fname, parent_cls)
+
+                if not G.has_node(child_key):
+                    G.add_node(
+                        child_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=child_cls,
+                        type="class",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "parent_classes": [],
+                            "methods": [],
+                            "variables": [],
