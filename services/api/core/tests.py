@@ -646,3 +646,84 @@ class SerializerRepresentationTests(TestCase):
                 "timestamp": "2026-05-19T00:00:00Z",
                 "author_name": "Serializer User",
                 "author_email": "serializer@example.com",
+            }
+        )
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+
+        self.assertEqual(serializer.data["author_name"], "Serializer User")
+        self.assertEqual(serializer.data["source"], None)
+
+    def test_commit_serializer_representation_uses_context_source(self):
+        from core.serializers import CommitSerializer
+        from core.models import Commit
+
+        commit = Commit.objects.create(
+            repository=self.repository,
+            commit_hash="def5678",
+            message="Context commit",
+            url="https://github.com/serializer-user/serializer-repo/commit/def5678",
+            timestamp="2026-05-19T00:00:00Z",
+        )
+        serializer = CommitSerializer(commit, context={"source": "db"})
+
+        self.assertEqual(serializer.data["source"], "db")
+
+    def test_review_feedback_serializer_create_uses_request_user(self):
+        from core.serializers import ReviewFeedbackSerializer
+
+        pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="77",
+            pr_number=77,
+            title="Feedback PR",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/serializer-user/serializer-repo/pull/77",
+        )
+        review = Review.objects.create(repository=self.repository, pull_request=pull_request)
+        request = RequestFactory().post("/")
+        request.user = self.user
+        serializer = ReviewFeedbackSerializer(
+            data={"review": review.id, "rating": 5, "feedback": "Useful"},
+            context={"request": request},
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        feedback = serializer.save()
+
+        self.assertEqual(feedback.user, self.user)
+
+    def test_comment_serializer_create_uses_request_user(self):
+        from core.serializers import CommentSerializer
+
+        pull_request = PullRequest.objects.create(
+            repository=self.repository,
+            pr_github_id="88",
+            pr_number=88,
+            title="Comment PR",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/serializer-user/serializer-repo/pull/88",
+        )
+        review = Review.objects.create(repository=self.repository, pull_request=pull_request)
+        thread = Thread.objects.create(review=review, thread_id="comment-thread")
+        request = RequestFactory().post("/")
+        request.user = self.user
+        serializer = CommentSerializer(
+            data={"thread": thread.id, "comment": "Looks good", "type": "note"},
+            context={"request": request},
+        )
+
+        self.assertTrue(serializer.is_valid(), serializer.errors)
+        comment = serializer.save()
+
+        self.assertEqual(comment.user, self.user)
+
+
+class RepositoryRouteTests(TestCase):
+    def setUp(self):
+        self.user = get_user_model().objects.create_user(
+            github_id="9201",
+            username="route-owner",
+            password="pw",
+            github_access_token="token-route",
