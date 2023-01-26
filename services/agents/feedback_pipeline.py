@@ -704,3 +704,81 @@ class FeedbackPipeline:
         return {
             "updated_review": integrated_review,
             "action_log": [{
+                "node": "review_integrator",
+                "status": "success",
+                "integrated_files_count": integrated_files
+            }]
+        }
+
+    @with_error_handling(default_value={
+        "messages": [("ai", "An error occurred while processing your feedback. Please try again.")],
+        "action_log": [{
+            "node": "chat_responder",
+            "status": "error",
+            "error": "Failed to generate response"
+        }]
+    })
+    def chat_responder(self, state: FeedbackState):
+        print("--- Running Chat Responder ---")
+        message = ""
+        
+        if state.get("feedback_status") == "irrelevant":
+            message = (
+                f"Your feedback was classified as '{state['feedback_status']}'. "
+                f"Explanation: {state.get('feedback_explanation', 'N/A')}. "
+                f"Suggestion: {state.get('feedback_suggestion', 'Please provide feedback relevant to the code review.')}"
+            )
+        elif state.get("sufficiency") == "insufficient":
+            message = (
+                f"Your feedback needs more detail. "
+                f"Explanation: {state.get('sufficiency_explanation', 'N/A')}. "
+                f"Suggestion: {state.get('sufficiency_suggestion', 'Please provide more specific information.')}"
+            )
+        else:
+            # Summarize what was updated and the instructions given
+            re_run_plan = state.get("re_run_plan", {})
+            instructions = state.get("instructions", {})
+
+            # Build a list of updated parts from the re-review plan
+            updated_summary = []
+            for file, steps in re_run_plan.items():
+                updated_summary.append(f"{file}: steps applied – {' check, '.join(steps)}")
+
+            # Build a list of instructions provided for each file/step
+            instruction_summary = []
+            for file, instrs in instructions.items():
+                for step in instrs:
+                    instruction = instrs[step]['instruction']
+                    instruction_summary.append(f"{file}-{step}-check: {instruction}")
+
+            # Construct the response message
+            message = "Review updated based on your feedback.\n\n"
+            if updated_summary:
+                message += "Updated parts:\n"
+                message += "\n".join(f"- {u}" for u in updated_summary) + "\n\n"
+            if instruction_summary:
+                message += "Instructions for each step:\n"
+                message += "\n".join(f"- {i}" for i in instruction_summary)
+
+        return {
+            "messages": [("ai", message)],
+            "action_log": [{
+                "node": "chat_responder",
+                "status": "success",
+                "response_length": len(message)
+            }]
+        }
+
+    def route_after_guardrail(self, state: FeedbackState):
+        print(f"--- Routing after Guardrail ({state.get('feedback_status')}) ---")
+        return "chat_responder" if state.get("feedback_status") == "irrelevant" else "sufficiency_checker"
+
+    def route_after_sufficiency(self, state: FeedbackState):
+        print(f"--- Routing after Sufficiency ({state.get('sufficiency')}) ---")
+        return "chat_responder" if state.get("sufficiency") == "insufficient" else "plan_generator"
+    
+checkpoint_db = os.getenv("CHECKPOINTER_DB_URI", "postgresql://langgraph:langgraph@db:5432/checkpointer")
+store_db = os.getenv("STORE_DB_URI", "postgresql://langgraph:langgraph@db:5432/store")
+
+pipeline = FeedbackPipeline(checkpoint_db=checkpoint_db, store_db=store_db)
+graph = pipeline.graph_app
