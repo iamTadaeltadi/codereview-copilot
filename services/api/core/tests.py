@@ -727,3 +727,83 @@ class RepositoryRouteTests(TestCase):
             username="route-owner",
             password="pw",
             github_access_token="token-route",
+        )
+        self.other = get_user_model().objects.create_user(github_id="9202", username="route-other", password="pw")
+        self.repository = Repository.objects.create(
+            owner=self.user,
+            repo_name="route-owner/route-repo",
+            repo_url="https://github.com/route-owner/route-repo",
+            github_native_id=4040,
+            webhook_secret="secret-123",
+            webhook_url="https://api.example.com/api/v1/webhook/github/",
+        )
+        self.client = APIClient()
+
+    def test_repository_list_requires_authentication(self):
+        response = self.client.get("/api/v1/repositories/")
+        self.assertEqual(response.status_code, 401)
+
+    def test_repository_create_requires_authentication(self):
+        response = self.client.post("/api/v1/repositories/", {"repo_name": "a/b", "repo_url": "https://github.com/a/b"}, format="json")
+        self.assertEqual(response.status_code, 401)
+
+    def test_registered_collaborators_returns_system_collaborators(self):
+        RepoCollaborator.objects.create(repository=self.repository, user=self.user, role="owner")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/registered-collaborators/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["role"], "owner")
+
+    def test_collaborators_requires_github_token(self):
+        self.user.github_access_token = None
+        self.user.save(update_fields=["github_access_token"])
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/collaborators/")
+
+        self.assertEqual(response.status_code, 400)
+
+    @patch("core.repository_view.get_repo_collaborators_from_github")
+    def test_collaborators_returns_github_collaborators(self, mock_get_collabs):
+        mock_get_collabs.return_value = [
+            {
+                "login": self.user.username,
+                "id": int(self.user.github_id),
+                "avatar_url": "https://avatars.githubusercontent.com/u/9201?v=4",
+                "html_url": "https://github.com/route-owner",
+                "type": "User",
+                "site_admin": False,
+                "permissions": {"pull": True, "push": True, "admin": False},
+            }
+        ]
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/collaborators/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["login"], self.user.username)
+        self.assertTrue(RepoCollaborator.objects.filter(repository=self.repository, user=self.user).exists())
+
+    def test_webhook_status_reports_recent_event_count(self):
+        from core.models import WebhookEventLog
+
+        WebhookEventLog.objects.create(repository=self.repository, event_id="evt-1", event_type="push", status="processed", payload={}, processed_at="2026-05-19T00:00:00Z")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/webhook/status/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["recent_event_count"], 1)
+
+    def test_by_github_id_rejects_unauthorized_user(self):
+        self.client.force_authenticate(user=self.other)
+
+        response = self.client.get(f"/api/v1/repositories/by-github-id/{self.repository.github_native_id}/")
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_retrieve_pull_request_returns_database_record(self):
+        pull_request = PullRequest.objects.create(
+            repository=self.repository,
