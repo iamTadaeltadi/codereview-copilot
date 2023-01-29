@@ -701,3 +701,81 @@ class CodeGraph:
                             "parent_classes": [],
                             "methods": [],
                             "variables": [],
+                        }
+                    )
+                if not G.has_node(parent_key):
+                    G.add_node(
+                        parent_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=parent_cls,
+                        type="class",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "parent_classes": [],
+                            "methods": [],
+                            "variables": [],
+                        }
+                    )
+
+                G.add_edge(child_key, parent_key, label='inherits_from')
+                G.nodes[child_key]["metadata"]["parent_classes"].append(parent_key)
+
+        # 8) var dependencies: function->variable
+        for tag in tags:
+            if tag.category == 'var_dependency':
+                func_name = tag.fname
+                var_name = tag.name
+                access_type = tag.kind  # read/write
+                if not func_name or not var_name:
+                    continue
+
+                func_key = self._get_func_node_key(tag.rel_fname, func_name)
+                var_key = self._get_var_node_key(tag.rel_fname, var_name)
+
+
+                if not G.has_node(func_key):
+                    G.add_node(
+                        func_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=func_name,
+                        type="function",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "parameters": [],
+                            "parent_class": None,
+                            "calls": [],
+                            "reads": [],
+                            "writes": [],
+                        }
+                    )
+                if not G.has_node(var_key):
+                    is_attr = (isinstance(tag.info, dict) and tag.info.get("is_attribute")) or False
+                    G.add_node(
+                        var_key,
+                        relative_path=tag.rel_fname,
+                        file_name=os.path.basename(tag.rel_fname),
+                        name=var_name,
+                        type="variable",
+                        line_range=[tag.line[0], tag.line[1]],
+                        metadata={
+                            "is_attribute": is_attr,
+                            "accessed_by": [],
+                            "modified_by": [],
+                        }
+                    )
+
+                label = 'reads' if access_type == 'read' else 'writes'
+                G.add_edge(func_key, var_key, label=label)
+
+                # Update function's reads/writes
+                if label == 'reads':
+                    if var_key not in G.nodes[func_key]["metadata"]["reads"]:
+                        G.nodes[func_key]["metadata"]["reads"].append(var_key)
+                else:
+                    if var_key not in G.nodes[func_key]["metadata"]["writes"]:
+                        G.nodes[func_key]["metadata"]["writes"].append(var_key)
+
+                # Update variable's usage
+                if label == 'reads':
