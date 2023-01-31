@@ -779,3 +779,81 @@ class CodeGraph:
 
                 # Update variable's usage
                 if label == 'reads':
+                    G.nodes[var_key]["metadata"]["accessed_by"].append(func_key)
+                else:
+                    G.nodes[var_key]["metadata"]["modified_by"].append(func_key)
+
+        return G
+
+    def _get_node_key(self, tag):
+        """Return a unique key for the node based on category/kind/name."""
+        if tag.kind == "def" and tag.category == "class":
+            return f"{tag.rel_fname}::class::{tag.name}"
+        if tag.kind in ["def", "method"] and tag.category == "function":
+            return self._get_func_node_key(tag.rel_fname, tag.name)
+        if tag.kind in ["read", "write"]:
+            return self._get_var_node_key(tag.rel_fname, tag.name)
+        return f"{tag.rel_fname}::{tag.category}::{tag.name}"
+
+    def _get_func_node_key(self, rel_fname, func_name):
+        return f"{rel_fname}::function::{func_name}"
+
+    def _get_var_node_key(self, rel_fname, var_name):
+        return f"{rel_fname}::var::{var_name}"
+
+    def _get_class_node_key(self, rel_fname, cls_name):
+        return f"{rel_fname}::class::{cls_name}"
+
+    def _parse_import_path(self, import_string):
+        if import_string.startswith("#include"):
+            match = re.search(r'#include\s+"([^"]+)"', import_string)
+            if match:
+                return match.group(1)
+            return import_string
+        match = re.match(r'(?:from\s+([\w\.]+)\s+import)|(?:import\s+([\w\.]+))', import_string)
+        if match:
+            return match.group(1) or match.group(2)
+        return import_string
+
+    def get_rel_fname(self, fname):
+        return os.path.relpath(fname, self.root)
+
+    def find_src_files(self, directory):
+        """Return all source files under the given directory."""
+        if not os.path.isdir(directory):
+            return [directory]
+
+        src_files = []
+        for root_dir, dirs, files in os.walk(directory):
+            for file in files:
+                if os.path.splitext(file)[1] in LANGUAGE_MAP.keys():
+                    src_files.append(os.path.join(root_dir, file))
+        return src_files
+
+
+    def find_files(self, dirs):
+        """Given a list of paths or directories, return all valid source file paths."""
+        chat_fnames = []
+        for dir in dirs:
+            p = Path(dir)
+            if p.is_dir():
+                chat_fnames += self.find_src_files(dir)
+            elif os.path.splitext(dir)[1] in LANGUAGE_MAP.keys():
+                chat_fnames.append(dir)
+        return chat_fnames
+
+if __name__ == "__main__":
+    # If run directly, we parse a local directory path from sys.argv
+    if len(sys.argv) < 2:
+        print("Usage: python construct_graph.py <directory_path>")
+        sys.exit(1)
+
+    dir_name = sys.argv[1]
+    code_graph = CodeGraph(root=dir_name)
+    all_src_files = code_graph.find_files([dir_name])
+    tags, G = code_graph.get_code_graph(all_src_files)
+
+    if G is None:
+        print("No graph constructed (possibly no valid source files).")
+        sys.exit(0)
+
