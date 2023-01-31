@@ -807,3 +807,83 @@ class RepositoryRouteTests(TestCase):
     def test_retrieve_pull_request_returns_database_record(self):
         pull_request = PullRequest.objects.create(
             repository=self.repository,
+            pr_github_id="db-1",
+            pr_number=66,
+            title="DB PR",
+            author_github_id=self.user.github_id,
+            status="open",
+            url="https://github.com/route-owner/route-repo/pull/66",
+        )
+        RepoCollaborator.objects.create(repository=self.repository, user=self.user, role="owner")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/pulls/{pull_request.pr_number}/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["source"], "db")
+
+    @patch("core.repository_view.get_single_pull_request_from_github")
+    def test_retrieve_pull_request_falls_back_to_github(self, mock_get_pr):
+        mock_get_pr.return_value = {
+            "id": 501,
+            "number": 67,
+            "title": "GitHub PR",
+            "body": "Body",
+            "state": "open",
+            "html_url": "https://github.com/route-owner/route-repo/pull/67",
+            "user": {"id": int(self.user.github_id), "login": self.user.username, "avatar_url": "https://avatars.githubusercontent.com/u/9201?v=4"},
+            "head": {"sha": "abc"},
+            "base": {"sha": "def"},
+            "created_at": "2026-05-19T00:00:00Z",
+            "updated_at": "2026-05-19T00:00:00Z",
+            "closed_at": None,
+            "merged_at": None,
+        }
+        RepoCollaborator.objects.create(repository=self.repository, user=self.user, role="owner")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/pulls/67/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["source"], "github")
+        self.assertEqual(response.json()["title"], "GitHub PR")
+
+    def test_retrieve_commit_returns_database_record(self):
+        from core.models import Commit
+
+        Commit.objects.create(
+            repository=self.repository,
+            commit_hash="abc1234",
+            message="DB commit",
+            url="https://github.com/route-owner/route-repo/commit/abc1234",
+            timestamp="2026-05-19T00:00:00Z",
+        )
+        RepoCollaborator.objects.create(repository=self.repository, user=self.user, role="owner")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/commits/sha/abc1234/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["source"], "db")
+
+    @patch("core.repository_view.get_single_commit_from_github")
+    def test_retrieve_commit_falls_back_to_github(self, mock_get_commit):
+        mock_get_commit.return_value = {
+            "sha": "def5678",
+            "html_url": "https://github.com/route-owner/route-repo/commit/def5678",
+            "commit": {
+                "message": "GitHub commit",
+                "author": {"name": "Route Owner", "email": "route-owner@example.com", "date": "2026-05-19T00:00:00Z"},
+                "committer": {"name": "Route Owner", "email": "route-owner@example.com", "date": "2026-05-19T00:00:00Z"},
+            },
+            "author": {"id": int(self.user.github_id)},
+            "committer": {"id": int(self.user.github_id)},
+        }
+        RepoCollaborator.objects.create(repository=self.repository, user=self.user, role="owner")
+        self.client.force_authenticate(user=self.user)
+
+        response = self.client.get(f"/api/v1/repositories/{self.repository.id}/commits/sha/def5678/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["commit_hash"], "def5678")
+        self.assertEqual(response.json()["author_name"], "Route Owner")
