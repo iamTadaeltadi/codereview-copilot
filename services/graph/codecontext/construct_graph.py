@@ -857,3 +857,81 @@ if __name__ == "__main__":
         print("No graph constructed (possibly no valid source files).")
         sys.exit(0)
 
+    print("---------------------------------")
+    print(f"Successfully constructed the code graph for repo directory {dir_name}")
+    print(f"   Number of nodes: {len(G.nodes)}")
+    print(f"   Number of edges: {len(G.edges)}")
+    print("---------------------------------")
+
+    # **Step 1: Cache File Contents**
+    # To improve efficiency, cache the lines of each file.
+    file_contents_cache = {}
+    for file_path in all_src_files:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                file_contents_cache[file_path] = lines
+        except Exception as e:
+            print(f"Error reading file {file_path}: {e}")
+            file_contents_cache[file_path] = []
+
+    # Now produce the final metadata JSON
+    final_nodes = []
+    for node_id in G.nodes:
+        data = G.nodes[node_id]
+        node_type = data["type"]
+
+        # Common fields
+        out = {
+            "Node_id": node_id,
+            "Node_type": node_type,
+            "name": data["name"],
+            "filepath": data["relative_path"],
+            "start_line": data["line_range"][0],
+            "end_line": data["line_range"][1],
+            "Info": {
+                "Number_of_line": data["metadata"].get("total_lines", 0),
+                "Language": data["metadata"].get("language", ""),
+                "relatedfiles": []
+            }
+        }
+
+        # **Step 2: Extract Related Files**
+        if node_type == "file":
+            dep_ids = data["metadata"].get("dependencies", [])  # node IDs
+            related_files = []
+            for dep_id in dep_ids:
+                if dep_id in G.nodes:
+                    related_files.append(G.nodes[dep_id]["name"])
+            out["Info"]["relatedfiles"] = related_files
+
+        elif node_type == "class":
+            meta = data["metadata"]
+            parent_names = []
+            for parent_id in meta.get("parent_classes", []):
+                if parent_id in G.nodes:
+                    parent_names.append(G.nodes[parent_id]["name"])
+
+            # Gather methods by checking edges or metadata
+            method_names = []
+            for succ in G.successors(node_id):
+                if G.nodes[succ]["type"] == "function":
+                    # It's a method if the parent_class is this class name
+                    if G.nodes[succ]["metadata"].get("parent_class") == data["name"]:
+                        method_names.append(G.nodes[succ]["name"])
+
+            var_names = list(set(meta.get("variables", [])))  # Adapt if you store class-level vars
+
+            out["Info"].update({
+                "Inheritance": parent_names,
+                "methods": method_names,
+                "variables": var_names
+            })
+
+        elif node_type == "function":
+            meta = data["metadata"]
+            call_names = []
+            for callee_id in meta.get("calls", []):
+                if callee_id in G.nodes:
+                    call_names.append(G.nodes[callee_id]["name"])
+
