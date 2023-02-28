@@ -935,3 +935,81 @@ if __name__ == "__main__":
                 if callee_id in G.nodes:
                     call_names.append(G.nodes[callee_id]["name"])
 
+
+    def find_files(self, dirs):
+        """Given a list of paths or directories, return all valid source file paths."""
+        chat_fnames = []
+        for dir in dirs:
+            p = Path(dir)
+            if p.is_dir():
+                chat_fnames += self.find_src_files(dir)
+            elif os.path.splitext(dir)[1] in LANGUAGE_MAP.keys():
+                chat_fnames.append(dir)
+        return chat_fnames
+
+if __name__ == "__main__":
+    # If run directly, we parse a local directory path from sys.argv
+    if len(sys.argv) < 2:
+        print("Usage: python construct_graph.py <directory_path>")
+        sys.exit(1)
+
+    dir_name = sys.argv[1]
+    code_graph = CodeGraph(root=dir_name)
+    all_src_files = code_graph.find_files([dir_name])
+    tags, G = code_graph.get_code_graph(all_src_files)
+
+    if G is None:
+        print("No graph constructed (possibly no valid source files).")
+        sys.exit(0)
+
+    print("---------------------------------")
+    print(f"Successfully constructed the code graph for repo directory {dir_name}")
+    print(f"   Number of nodes: {len(G.nodes)}")
+    print(f"   Number of edges: {len(G.edges)}")
+    print("---------------------------------")
+
+    # **Step 1: Cache File Contents**
+    # To improve efficiency, cache the lines of each file.
+    file_contents_cache = {}
+    for file_path in all_src_files:
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+                file_contents_cache[file_path] = lines
+        except Exception as e:
+            print(f"Error reading file {file_path}: {e}")
+            file_contents_cache[file_path] = []
+
+    # Now produce the final metadata JSON
+    final_nodes = []
+    for node_id in G.nodes:
+        data = G.nodes[node_id]
+        node_type = data["type"]
+
+        # Common fields
+        out = {
+            "Node_id": node_id,
+            "Node_type": node_type,
+            "name": data["name"],
+            "filepath": data["relative_path"],
+            "start_line": data["line_range"][0],
+            "end_line": data["line_range"][1],
+            "Info": {
+                "Number_of_line": data["metadata"].get("total_lines", 0),
+                "Language": data["metadata"].get("language", ""),
+                "relatedfiles": []
+            }
+        }
+
+        # **Step 2: Extract Related Files**
+        if node_type == "file":
+            dep_ids = data["metadata"].get("dependencies", [])  # node IDs
+            related_files = []
+            for dep_id in dep_ids:
+                if dep_id in G.nodes:
+                    related_files.append(G.nodes[dep_id]["name"])
+            out["Info"]["relatedfiles"] = related_files
+
+        elif node_type == "class":
+            meta = data["metadata"]
+            parent_names = []
