@@ -1013,3 +1013,81 @@ if __name__ == "__main__":
         elif node_type == "class":
             meta = data["metadata"]
             parent_names = []
+            for parent_id in meta.get("parent_classes", []):
+                if parent_id in G.nodes:
+                    parent_names.append(G.nodes[parent_id]["name"])
+
+            # Gather methods by checking edges or metadata
+            method_names = []
+            for succ in G.successors(node_id):
+                if G.nodes[succ]["type"] == "function":
+                    # It's a method if the parent_class is this class name
+                    if G.nodes[succ]["metadata"].get("parent_class") == data["name"]:
+                        method_names.append(G.nodes[succ]["name"])
+
+            var_names = list(set(meta.get("variables", [])))  # Adapt if you store class-level vars
+
+            out["Info"].update({
+                "Inheritance": parent_names,
+                "methods": method_names,
+                "variables": var_names
+            })
+
+        elif node_type == "function":
+            meta = data["metadata"]
+            call_names = []
+            for callee_id in meta.get("calls", []):
+                if callee_id in G.nodes:
+                    call_names.append(G.nodes[callee_id]["name"])
+
+
+            out["Info"].update({
+                "Parameter": meta.get("parameters", []),
+                "IsMethodof": meta.get("parent_class"),
+                "calls": call_names
+            })
+
+        elif node_type == "variable":
+            meta = data["metadata"]
+            used_by = set(meta.get("accessed_by", []) + meta.get("modified_by", []))
+            calls = []
+            for used_id in used_by:
+                if used_id in G.nodes:
+                    used_node = G.nodes[used_id]
+                    if used_node["type"] == "function":
+                        func_name = used_node["name"]
+                        parent_cls = used_node["metadata"].get("parent_class", None)
+                        if parent_cls:
+                            calls.append(parent_cls)
+                        calls.append(func_name)
+                    elif used_node["type"] == "class":
+                        calls.append(used_node["name"])
+                    else:
+                        calls.append(used_node["name"])
+            out["Info"].update({"calls": list(set(calls))})
+
+        # **Step 3: Extract Code Snippet**
+        # Only add code snippets for node types other than "file" and "class"
+        if node_type not in ["file", "class"]:
+            file_path = os.path.join(code_graph.root, data["relative_path"])
+            lines = file_contents_cache.get(file_path, [])
+            start = max(data["line_range"][0] - 1, 0)  # Convert to 0-based index
+            end = data["line_range"][1]  # Exclusive in slicing
+            # Ensure end does not exceed the number of lines
+            end = min(end, len(lines))
+            code_snippet = ''.join(lines[start:end]).strip()
+            out["Info"]["code"] = code_snippet
+
+        final_nodes.append(out)
+
+    # Write out as one JSON array
+    tags_json_path = os.path.join(os.getcwd(), "tags.json")
+    with open(tags_json_path, "w", encoding="utf-8") as f:
+        json.dump(final_nodes, f, indent=2)
+
+    # Also cache the graph if needed
+    graph_pkl_path = os.path.join(os.getcwd(), "graph.pkl")
+    with open(graph_pkl_path, 'wb') as f:
+        pickle.dump(G, f)
+
+    print(f"Successfully wrote updated metadata to {tags_json_path}")
