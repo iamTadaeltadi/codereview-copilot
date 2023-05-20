@@ -2798,3 +2798,83 @@ postgresql-psycopg = ["psycopg (>=3.0.7)"]
 postgresql-psycopg2binary = ["psycopg2-binary"]
 postgresql-psycopg2cffi = ["psycopg2cffi"]
 postgresql-psycopgbinary = ["psycopg[binary] (>=3.0.7)"]
+pymysql = ["pymysql"]
+sqlcipher = ["sqlcipher3_binary"]
+
+[[package]]
+name = "sse-starlette"
+version = "2.1.3"
+description = "SSE plugin for Starlette"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "sse_starlette-2.1.3-py3-none-any.whl", hash = "sha256:8ec846438b4665b9e8c560fcdea6bc8081a3abf7942faa95e5a744999d219772"},
+    {file = "sse_starlette-2.1.3.tar.gz", hash = "sha256:9cd27eb35319e1414e3d2558ee7414487f9529ce3b3cf9b21434fd110e017169"},
+]
+
+[package.dependencies]
+anyio = "*"
+starlette = "*"
+uvicorn = "*"
+
+[package.extras]
+examples = ["fastapi"]
+
+[[package]]
+name = "stack-data"
+version = "0.6.3"
+description = "Extract data from python stack frames and tracebacks for informative displays"
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "stack_data-0.6.3-py3-none-any.whl", hash = "sha256:d5558e0c25a4cb0853cddad3d77da9891a08cb85dd9f9f91b9f8cd66e511e695"},
+    {file = "stack_data-0.6.3.tar.gz", hash = "sha256:836a778de4fec4dcd1dcd89ed8abff8a221f58308462e1c4aa2a3cf30148f0b9"},
+]
+
+[package.dependencies]
+asttokens = ">=2.1.0"
+executing = ">=1.2.0"
+pure-eval = "*"
+
+[package.extras]
+tests = ["cython", "littleutils", "pygments", "pytest", "typeguard"]
+
+[[package]]
+name = "starlette"
+version = "0.46.2"
+description = "The little ASGI library that shines."
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "starlette-0.46.2-py3-none-any.whl", hash = "sha256:595633ce89f8ffa71a015caed34a5b2dc1c0cdb3f0f1fbd1e69339cf2abeec35"},
+    {file = "starlette-0.46.2.tar.gz", hash = "sha256:7f7361f34eed179294600af672f565727419830b54b7b084efe44bb82d2fccd5"},
+]
+
+[package.dependencies]
+anyio = ">=3.6.2,<5"
+
+[package.extras]
+full = ["httpx (>=0.27.0,<0.29.0)", "itsdangerous", "jinja2", "python-multipart (>=0.0.18)", "pyyaml"]
+
+[[package]]
+name = "structlog"
+version = "25.3.0"
+description = "Structured Logging for Python"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "structlog-25.3.0-py3-none-any.whl", hash = "sha256:a341f5524004c158498c3127eecded091eb67d3a611e7a3093deca30db06e172"},
+    {file = "structlog-25.3.0.tar.gz", hash = "sha256:8dab497e6f6ca962abad0c283c46744185e0c9ba900db52a423cb6db99f7abeb"},
+]
+
+[package.extras]
+dev = ["freezegun (>=0.2.8)", "mypy (>=1.4)", "pretend", "pytest (>=6.0)", "pytest-asyncio (>=0.17)", "rich", "simplejson", "twisted"]
+docs = ["cogapp", "furo", "myst-parser", "sphinx", "sphinx-notfound-page", "sphinxcontrib-mermaid", "sphinxext-opengraph", "twisted"]
+tests = ["freezegun (>=0.2.8)", "pretend", "pytest (>=6.0)", "pytest-asyncio (>=0.17)", "simplejson"]
+typing = ["mypy (>=1.4)", "rich", "twisted"]
+
+[[package]]
