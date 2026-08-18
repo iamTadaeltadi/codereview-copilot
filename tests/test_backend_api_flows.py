@@ -363,11 +363,11 @@ class BackendApiFlowTests(unittest.TestCase):
         self.assertEqual(response.status_code, status.HTTP_202_ACCEPTED)
         mock_delay.assert_called_once_with("pull_request", payload_dict)
 
-    def test_github_webhook_invalid_json_after_headers_returns_verification_error(self):
+    def test_github_webhook_invalid_json_returns_bad_request(self):
         payload = b"{invalid-json"
         headers = self._signed_webhook_headers(payload, settings.GITHUB_WEBHOOK_SECRET, delivery_id="delivery-json")
         response = self.client.post("/api/v1/webhook/github/", data=payload, **headers)
-        self.assertEqual(response.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
 if __name__ == "__main__":
