@@ -141,8 +141,9 @@ class Review(TimestampMixin):
     repository = models.ForeignKey(Repository, related_name='reviews', on_delete=models.CASCADE)
     pull_request = models.ForeignKey(PullRequest, related_name='reviews', on_delete=models.CASCADE, null=True, blank=True)
     commit = models.ForeignKey(Commit, related_name='reviews', on_delete=models.CASCADE, null=True, blank=True)
-    parent_review = models.ForeignKey('self', related_name='re_reviews', on_delete=models.SET_NULL, null=True, blank=True)
-    status = models.CharField(max_length=20, choices=REVIEW_STATUS_CHOICES, default='pending')
+    parent_review = models.ForeignKey('self', related_name='re_reviews', on_delete=models.PROTECT, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=REVIEW_STATUS_CHOICES, default='pending', db_index=True)
+    condition = models.CharField(max_length=20, null=True, blank=True, db_index=True)
     review_data = models.JSONField(null=True, blank=True)
     error_message = models.TextField(null=True, blank=True) # New field for storing error messages
     # user = models.ForeignKey(User, related_name='reviews', on_delete=models.CASCADE) # Consider who owns/requested the review
@@ -196,6 +197,7 @@ class LLMUsage(TimestampMixin):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='llm_usages', on_delete=models.CASCADE)
     review = models.ForeignKey(Review, related_name='llm_usages', null=True, blank=True, on_delete=models.CASCADE)
     llm_model = models.CharField(max_length=255)
+    step = models.CharField(max_length=50, null=True, blank=True, db_index=True)
     input_tokens = models.IntegerField()
     output_tokens = models.IntegerField()
     cost = models.FloatField()
@@ -209,8 +211,29 @@ class ReviewFeedback(TimestampMixin):
     rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)]) # Alembic: check_rating_range
     feedback = models.TextField()
 
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(rating__gte=1) & models.Q(rating__lte=5),
+                name='check_rating_range'
+            )
+        ]
+
     def __str__(self):
         return f"Feedback by {self.user.username} for Review {self.review.id} (Rating: {self.rating})"
+
+class Finding(TimestampMixin):
+    review = models.ForeignKey(Review, related_name='findings', on_delete=models.CASCADE)
+    file_path = models.CharField(max_length=500, blank=True)
+    line = models.IntegerField(null=True, blank=True)
+    severity = models.CharField(max_length=20, blank=True, db_index=True)
+    kind = models.CharField(max_length=50, blank=True, db_index=True)
+    message = models.TextField(blank=True)
+    raw = models.JSONField()
+
+    def __str__(self):
+        return f"{self.severity or 'unknown'} in {self.file_path or 'unknown'} (Review {self.review_id})"
+
 
 class WebhookEventLog(TimestampMixin):
     repository = models.ForeignKey(Repository, related_name='webhook_events', on_delete=models.CASCADE, null=True, blank=True)
