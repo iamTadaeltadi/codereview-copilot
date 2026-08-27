@@ -59,7 +59,7 @@ def graph_cache_get(task, graph_cache, token, sparse):
 
     cache = Path(graph_cache)
     cache.mkdir(parents=True, exist_ok=True)
-    key = f"{task.repo.replace('/', '__')}@{task.base_commit[:12]}"
+    key = f"{task.repo.replace('/', '__')}@{task.review_commit[:12]}"
     if sparse:
         key += "-sparse"
     cached = cache / f"{key}.pkl"
@@ -68,13 +68,13 @@ def graph_cache_get(task, graph_cache, token, sparse):
             return pickle.load(handle), None
 
     if sparse:
-        sources = collect_sources(task.repo, task.base_commit, task.diff, token=token)
+        sources = collect_sources(task.repo, task.review_commit, task.diff, token=token)
         if not sources:
-            raise RepoError(f"{task.repo}@{task.base_commit[:8]}: no source files fetched")
+            raise RepoError(f"{task.repo}@{task.review_commit[:8]}: no source files fetched")
         graph = graph_from_sources(sources)
         info = len(sources)
     else:
-        graph, meta = graph_for(task.repo, task.base_commit, cache_dir=graph_cache, token=token)
+        graph, meta = graph_for(task.repo, task.review_commit, cache_dir=graph_cache, token=token)
         info = meta.files
     with cached.open("wb") as handle:
         pickle.dump(graph, handle, protocol=pickle.HIGHEST_PROTOCOL)
