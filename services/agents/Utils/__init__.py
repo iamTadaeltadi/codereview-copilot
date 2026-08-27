@@ -9,6 +9,9 @@ from .ToolOrganizer import (
     build_retrieve_graph_tool,
     build_random_context_tool,
     build_lexical_context_tool,
+    build_dense_context_tool,
+    build_oracle_context_tool,
+    hashing_embedder,
     toolOrganizer,
     retrieve_graph_tool,
     CONDITIONS,
@@ -17,6 +20,8 @@ from .ToolOrganizer import (
     CONDITION_RANDOM,
     CONDITION_LEXICAL,
     CONDITION_WHOLE_FILE,
+    CONDITION_ORACLE,
+    CONDITION_DENSE,
 )
 from .LLMHelper import LLMResponseParser
 from .HTMLReport import generate_review_report
@@ -40,6 +45,9 @@ __all__ = [
     "retrieve_graph_tool",
     "build_random_context_tool",
     "build_lexical_context_tool",
+    "build_dense_context_tool",
+    "build_oracle_context_tool",
+    "hashing_embedder",
     "ContextBudget",
     "estimate_tokens",
     "DEFAULT_BUDGET_TOKENS",
@@ -49,6 +57,8 @@ __all__ = [
     "CONDITION_RANDOM",
     "CONDITION_LEXICAL",
     "CONDITION_WHOLE_FILE",
+    "CONDITION_ORACLE",
+    "CONDITION_DENSE",
     "LLMResponseParser",
     "get_commit_diff",
     "get_commit_metadata",

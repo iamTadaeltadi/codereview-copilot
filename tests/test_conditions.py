@@ -177,3 +177,136 @@ class ConditionBehaviourTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+try:
+    from Utils.ToolOrganizer import CONDITION_DENSE, CONDITION_ORACLE, hashing_embedder
+except Exception:
+    pass
+
+
+ORACLE_TARGETS = [{"path": "views.py", "line": 3}]
+
+
+@unittest.skipUnless(_AVAILABLE, "agent runtime deps not installed")
+class DenseConditionTests(unittest.TestCase):
+    def test_the_tool_is_indistinguishable_from_the_others(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE)
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0].name, "retrieve_graph")
+
+    def test_it_reports_its_condition(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+        self.assertEqual(call(tools)["condition"], CONDITION_DENSE)
+
+    def test_it_respects_the_shared_budget(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=120)
+        self.assertLessEqual(call(tools)["budget"]["used_tokens"], 120)
+
+    def test_it_ranks_by_similarity_and_reports_the_score(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+        neighbors = call(tools)["neighbors"]
+        self.assertTrue(neighbors)
+        self.assertIn("score", neighbors[0])
+        scores = [n["score"] for n in neighbors]
+        self.assertEqual(scores, sorted(scores, reverse=True))
+
+    def test_it_is_deterministic(self):
+        first = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+        second = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+        self.assertEqual(call(first)["neighbors"], call(second)["neighbors"])
+
+    def test_a_supplied_embedder_is_used_instead_of_the_default(self):
+        calls = []
+
+        def counting_embedder(text, dimensions=256):
+            calls.append(text)
+            return hashing_embedder(text, dimensions)
+
+        tools = build_tools(
+            repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000, embed_fn=counting_embedder
+        )
+        call(tools)
+        self.assertTrue(calls)
+
+    def test_it_finds_a_name_related_node_across_files(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+        names = {n["name"] for n in call(tools)["neighbors"]}
+        self.assertTrue(names & {"review_summary", "review_detail"})
+
+
+@unittest.skipUnless(_AVAILABLE, "agent runtime deps not installed")
+class OracleConditionTests(unittest.TestCase):
+    def test_the_tool_is_indistinguishable_from_the_others(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_ORACLE, oracle_targets=ORACLE_TARGETS)
+        self.assertEqual(len(tools), 1)
+        self.assertEqual(tools[0].name, "retrieve_graph")
+
+    def test_it_returns_the_node_covering_the_target_line(self):
+        tools = build_tools(
+            repo_graph(), "/tmp", condition=CONDITION_ORACLE, oracle_targets=ORACLE_TARGETS, budget_tokens=4000
+        )
+        names = {n["name"] for n in call(tools)["neighbors"]}
+        self.assertEqual(names, {"review_detail"})
+
+    def test_a_target_in_another_file_is_not_returned(self):
+        tools = build_tools(
+            repo_graph(),
+            "/tmp",
+            condition=CONDITION_ORACLE,
+            oracle_targets=[{"path": "billing.py", "line": 3}],
+            budget_tokens=4000,
+        )
+        names = {n["name"] for n in call(tools)["neighbors"]}
+        self.assertEqual(names, {"shipping_label"})
+
+    def test_a_line_outside_every_span_returns_nothing(self):
+        tools = build_tools(
+            repo_graph(),
+            "/tmp",
+            condition=CONDITION_ORACLE,
+            oracle_targets=[{"path": "views.py", "line": 9999}],
+            budget_tokens=4000,
+        )
+        self.assertEqual(call(tools)["neighbors"], [])
+
+    def test_with_no_targets_it_supplies_no_context(self):
+        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_ORACLE, budget_tokens=4000)
+        result = call(tools)
+        self.assertEqual(result["neighbors"], [])
+        self.assertEqual(result["oracle_targets"], 0)
+
+    def test_it_respects_the_shared_budget(self):
+        tools = build_tools(
+            repo_graph(), "/tmp", condition=CONDITION_ORACLE, oracle_targets=ORACLE_TARGETS, budget_tokens=0
+        )
+        self.assertEqual(call(tools)["neighbors"], [])
+
+    def test_it_reports_its_condition_so_a_ceiling_run_is_never_mistaken_for_a_real_one(self):
+        tools = build_tools(
+            repo_graph(), "/tmp", condition=CONDITION_ORACLE, oracle_targets=ORACLE_TARGETS, budget_tokens=4000
+        )
+        self.assertEqual(call(tools)["condition"], CONDITION_ORACLE)
+
+
+@unittest.skipUnless(_AVAILABLE, "agent runtime deps not installed")
+class ConditionIsolationTests(unittest.TestCase):
+    def test_no_honest_condition_can_see_the_answer_key(self):
+        for condition in (CONDITION_GRAPH, CONDITION_RANDOM, CONDITION_LEXICAL, CONDITION_DENSE):
+            with self.subTest(condition=condition):
+                tools = build_tools(
+                    repo_graph(),
+                    "/tmp",
+                    condition=condition,
+                    oracle_targets=ORACLE_TARGETS,
+                    budget_tokens=4000,
+                )
+                self.assertNotIn("oracle_targets", call(tools))
+
+    def test_every_condition_returns_the_same_payload_shape(self):
+        shapes = []
+        for condition in (CONDITION_GRAPH, CONDITION_RANDOM, CONDITION_LEXICAL, CONDITION_DENSE):
+            tools = build_tools(repo_graph(), "/tmp", condition=condition, budget_tokens=4000)
+            result = call(tools)
+            shapes.append({"query", "found", "condition", "node", "neighbors", "budget"} <= set(result))
+        self.assertTrue(all(shapes))

@@ -15,6 +15,8 @@ CONDITION_GRAPH = "B"
 CONDITION_RANDOM = "C"
 CONDITION_LEXICAL = "D"
 CONDITION_WHOLE_FILE = "E"
+CONDITION_ORACLE = "F"
+CONDITION_DENSE = "G"
 
 CONDITION_LABELS = {
     CONDITION_NONE: "no context",
@@ -22,6 +24,8 @@ CONDITION_LABELS = {
     CONDITION_RANDOM: "random nodes, type-matched",
     CONDITION_LEXICAL: "lexical retrieval",
     CONDITION_WHOLE_FILE: "whole file, unbounded",
+    CONDITION_ORACLE: "oracle, the benchmark answer key",
+    CONDITION_DENSE: "dense embedding retrieval",
 }
 
 BUDGETED_CONDITIONS = (
@@ -29,7 +33,13 @@ BUDGETED_CONDITIONS = (
     CONDITION_GRAPH,
     CONDITION_RANDOM,
     CONDITION_LEXICAL,
+    CONDITION_DENSE,
+    CONDITION_ORACLE,
 )
+
+# F cheats by construction: it reads the benchmark's answer key. It is a
+# ceiling, never a competitor, and is reported separately from the honest arms.
+REFERENCE_CONDITIONS = (CONDITION_ORACLE, CONDITION_WHOLE_FILE)
 
 
 @dataclass(frozen=True)
@@ -73,8 +83,9 @@ class RunMatrix:
     default_max_nodes: int = 12
     temperature: float = 0.1
     seeds: tuple = (0,)
-    tasks: int = 184
+    tasks: int = 339
     prompt_version: str = "v1"
+    embedder: str = "hashing-baseline"
 
     def cells(self) -> list[dict]:
         rows = []
