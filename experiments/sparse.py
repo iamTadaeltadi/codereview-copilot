@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -27,6 +28,7 @@ SUPPORTED_EXTENSIONS = {".py", ".js", ".java", ".c"}
 DEFAULT_ATTEMPTS = 3
 DEFAULT_TIMEOUT = 45
 MAX_FILES = 60
+DEFAULT_WORKERS = 12
 
 DIFF_PATH = re.compile(r"^diff --git a/(?P<a>.+?) b/(?P<b>.+)$", re.M)
 PY_FROM = re.compile(r"^\s*from\s+([.\w]*)\s+import\s+(.+)$", re.M)
@@ -134,23 +136,39 @@ def imported_paths(source: str, path: str, roots):
 
 
 def collect_sources(repo: str, commit: str, diff: str, token: str = "",
-                    max_files: int = MAX_FILES, import_hops: int = 1, opener=None):
-    """Return {relative_path: source} for the diff's files and their imports."""
+                    max_files: int = MAX_FILES, import_hops: int = 1, opener=None,
+                    workers: int = DEFAULT_WORKERS):
+    """Return {relative_path: source} for the diff's files and their imports.
+
+    Requests within a hop are issued concurrently. On a link where a single
+    file takes seconds, fetching a hop's candidates one at a time is what makes
+    a task cost minutes rather than seconds; the requests are independent, and
+    most of the wall time is latency rather than bandwidth.
+    """
     sources = {}
     # A path that returned nothing must be remembered too, or the next hop asks
     # for it again. On a slow link every wasted request costs seconds.
     attempted = set()
 
-    def fetch(path):
-        if path in attempted:
-            return None
-        attempted.add(path)
-        return fetch_file(repo, commit, path, token=token, opener=opener)
+    def fetch_many(paths):
+        wanted = [p for p in paths if p not in attempted]
+        attempted.update(wanted)
+        if not wanted:
+            return []
+        if workers <= 1 or len(wanted) == 1:
+            results = [fetch_file(repo, commit, p, token=token, opener=opener) for p in wanted]
+        else:
+            with ThreadPoolExecutor(max_workers=min(workers, len(wanted))) as pool:
+                results = list(
+                    pool.map(
+                        lambda p: fetch_file(repo, commit, p, token=token, opener=opener),
+                        wanted,
+                    )
+                )
+        return [(p, text) for p, text in zip(wanted, results) if text is not None]
 
-    for path in paths_in_diff(diff)[:max_files]:
-        text = fetch(path)
-        if text is not None:
-            sources[path] = text
+    for path, text in fetch_many(paths_in_diff(diff)[:max_files]):
+        sources[path] = text
 
     roots = sorted({p.split("/")[0] for p in sources if "/" in p})
     frontier = list(sources.items())
@@ -160,16 +178,14 @@ def collect_sources(repo: str, commit: str, diff: str, token: str = "",
         candidates = []
         for path, text in frontier:
             candidates.extend(imported_paths(text, path, roots))
-        frontier = []
-        for candidate in dict.fromkeys(candidates):
-            if len(sources) >= max_files:
-                break
-            if candidate in attempted or Path(candidate).suffix not in SUPPORTED_EXTENSIONS:
-                continue
-            text = fetch(candidate)
-            if text is not None:
-                sources[candidate] = text
-                frontier.append((candidate, text))
+        wanted = [
+            c
+            for c in dict.fromkeys(candidates)
+            if c not in attempted and Path(c).suffix in SUPPORTED_EXTENSIONS
+        ][: max(0, max_files - len(sources))]
+        frontier = fetch_many(wanted)
+        for path, text in frontier:
+            sources[path] = text
     return sources
 
 
