@@ -152,4 +152,9 @@ def review_once(client, model: str, task, condition: str, context_text: str = ""
     result.findings, result.parse_failed = parse_findings(
         completion.text, task.task_id, condition
     )
+    if result.parse_failed and completion.text.lstrip().startswith("{"):
+        # Output that begins as JSON and fails to parse is a cut-off reply, not
+        # a reviewer that found nothing. Recording it as zero findings would put
+        # a network failure into the results.
+        result.error = "reply began as JSON but did not parse — treating as truncated"
     return result

@@ -64,6 +64,17 @@ class Completion:
     usage: Usage
     tool_calls: list = field(default_factory=list)
     raw: dict = field(default_factory=dict)
+    finish_reason: str = ""
+
+    @property
+    def truncated(self) -> bool:
+        """The reply was cut off rather than finished.
+
+        On a slow link a response can arrive incomplete while the request still
+        returns 200. Scoring that as "the reviewer found nothing" would record a
+        network failure as a result, so it is raised instead.
+        """
+        return self.finish_reason in {"length", "content_filter", "error"}
 
 
 class LLMError(RuntimeError):
@@ -145,6 +156,7 @@ class OpenRouterClient:
         if not choices:
             raise LLMError(f"{model}: response contained no choices")
         message = choices[0].get("message") or {}
+        finish_reason = choices[0].get("finish_reason") or ""
 
         raw_usage = body.get("usage") or {}
         usage = Usage(
@@ -153,12 +165,19 @@ class OpenRouterClient:
             cost_usd=float(raw_usage.get("cost") or 0.0),
             calls=1,
         )
-        return Completion(
+        completion = Completion(
             text=message.get("content") or "",
             usage=usage,
             tool_calls=list(message.get("tool_calls") or []),
             raw=body,
+            finish_reason=finish_reason,
         )
+        if completion.truncated:
+            raise LLMError(
+                f"{model}: reply was cut off (finish_reason={finish_reason!r}, "
+                f"{usage.output_tokens} output tokens) — not scored"
+            )
+        return completion
 
 
 def client_from_env(env=None) -> OpenRouterClient:
