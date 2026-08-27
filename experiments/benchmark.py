@@ -14,6 +14,7 @@ Two sources, deliberately unequal:
 from __future__ import annotations
 
 import json
+import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -28,6 +29,8 @@ SUPPORTED_LANGUAGES = {
 SOURCE_CCRAB = "c-crab"
 SOURCE_AACR = "aacr-bench"
 
+FUNCTIONAL = "functional"
+
 
 @dataclass(frozen=True)
 class GroundTruthDefect:
@@ -39,10 +42,23 @@ class GroundTruthDefect:
     text: str
     diff_hunk: str = ""
     start_line: int | None = None
+    comment_type: str = ""
+    test_verified: bool = False
 
     @property
     def has_location(self) -> bool:
         return bool(self.path) and self.line is not None
+
+    @property
+    def is_confirmed_defect(self) -> bool:
+        """Functional, and proven by a test that failed before and passed after.
+
+        Everything else is a style preference, a documentation note, a
+        structural suggestion, or a comment whose generated test never
+        demonstrated the defect. Scoring a review against those would measure
+        agreement with opinion rather than defect detection.
+        """
+        return self.comment_type == FUNCTIONAL and self.test_verified
 
 
 @dataclass(frozen=True)
@@ -70,9 +86,47 @@ def is_supported_language(value: str) -> bool:
     return _normalise_language(value) in SUPPORTED_LANGUAGES
 
 
-def _ccrab_defects(instance: dict) -> tuple[GroundTruthDefect, ...]:
+def _comment_key(text: str) -> str:
+    return " ".join((text or "").split())
+
+
+def load_testgen_verdicts(archive_path) -> dict:
+    """Read the c-CRAB testgen archive into {(instance_id, comment_key): verdict}.
+
+    The archive records, per comment, the comment_type the pipeline assigned and
+    whether the generated test actually flipped from failing to passing. Both are
+    needed to separate a demonstrated defect from a reviewer's preference.
+
+    The join is on normalised comment text, not on comment_index. The released
+    instances have had reference_review_comments reduced to the retained subset,
+    so the archive's indices refer to positions in the original SWE-CARE list and
+    no longer line up — joining on index silently drops 198 of the 524 confirmed
+    defects and misattributes others.
+    """
+    verdicts = {}
+    with zipfile.ZipFile(archive_path) as archive:
+        for name in archive.namelist():
+            if not name.endswith("result.json"):
+                continue
+            data = json.loads(archive.read(name))
+            instance_id = data.get("instance_id")
+            for entry in data.get("results") or []:
+                key = (instance_id, _comment_key(entry.get("comment_text")))
+                verdicts[key] = {
+                    "comment_type": entry.get("comment_type") or "",
+                    "test_verified": entry.get("success") is True,
+                    "before_passed": entry.get("before_passed"),
+                    "after_passed": entry.get("after_passed"),
+                }
+    return verdicts
+
+
+def _ccrab_defects(instance: dict, verdicts=None) -> tuple[GroundTruthDefect, ...]:
+    verdicts = verdicts or {}
+    instance_id = instance.get("instance_id")
     defects = []
     for index, comment in enumerate(instance.get("reference_review_comments") or []):
+        verdict = verdicts.get((instance_id, _comment_key(comment.get("text"))), {})
         line = comment.get("line")
         if line is None:
             line = comment.get("original_line")
@@ -84,13 +138,24 @@ def _ccrab_defects(instance: dict) -> tuple[GroundTruthDefect, ...]:
                 text=comment.get("text") or "",
                 diff_hunk=comment.get("diff_hunk") or "",
                 start_line=comment.get("start_line") or comment.get("original_start_line"),
+                comment_type=verdict.get("comment_type", ""),
+                test_verified=bool(verdict.get("test_verified")),
             )
         )
     return tuple(defects)
 
 
-def load_ccrab(path, languages=None, require_located_defects: bool = True) -> list[BenchmarkTask]:
+def load_ccrab(
+    path,
+    languages=None,
+    require_located_defects: bool = True,
+    testgen_archive=None,
+    confirmed_only: bool = False,
+) -> list[BenchmarkTask]:
     wanted = {_normalise_language(l) for l in (languages or SUPPORTED_LANGUAGES)}
+    verdicts = load_testgen_verdicts(testgen_archive) if testgen_archive else {}
+    if confirmed_only and not verdicts:
+        raise ValueError("confirmed_only needs testgen_archive: the verdicts live there")
     tasks = []
     with Path(path).open(encoding="utf-8") as handle:
         for raw in handle:
@@ -101,9 +166,11 @@ def load_ccrab(path, languages=None, require_located_defects: bool = True) -> li
             language = _normalise_language(instance.get("language"))
             if language not in wanted:
                 continue
-            defects = _ccrab_defects(instance)
+            defects = _ccrab_defects(instance, verdicts)
             if require_located_defects:
                 defects = tuple(d for d in defects if d.has_location)
+            if confirmed_only:
+                defects = tuple(d for d in defects if d.is_confirmed_defect)
             if not defects:
                 continue
             tasks.append(
@@ -141,6 +208,7 @@ def summarise(tasks) -> dict:
     return {
         "tasks": len(tasks),
         "defects": defects,
+        "confirmed": sum(1 for t in tasks for d in t.defects if d.is_confirmed_defect),
         "repos": len(repos),
         "languages": dict(sorted(languages.items())),
         "defects_per_task": round(defects / len(tasks), 2) if tasks else 0.0,
