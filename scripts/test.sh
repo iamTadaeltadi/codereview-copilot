@@ -8,7 +8,7 @@ fi
 PYTHON_BIN=".venv/bin/python"
 
 export DJANGO_SETTINGS_MODULE=django_backend.test_settings
-export PYTHONPATH="$PWD/services/api:$PWD/services/agents:$PWD/services/graph${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$PWD:$PWD/services/api:$PWD/services/agents:$PWD/services/graph${PYTHONPATH:+:$PYTHONPATH}"
 
 echo "==> Django backend tests"
 "${PYTHON_BIN}" services/api/manage.py test core.tests -v 2
