@@ -83,8 +83,23 @@ def graph_cache_get(task, graph_cache, token, sparse):
 
 def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True):
     """Return the context payload for one condition, or '' when it has none."""
-    if condition in (CONDITION_NONE, CONDITION_WHOLE_FILE):
+    if condition == CONDITION_NONE:
         return "", None
+
+    if condition == CONDITION_WHOLE_FILE:
+        # The reference arm for what practitioners actually do: hand over the
+        # whole of every file the diff touches, unbudgeted. It is reported
+        # separately from the matched arms precisely because it is not budgeted;
+        # returning nothing here would have made it a silent duplicate of A.
+        sources = collect_sources(
+            task.repo, task.review_commit, task.diff, token=token, import_hops=0
+        )
+        if not sources:
+            raise RepoError(f"{task.repo}@{task.review_commit[:8]}: no source files fetched")
+        rendered = "\n\n".join(
+            f"### {path}\n{text}" for path, text in sorted(sources.items())
+        )
+        return rendered, len(sources)
 
     from Utils.ToolOrganizer import build_tools
 
