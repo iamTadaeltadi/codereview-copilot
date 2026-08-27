@@ -26,6 +26,13 @@ SUPPORTED_LANGUAGES = {
     "c": ".c",
 }
 
+# The graph is built from source the parser understands. A defect reported
+# against a .rst page or a .yaml config cannot be reached by any retrieval
+# condition here, so scoring one would charge every arm with a miss it had no
+# means of avoiding. Such defects are excluded, and the exclusion is a stated
+# inclusion criterion rather than a silent skip.
+SUPPORTED_SUFFIXES = frozenset(SUPPORTED_LANGUAGES.values())
+
 SOURCE_CCRAB = "c-crab"
 SOURCE_AACR = "aacr-bench"
 
@@ -48,6 +55,12 @@ class GroundTruthDefect:
     @property
     def has_location(self) -> bool:
         return bool(self.path) and self.line is not None
+
+    @property
+    def in_supported_source(self) -> bool:
+        from pathlib import PurePosixPath
+
+        return PurePosixPath(self.path or "").suffix in SUPPORTED_SUFFIXES
 
     @property
     def is_confirmed_defect(self) -> bool:
@@ -164,6 +177,7 @@ def load_ccrab(
     require_located_defects: bool = True,
     testgen_archive=None,
     confirmed_only: bool = False,
+    supported_source_only: bool = False,
 ) -> list[BenchmarkTask]:
     wanted = {_normalise_language(l) for l in (languages or SUPPORTED_LANGUAGES)}
     verdicts = load_testgen_verdicts(testgen_archive) if testgen_archive else {}
@@ -184,6 +198,8 @@ def load_ccrab(
                 defects = tuple(d for d in defects if d.has_location)
             if confirmed_only:
                 defects = tuple(d for d in defects if d.is_confirmed_defect)
+            if supported_source_only:
+                defects = tuple(d for d in defects if d.in_supported_source)
             if not defects:
                 continue
             tasks.append(
@@ -230,6 +246,7 @@ def summarise(tasks) -> dict:
         "tasks": len(tasks),
         "defects": defects,
         "confirmed": sum(1 for t in tasks for d in t.defects if d.is_confirmed_defect),
+        "in_supported_source": sum(1 for t in tasks for d in t.defects if d.in_supported_source),
         "repos": len(repos),
         "languages": dict(sorted(languages.items())),
         "defects_per_task": round(defects / len(tasks), 2) if tasks else 0.0,

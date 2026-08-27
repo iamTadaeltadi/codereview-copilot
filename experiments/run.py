@@ -154,7 +154,12 @@ def main() -> int:
     client = client_from_env(env)
     token = env.get("GITHUB_TOKEN", "")
 
-    tasks = load_ccrab(args.data, testgen_archive=args.archive, confirmed_only=True)
+    tasks = load_ccrab(
+        args.data,
+        testgen_archive=args.archive,
+        confirmed_only=True,
+        supported_source_only=True,
+    )
     tasks = [t for t in tasks if len(t.diff) <= args.max_diff_chars]
     tasks = sorted(tasks, key=lambda t: t.task_id)[: args.limit]
     print(f"benchmark : {json.dumps(summarise(tasks))}")
