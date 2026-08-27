@@ -18,6 +18,8 @@ CONDITION_GRAPH = "B"
 CONDITION_RANDOM = "C"
 CONDITION_LEXICAL = "D"
 CONDITION_WHOLE_FILE = "E"
+CONDITION_ORACLE = "F"
+CONDITION_DENSE = "G"
 
 CONDITIONS = (
     CONDITION_NONE,
@@ -25,6 +27,8 @@ CONDITIONS = (
     CONDITION_RANDOM,
     CONDITION_LEXICAL,
     CONDITION_WHOLE_FILE,
+    CONDITION_ORACLE,
+    CONDITION_DENSE,
 )
 
 DEFAULT_MAX_DEPTH = 2
@@ -184,6 +188,155 @@ def build_lexical_context_tool(
     return retrieve_graph
 
 
+
+def _node_document(graph, node_id) -> str:
+    data = graph.nodes[node_id]
+    return " ".join(
+        str(part)
+        for part in (data.get("name"), data.get("type"), data.get("relative_path"))
+        if part
+    )
+
+
+def hashing_embedder(text: str, dimensions: int = 256) -> list[float]:
+    """A deterministic character-ngram hashing embedder.
+
+    This is a stand-in so the dense condition is runnable and testable without a
+    model download or a network call. A real run injects a trained embedder via
+    the embed_fn argument, and the paper reports which one was used — the
+    default here is a baseline, not the thing being claimed.
+    """
+    vector = [0.0] * dimensions
+    lowered = text.lower()
+    for size in (3, 4):
+        for index in range(max(0, len(lowered) - size + 1)):
+            gram = lowered[index : index + size]
+            slot = hash((size, gram)) % dimensions
+            vector[slot] += 1.0
+    norm = sum(value * value for value in vector) ** 0.5
+    if norm == 0:
+        return vector
+    return [value / norm for value in vector]
+
+
+def _cosine(left, right) -> float:
+    return sum(a * b for a, b in zip(left, right))
+
+
+def build_dense_context_tool(
+    graph,
+    graph_folder_path,
+    embed_fn=None,
+    max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
+    budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+):
+    embed = embed_fn or hashing_embedder
+
+    @tool
+    def retrieve_graph(node: str) -> str:
+        """
+        Retrieve grounded repository graph context for a code entity.
+
+        The node identifier should follow:
+            "relative_file_path::identifier::name"
+        """
+        logger.debug("Retrieving dense context for %s", node)
+        node_id = _find_target_node(graph, node)
+        payload = {
+            "query": node,
+            "found": node_id is not None,
+            "condition": CONDITION_DENSE,
+            "node": _node_entry(graph, node_id) if node_id is not None else None,
+        }
+
+        query_vector = embed(" ".join(_tokenize_query(node)) or node)
+        scored = []
+        for candidate in graph.nodes:
+            if candidate == node_id:
+                continue
+            document = _node_document(graph, candidate)
+            if not document:
+                continue
+            score = _cosine(query_vector, embed(document))
+            scored.append((score, str(candidate), candidate))
+        scored.sort(key=lambda row: (-row[0], row[1]))
+
+        entries = []
+        for score, _, candidate in scored[:max_neighbors]:
+            entry = _node_entry(graph, candidate)
+            entry["score"] = round(score, 6)
+            entries.append(entry)
+        return _budgeted(payload, entries, budget_tokens)
+
+    return retrieve_graph
+
+
+def _spans_overlap(line_range, line, tolerance: int) -> bool:
+    if not line_range or line is None:
+        return False
+    try:
+        start, end = int(line_range[0]), int(line_range[1])
+    except (TypeError, ValueError, IndexError):
+        return False
+    return start - tolerance <= line <= end + tolerance
+
+
+def build_oracle_context_tool(
+    graph,
+    graph_folder_path,
+    targets=None,
+    tolerance: int = 0,
+    max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
+    budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+):
+    """Condition F: perfect retrieval, using the benchmark's own answer key.
+
+    This condition cheats on purpose. It exists to establish the ceiling: if the
+    oracle scores X, no retrieval strategy can score above X, and the distance
+    between the best real condition and X is the headroom the paper reports.
+    Nothing that reads `targets` may ever run in a condition being compared
+    honestly.
+    """
+    targets = list(targets or [])
+
+    @tool
+    def retrieve_graph(node: str) -> str:
+        """
+        Retrieve grounded repository graph context for a code entity.
+
+        The node identifier should follow:
+            "relative_file_path::identifier::name"
+        """
+        logger.debug("Retrieving oracle context for %s", node)
+        node_id = _find_target_node(graph, node)
+        payload = {
+            "query": node,
+            "found": node_id is not None,
+            "condition": CONDITION_ORACLE,
+            "node": _node_entry(graph, node_id) if node_id is not None else None,
+            "oracle_targets": len(targets),
+        }
+
+        entries = []
+        seen = set()
+        for candidate in graph.nodes:
+            if candidate == node_id or candidate in seen:
+                continue
+            data = graph.nodes[candidate]
+            for target in targets:
+                if data.get("relative_path") != target.get("path"):
+                    continue
+                if _spans_overlap(data.get("line_range"), target.get("line"), tolerance):
+                    seen.add(candidate)
+                    entries.append(_node_entry(graph, candidate))
+                    break
+            if len(entries) >= max_neighbors:
+                break
+        return _budgeted(payload, entries, budget_tokens)
+
+    return retrieve_graph
+
+
 def build_tools(
     graph,
     graph_folder_path,
@@ -192,6 +345,8 @@ def build_tools(
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
     seed: int = 0,
+    embed_fn=None,
+    oracle_targets=None,
 ):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}, expected one of {CONDITIONS}")
@@ -205,6 +360,28 @@ def build_tools(
                 graph,
                 graph_folder_path,
                 seed=seed,
+                max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens,
+            )
+        ]
+
+    if condition == CONDITION_DENSE:
+        return [
+            build_dense_context_tool(
+                graph,
+                graph_folder_path,
+                embed_fn=embed_fn,
+                max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens,
+            )
+        ]
+
+    if condition == CONDITION_ORACLE:
+        return [
+            build_oracle_context_tool(
+                graph,
+                graph_folder_path,
+                targets=oracle_targets,
                 max_neighbors=max_neighbors,
                 budget_tokens=budget_tokens,
             )
