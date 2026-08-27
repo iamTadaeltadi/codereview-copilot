@@ -56,8 +56,13 @@ class RunMatrixTests(unittest.TestCase):
 
     def test_more_than_one_model_family_is_configured(self):
         matrix = RunMatrix()
-        providers = {MODELS[key].provider for key in matrix.models}
-        self.assertGreater(len(providers), 1)
+        families = {MODELS[key].family for key in matrix.models}
+        self.assertGreater(len(families), 1)
+
+    def test_every_configured_model_names_its_family(self):
+        for key in RunMatrix().models:
+            with self.subTest(model=key):
+                self.assertTrue(MODELS[key].family)
 
     def test_the_matrix_is_frozen(self):
         with self.assertRaises(Exception):

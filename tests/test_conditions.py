@@ -310,3 +310,81 @@ class ConditionIsolationTests(unittest.TestCase):
             result = call(tools)
             shapes.append({"query", "found", "condition", "node", "neighbors", "budget"} <= set(result))
         self.assertTrue(all(shapes))
+
+
+def wide_graph(classes=120):
+    graph = nx.DiGraph()
+
+    def add(node_id, name, node_type, path):
+        graph.add_node(node_id, name=name, type=node_type, relative_path=path,
+                       line_range=[1, 5], metadata={})
+
+    add("f", "models.py", "file", "models.py")
+    add("target", "Review", "class", "models.py")
+    graph.add_edge("f", "target")
+    for index in range(classes):
+        add(f"c{index}", f"Review{index}", "class", "models.py")
+        graph.add_edge("f", f"c{index}")
+        add(f"v{index}", f"variable_number_{index}", "variable", "models.py")
+        graph.add_edge(f"c{index}", f"v{index}")
+    return graph
+
+
+@unittest.skipUnless(_AVAILABLE, "agent runtime deps not installed")
+class BudgetParityTests(unittest.TestCase):
+    """The delivered string is what must be equal, not the entry list.
+
+    Budgeting the entries alone let condition B deliver roughly twice the text
+    of G, because each condition wraps its entries differently and B's entries
+    carry extra fields. That is the confound this study exists to remove, so it
+    is pinned here.
+    """
+
+    CONDITIONS = (CONDITION_GRAPH, CONDITION_RANDOM, CONDITION_LEXICAL, CONDITION_DENSE)
+
+    def _usage(self, budget_tokens):
+        graph = wide_graph()
+        out = {}
+        for condition in self.CONDITIONS:
+            tools = build_tools(graph, "/tmp", condition=condition,
+                                budget_tokens=budget_tokens, seed=1, max_neighbors=150)
+            payload = call(tools)
+            out[condition] = payload["budget"]
+            out[condition]["chars"] = len(json.dumps(payload))
+        return out
+
+    def test_no_condition_exceeds_the_budget(self):
+        for budget in (300, 800, 1500):
+            for condition, report in self._usage(budget).items():
+                with self.subTest(budget=budget, condition=condition):
+                    self.assertLessEqual(report["used_tokens"], budget)
+
+    def test_every_condition_uses_almost_all_of_the_budget(self):
+        for budget in (300, 800, 1500):
+            for condition, report in self._usage(budget).items():
+                with self.subTest(budget=budget, condition=condition):
+                    self.assertGreater(report["used_tokens"], budget * 0.85)
+
+    def test_the_spread_between_conditions_stays_within_a_tenth_of_the_budget(self):
+        for budget in (300, 800, 1500):
+            used = [r["used_tokens"] for r in self._usage(budget).values()]
+            with self.subTest(budget=budget):
+                self.assertLessEqual(max(used) - min(used), budget * 0.10)
+
+    def test_the_graph_arm_never_delivers_much_more_text_than_the_others(self):
+        usage = self._usage(1500)
+        chars = [r["chars"] for r in usage.values()]
+        self.assertLess(max(chars) / min(chars), 1.35)
+
+    def test_conditions_differ_in_entries_kept_not_in_text_delivered(self):
+        usage = self._usage(1500)
+        kept = {c: r["entries_kept"] for c, r in usage.items()}
+        self.assertGreater(max(kept.values()), min(kept.values()))
+
+    def test_rejected_entries_are_accounted_for(self):
+        for condition, report in self._usage(300).items():
+            with self.subTest(condition=condition):
+                self.assertEqual(
+                    report["entries_kept"] + report["entries_rejected"],
+                    report["entries_offered"],
+                )

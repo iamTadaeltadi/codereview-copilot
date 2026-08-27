@@ -24,9 +24,14 @@ from experiments.matcher import ReportedFinding
 
 
 SYSTEM_PROMPT = (
-    "You are a code reviewer. You are shown a pull request diff and asked to "
-    "report defects in it. Report only defects you can point at a specific file "
-    "and line. Do not report style preferences, and do not summarise the change."
+    "You are an experienced code reviewer examining a pull request. Your job is "
+    "to find defects: logic errors, incorrect conditions, off-by-one mistakes, "
+    "unhandled cases, wrong API usage, resource leaks, and behaviour that "
+    "contradicts what the surrounding code expects.\n\n"
+    "This diff has already been reviewed by humans, and they found real problems "
+    "in it. Assume there is something to find and look carefully. Report each "
+    "defect against the file and line it occurs on. Do not summarise the change "
+    "and do not comment on formatting."
 )
 
 OUTPUT_CONTRACT = """
@@ -34,7 +39,11 @@ Reply with JSON only, in exactly this shape:
 
 {"findings": [{"path": "relative/file.py", "line": 42, "message": "what is wrong"}]}
 
-Report an empty list if you find no defect. Never wrap the JSON in prose.
+Use the file paths exactly as they appear in the diff, and line numbers from the
+new version of the file. Report your best candidates even when you are not
+certain — a plausible defect that turns out to be wrong is more useful here than
+silence. Return an empty list only if you genuinely cannot identify anything.
+Never wrap the JSON in prose.
 """.strip()
 
 TOOL_CLAUSE = """
