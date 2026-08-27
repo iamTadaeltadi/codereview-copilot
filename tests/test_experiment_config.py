@@ -40,13 +40,14 @@ class RunMatrixTests(unittest.TestCase):
                 else:
                     self.assertIsNone(cell["depth"])
 
-    def test_the_depth_ablation_raises_the_node_cap(self):
+    def test_every_condition_gets_the_same_candidate_cap(self):
         matrix = RunMatrix()
-        graph_cells = [c for c in matrix.cells() if c["condition"] == CONDITION_GRAPH]
-        self.assertTrue(graph_cells)
-        for cell in graph_cells:
-            self.assertEqual(cell["max_nodes"], matrix.depth_ablation_max_nodes)
-            self.assertGreater(cell["max_nodes"], matrix.default_max_nodes)
+        caps = {cell["max_nodes"] for cell in matrix.cells()}
+        self.assertEqual(caps, {matrix.candidate_cap})
+
+    def test_the_candidate_cap_is_loose_enough_for_the_budget_to_bind(self):
+        matrix = RunMatrix()
+        self.assertGreaterEqual(matrix.candidate_cap, 60)
 
     def test_each_depth_appears_once_per_model_and_seed(self):
         matrix = RunMatrix()

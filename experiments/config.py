@@ -102,8 +102,12 @@ class RunMatrix:
     models: tuple = ("primary", "secondary")
     budget_tokens: int = 1500
     depths: tuple = (1, 2, 3)
-    depth_ablation_max_nodes: int = 60
-    default_max_nodes: int = 12
+    # One candidate cap for every condition. An earlier version gave the graph
+    # arm 60 candidates and the others 12, which is unequal by construction: the
+    # budget can only be the binding constraint if every condition is allowed to
+    # offer enough entries to reach it. The token budget does the limiting; this
+    # only stops a pathological neighbourhood from being serialised in full.
+    candidate_cap: int = 80
     temperature: float = 0.1
     seeds: tuple = (0,)
     tasks: int = 339
@@ -123,7 +127,7 @@ class RunMatrix:
                                     "model": model,
                                     "seed": seed,
                                     "depth": depth,
-                                    "max_nodes": self.depth_ablation_max_nodes,
+                                    "max_nodes": self.candidate_cap,
                                     "budget_tokens": self.budget_tokens,
                                 }
                             )
@@ -134,7 +138,7 @@ class RunMatrix:
                                 "model": model,
                                 "seed": seed,
                                 "depth": None,
-                                "max_nodes": self.default_max_nodes,
+                                "max_nodes": self.candidate_cap,
                                 "budget_tokens": None
                                 if condition == CONDITION_WHOLE_FILE
                                 else self.budget_tokens,
