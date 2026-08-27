@@ -29,13 +29,13 @@ jobs:
       - name: Django backend tests
         env:
           DJANGO_SETTINGS_MODULE: django_backend.test_settings
-          PYTHONPATH: services/api:services/agents:services/graph
+          PYTHONPATH: .:services/api:services/agents:services/graph
         run: python services/api/manage.py test core.tests -v 2
 
       - name: Python integration tests
         env:
           DJANGO_SETTINGS_MODULE: django_backend.test_settings
-          PYTHONPATH: services/api:services/agents:services/graph
+          PYTHONPATH: .:services/api:services/agents:services/graph
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
       - name: Environment template is complete
@@ -44,7 +44,7 @@ jobs:
       - name: Backend coverage threshold
         env:
           DJANGO_SETTINGS_MODULE: django_backend.test_settings
-          PYTHONPATH: services/api:services/agents:services/graph
+          PYTHONPATH: .:services/api:services/agents:services/graph
         run: |
           coverage run services/api/manage.py test core.tests
           coverage run -a -m unittest discover -s tests -p 'test_*.py'

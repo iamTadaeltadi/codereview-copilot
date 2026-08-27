@@ -11,7 +11,7 @@ fi
 PYTHON_BIN=".venv/bin/python"
 
 export DJANGO_SETTINGS_MODULE=django_backend.test_settings
-export PYTHONPATH="$PWD/services/api:$PWD/services/agents:$PWD/services/graph${PYTHONPATH:+:$PYTHONPATH}"
+export PYTHONPATH="$PWD:$PWD/services/api:$PWD/services/agents:$PWD/services/graph${PYTHONPATH:+:$PYTHONPATH}"
 
 if ! "${PYTHON_BIN}" -c "import coverage" >/dev/null 2>&1; then
   "${PYTHON_BIN}" -m pip install --quiet coverage==7.6.1
