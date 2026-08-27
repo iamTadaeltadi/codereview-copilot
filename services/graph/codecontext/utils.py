@@ -32,7 +32,7 @@ LANGUAGE_MAP = {
 def set_language_for_file(file_extension):
     """Set the parser language based on file extension."""
     if file_extension in LANGUAGE_MAP and LANGUAGE_MAP[file_extension] is not None:
-        parser.set_language(LANGUAGE_MAP[file_extension])
+        parser.language = LANGUAGE_MAP[file_extension]
     else:
         # If language not available, skip parsing
         return False

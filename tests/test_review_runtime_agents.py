@@ -71,7 +71,7 @@ class AgentWrapperTests(unittest.TestCase):
     def test_code_fix_agent_formats_prompt_and_returns_content(self):
         module = load_module(
             "code_fix_agent_module",
-            "agent_runtime/Agents/code_fix_agent.py",
+            "services/agents/Agents/code_fix_agent.py",
             {"Prompts": fake_prompts_module()},
         )
         llm = Mock()
@@ -92,7 +92,7 @@ class AgentWrapperTests(unittest.TestCase):
     def test_code_reviewer_agent_generates_reviews_for_each_issue_tuple(self):
         module = load_module(
             "code_reviewer_agent_module",
-            "agent_runtime/Agents/code_reviewer_agent.py",
+            "services/agents/Agents/code_reviewer_agent.py",
             {"Prompts": fake_prompts_module(), "Utils": base_utils_module()},
         )
         llm = Mock()
@@ -118,7 +118,7 @@ class AgentWrapperTests(unittest.TestCase):
     def test_code_summarizer_agent_summarizes_and_merges_diffs(self):
         module = load_module(
             "code_summarizer_agent_module",
-            "agent_runtime/Agents/code_summarizer_agent.py",
+            "services/agents/Agents/code_summarizer_agent.py",
             {"Prompts": fake_prompts_module()},
         )
         llm = Mock()
@@ -140,17 +140,17 @@ class AgentWrapperTests(unittest.TestCase):
         utils = base_utils_module()
         guardrail_module = load_module(
             "guardrail_agent_module",
-            "agent_runtime/Agents/guardrail_checker_agent.py",
+            "services/agents/Agents/guardrail_checker_agent.py",
             {"Prompts": prompts, "Utils": utils},
         )
         standard_module = load_module(
             "standard_agent_module",
-            "agent_runtime/Agents/standard_checker_agent.py",
+            "services/agents/Agents/standard_checker_agent.py",
             {"Prompts": prompts, "Utils": utils},
         )
         syntax_module = load_module(
             "syntax_agent_module",
-            "agent_runtime/Agents/syntax_checker_agent.py",
+            "services/agents/Agents/syntax_checker_agent.py",
             {"Prompts": prompts, "Utils": utils},
         )
 
@@ -176,7 +176,7 @@ class AgentWrapperTests(unittest.TestCase):
     def test_repo_summarizer_builds_tree_and_parses_summary(self):
         module = load_module(
             "repo_summarizer_module",
-            "agent_runtime/Agents/repo_summarizer_agent.py",
+            "services/agents/Agents/repo_summarizer_agent.py",
             {"Prompts": fake_prompts_module(), "Utils": base_utils_module()},
         )
         llm = Mock()
@@ -198,12 +198,12 @@ class AgentWrapperTests(unittest.TestCase):
         jmespath_module.search = lambda expr, data: ["src/app.py"]
         planner_module = load_module(
             "planner_agent_module",
-            "agent_runtime/Agents/rereview_planner_agent.py",
+            "services/agents/Agents/rereview_planner_agent.py",
             {"Prompts": prompts, "Utils": utils},
         )
         sufficiency_module = load_module(
             "sufficiency_agent_module",
-            "agent_runtime/Agents/sufficiency_checker_agent.py",
+            "services/agents/Agents/sufficiency_checker_agent.py",
             {"Prompts": prompts, "Utils": utils, "jmespath": jmespath_module},
         )
         llm = Mock()
@@ -237,7 +237,7 @@ class AgentWrapperTests(unittest.TestCase):
         jmespath_module.search = fake_search
         module = load_module(
             "instruction_agent_module",
-            "agent_runtime/Agents/rereview_instruction_generator_agent.py",
+            "services/agents/Agents/rereview_instruction_generator_agent.py",
             {"Prompts": prompts, "Utils": utils, "jmespath": jmespath_module},
         )
         llm = Mock()
@@ -259,7 +259,7 @@ class AgentWrapperTests(unittest.TestCase):
     def test_long_term_memory_agent_analyzes_and_updates_preferences(self):
         module = load_module(
             "memory_agent_module",
-            "agent_runtime/Agents/memory_agent.py",
+            "services/agents/Agents/memory_agent.py",
             {"Prompts": fake_prompts_module(), "Utils.LLMHelper": base_utils_module()},
         )
         llm = Mock()
@@ -333,7 +333,7 @@ class DynamicReviewExecutorTests(unittest.TestCase):
 
         module = load_module(
             "dynamic_review_executor_module",
-            "agent_runtime/Agents/dynamic_review_executor_agent.py",
+            "services/agents/Agents/dynamic_review_executor_agent.py",
             {
                 "Agents": agents_pkg,
                 "Agents.syntax_checker_agent": syntax_mod,
@@ -393,7 +393,7 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
 
         summarizer_module = load_module(
             "error_summarizer_module",
-            "agent_runtime/Agents/error_analysis_agent/error_analysis_summarizer.py",
+            "services/agents/Agents/error_analysis_agent/error_analysis_summarizer.py",
             {"Prompts": prompts, "Utils": utils},
         )
 
@@ -423,7 +423,7 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
 
         bug_module = load_module(
             "agent_runtime.Agents.error_analysis_agent.bug_checker",
-            "agent_runtime/Agents/error_analysis_agent/bug_checker.py",
+            "services/agents/Agents/error_analysis_agent/bug_checker.py",
             {
                 "Prompts": prompts,
                 "Utils": utils,
@@ -435,7 +435,7 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
         )
         vuln_module = load_module(
             "agent_runtime.Agents.error_analysis_agent.vulnerability_checker",
-            "agent_runtime/Agents/error_analysis_agent/vulnerability_checker.py",
+            "services/agents/Agents/error_analysis_agent/vulnerability_checker.py",
             {
                 "Prompts": prompts,
                 "Utils": utils,
@@ -522,7 +522,7 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
 
         module = load_module(
             "agent_runtime.Agents.error_analysis_agent.error_checker",
-            "agent_runtime/Agents/error_analysis_agent/error_checker.py",
+            "services/agents/Agents/error_analysis_agent/error_checker.py",
             {
                 "Tools": tools_pkg,
                 "langgraph.graph": graph_module,
@@ -609,7 +609,7 @@ class ErrorAnalysisAgentTests(unittest.TestCase):
 
         module = load_module(
             "agent_runtime.Agents.error_analysis_agent.base",
-            "agent_runtime/Agents/error_analysis_agent/base.py",
+            "services/agents/Agents/error_analysis_agent/base.py",
             {
                 "agent_runtime.Agents.error_analysis_agent": parent_module,
                 "agent_runtime": agent_runtime_pkg,

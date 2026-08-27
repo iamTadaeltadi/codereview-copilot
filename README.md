@@ -45,8 +45,34 @@ This project sits between several known approaches:
 
 The platform combines the last two: graph-grounded context plus multi-agent review orchestration.
 
+## Getting Started
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-dev.txt
+bash scripts/test.sh
+```
+
+`requirements-dev.txt` is the union of the three service manifests and is what
+CI installs, so it is the dependency set that is actually verified.
+
+To run the services, copy `.env.example` to `.env`, fill in the required keys,
+and run `docker compose up`.
+
 ## Verification
 
 - API, agent, graph, and web checks are documented in `TESTING.md`
 - run the full suite with `bash scripts/test.sh`
 - measure backend coverage with `bash scripts/coverage.sh`
+- CI runs the same suites on every push and pull request
+
+## License and Attribution
+
+This project is licensed under the Apache License 2.0 — see `LICENSE`.
+
+The repository graph service (`services/graph/codecontext/`) is **derived from
+RepoGraph** (https://github.com/ozyyshr/RepoGraph, Apache-2.0), described in
+*RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph*,
+arXiv:2410.14684, ICLR 2025. `NOTICE` lists the required attribution and the
+changes made to the upstream code. Work building on this repository should cite
+RepoGraph as prior art.

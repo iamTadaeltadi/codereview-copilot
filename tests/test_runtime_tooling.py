@@ -37,7 +37,7 @@ def ensure_stub_modules():
 def load_tool_organizer_module():
     ensure_stub_modules()
     spec = importlib.util.spec_from_file_location(
-        'tool_organizer_module', ROOT / 'agent_runtime/Utils/ToolOrganizer.py'
+        'tool_organizer_module', ROOT / 'services/agents/Utils/ToolOrganizer.py'
     )
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

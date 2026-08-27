@@ -38,3 +38,5 @@ htmlcov/
 
 # Local compiled artifacts
 *.so
+
+.venv/

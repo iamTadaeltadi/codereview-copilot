@@ -24,6 +24,6 @@ Or run only these suites:
 
 ```bash
 export DJANGO_SETTINGS_MODULE=django_backend.test_settings
-export PYTHONPATH="$PWD/backend:$PWD/agent_runtime:$PWD/graph_analyzer"
+export PYTHONPATH="$PWD/services/api:$PWD/services/agents:$PWD/services/graph"
 python -m unittest discover -s tests -p 'test_*.py' -v
 ```

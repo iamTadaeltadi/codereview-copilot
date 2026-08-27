@@ -40,7 +40,7 @@ def build_graph_module():
     construct_graph_module.CodeGraph = FakeCodeGraph
     return load_module(
         "graph_utils_module",
-        "agent_runtime/Utils/Graph.py",
+        "services/agents/Utils/Graph.py",
         {
             "codecontext": codecontext_package,
             "codecontext.construct_graph": construct_graph_module,
@@ -49,11 +49,11 @@ def build_graph_module():
 
 
 def build_html_report_module():
-    return load_module("html_report_module", "agent_runtime/Utils/HTMLReport.py")
+    return load_module("html_report_module", "services/agents/Utils/HTMLReport.py")
 
 
 def build_markdown_module():
-    return load_module("markdown_report_module", "agent_runtime/Utils/MDReport.py")
+    return load_module("markdown_report_module", "services/agents/Utils/MDReport.py")
 
 
 class FakeNodeView:

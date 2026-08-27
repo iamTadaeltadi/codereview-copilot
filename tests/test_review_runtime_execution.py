@@ -34,7 +34,7 @@ def build_basic_tool_node_module():
     langchain_core_module = types.ModuleType("langchain_core")
     return load_module(
         "basic_tool_node_module",
-        "agent_runtime/Tools/BasicToolNode.py",
+        "services/agents/Tools/BasicToolNode.py",
         {
             "langchain_core": langchain_core_module,
             "langchain_core.messages": messages_module,
@@ -47,7 +47,7 @@ def build_clone_repo_module():
     git_module.Repo = types.SimpleNamespace(clone_from=Mock())
     return load_module(
         "clone_repo_module",
-        "agent_runtime/Utils/CloneRepo.py",
+        "services/agents/Utils/CloneRepo.py",
         {"git": git_module},
     )
 
@@ -64,7 +64,7 @@ def build_repository_module():
     config_module.Config = FakeConfig
     return load_module(
         "Utils.Repository",
-        "agent_runtime/Utils/Repository.py",
+        "services/agents/Utils/Repository.py",
         {"Utils": utils_package, "config": config_module},
     )
 
@@ -76,7 +76,7 @@ def build_memory_module():
     html_report_module.generate_review_report = Mock()
     return load_module(
         "memory_module",
-        "agent_runtime/Memory/memory.py",
+        "services/agents/Memory/memory.py",
         {"Utils": utils_package, "Utils.HTMLReport": html_report_module},
     )
 
@@ -102,7 +102,7 @@ def build_preprocessing_module():
     config_module.Config = FakeConfig
     return load_module(
         "preprocessing_module",
-        "agent_runtime/steps_before_passing_to_an_agent.py",
+        "services/agents/steps_before_passing_to_an_agent.py",
         {
             "Utils": utils_module,
             "codecontext": codecontext_package,
