@@ -343,3 +343,45 @@ class ReviewedRevisionTests(unittest.TestCase):
             with self.subTest(task=task.task_id):
                 suffix = task.task_id.split("@")[-1]
                 self.assertTrue(task.review_commit.startswith(suffix))
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class SupportedSourceTests(unittest.TestCase):
+    def _load(self, path, **kwargs):
+        rows = [instance("i1", comments=[{"path": path, "line": 3, "text": "bug"}])]
+        return load_ccrab(write(rows), **kwargs)
+
+    def test_a_defect_in_a_parsed_language_is_kept(self):
+        for path in ("src/app.py", "web/main.js", "Main.java", "core.c"):
+            with self.subTest(path=path):
+                self.assertEqual(len(self._load(path, supported_source_only=True)), 1)
+
+    def test_a_defect_in_a_document_is_excluded(self):
+        for path in ("docs/guide.rst", "README.md", "notes.txt"):
+            with self.subTest(path=path):
+                self.assertEqual(self._load(path, supported_source_only=True), [])
+
+    def test_a_defect_in_a_config_file_is_excluded(self):
+        for path in (".pre-commit-config.yaml", "ci/build.yml", "script.sh", "run.ps1"):
+            with self.subTest(path=path):
+                self.assertEqual(self._load(path, supported_source_only=True), [])
+
+    def test_a_cython_file_is_excluded_because_the_parser_cannot_read_it(self):
+        self.assertEqual(self._load("fast/inner.pyx", supported_source_only=True), [])
+
+    def test_without_the_filter_those_defects_still_load(self):
+        self.assertEqual(len(self._load("docs/guide.rst")), 1)
+
+    def test_the_summary_reports_how_many_are_in_supported_source(self):
+        rows = [instance("i1", comments=[
+            {"path": "a.py", "line": 1, "text": "code bug"},
+            {"path": "b.rst", "line": 2, "text": "doc note"},
+        ])]
+        s = summarise(load_ccrab(write(rows)))
+        self.assertEqual(s["defects"], 2)
+        self.assertEqual(s["in_supported_source"], 1)
+
+    def test_the_criterion_matches_the_parser_languages(self):
+        from experiments.benchmark import SUPPORTED_LANGUAGES, SUPPORTED_SUFFIXES
+
+        self.assertEqual(SUPPORTED_SUFFIXES, frozenset(SUPPORTED_LANGUAGES.values()))
