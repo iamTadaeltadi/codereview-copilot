@@ -69,6 +69,7 @@ class BenchmarkTask:
     language: str
     base_commit: str
     diff: str
+    head_commit: str = ""
     defects: tuple[GroundTruthDefect, ...] = field(default_factory=tuple)
     problem_statement: str = ""
     metadata: dict = field(default_factory=dict)
@@ -76,6 +77,18 @@ class BenchmarkTask:
     @property
     def defect_count(self) -> int:
         return len(self.defects)
+
+    @property
+    def review_commit(self) -> str:
+        """The commit whose code is under review.
+
+        base_commit is where the branch started; the reviewer never sees that
+        tree. head_commit is the revision the human reviewers actually
+        commented on, and it is what the instance id is named after. Fetching
+        sources at base_commit misses every file the pull request added, which
+        is what produced "no source files fetched" skips in the pilot.
+        """
+        return self.head_commit or self.base_commit
 
 
 def _normalise_language(value: str) -> str:
@@ -180,7 +193,15 @@ def load_ccrab(
                     repo=instance.get("repo") or "",
                     language=language,
                     base_commit=instance.get("base_commit") or "",
-                    diff=instance.get("merged_patch") or "",
+                    head_commit=(instance.get("commit_to_review") or {}).get("head_commit") or "",
+                    # patch_to_review is the change the humans reviewed.
+                    # merged_patch is everything that eventually landed on the
+                    # branch, including work added after the review, so showing
+                    # it would ask the model to find defects in code the
+                    # reviewers never saw. Median 7.5k characters against 9.8k.
+                    diff=(instance.get("commit_to_review") or {}).get("patch_to_review")
+                    or instance.get("merged_patch")
+                    or "",
                     defects=defects,
                     problem_statement=instance.get("problem_statement") or "",
                     metadata=instance.get("metadata") or {},

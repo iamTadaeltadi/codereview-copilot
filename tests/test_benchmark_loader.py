@@ -293,3 +293,53 @@ class ConfirmedDefectTests(unittest.TestCase):
         s = summarise(tasks)
         self.assertEqual(s["defects"], 2)
         self.assertEqual(s["confirmed"], 1)
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class ReviewedRevisionTests(unittest.TestCase):
+    def _row(self, **overrides):
+        row = instance("i1")
+        row["base_commit"] = "b" * 40
+        row["merged_patch"] = "diff --git a/merged.py b/merged.py\n"
+        row["commit_to_review"] = {
+            "head_commit": "h" * 40,
+            "patch_to_review": "diff --git a/reviewed.py b/reviewed.py\n",
+        }
+        row.update(overrides)
+        return row
+
+    def test_the_reviewed_commit_is_the_head_not_the_branch_point(self):
+        task = load_ccrab(write([self._row()]))[0]
+        self.assertEqual(task.head_commit, "h" * 40)
+        self.assertEqual(task.review_commit, "h" * 40)
+        self.assertNotEqual(task.review_commit, task.base_commit)
+
+    def test_the_diff_shown_is_the_patch_that_was_reviewed(self):
+        task = load_ccrab(write([self._row()]))[0]
+        self.assertIn("reviewed.py", task.diff)
+        self.assertNotIn("merged.py", task.diff)
+
+    def test_the_merged_patch_is_used_only_when_there_is_no_reviewed_patch(self):
+        row = self._row()
+        row["commit_to_review"] = {"head_commit": "h" * 40}
+        task = load_ccrab(write([row]))[0]
+        self.assertIn("merged.py", task.diff)
+
+    def test_the_base_commit_is_the_fallback_when_no_head_is_recorded(self):
+        row = self._row()
+        row["commit_to_review"] = {"patch_to_review": "diff --git a/x.py b/x.py\n"}
+        task = load_ccrab(write([row]))[0]
+        self.assertEqual(task.review_commit, "b" * 40)
+
+    def test_real_data_names_its_instances_after_the_reviewed_commit(self):
+        from pathlib import Path
+
+        data = Path(__file__).resolve().parents[1] / "data" / "stage3_testgen_verified.jsonl"
+        if not data.is_file():
+            self.skipTest("benchmark data not vendored")
+        tasks = load_ccrab(str(data))[:25]
+        self.assertTrue(tasks)
+        for task in tasks:
+            with self.subTest(task=task.task_id):
+                suffix = task.task_id.split("@")[-1]
+                self.assertTrue(task.review_commit.startswith(suffix))
