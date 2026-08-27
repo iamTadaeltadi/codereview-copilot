@@ -135,3 +135,33 @@ class LatexTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class ParityReportingTests(unittest.TestCase):
+    """The parity claim covers the arms that compete with each other.
+
+    E is unbudgeted by design and F returns only the entities covering the
+    answer key, so including either reports a spread of 80-99% and says nothing
+    about whether the comparison between B, C, D and G is fair.
+    """
+
+    def test_reference_conditions_are_not_treated_as_competitors(self):
+        from experiments.config import BUDGETED_CONDITIONS, REFERENCE_CONDITIONS
+
+        comparable = [
+            c for c in BUDGETED_CONDITIONS if c not in REFERENCE_CONDITIONS and c != "A"
+        ]
+        self.assertEqual(sorted(comparable), ["B", "C", "D", "G"])
+
+    def test_the_oracle_is_marked_as_a_reference_even_though_it_is_budgeted(self):
+        from experiments.config import BUDGETED_CONDITIONS, REFERENCE_CONDITIONS
+
+        self.assertIn("F", BUDGETED_CONDITIONS)
+        self.assertIn("F", REFERENCE_CONDITIONS)
+
+    def test_the_whole_file_arm_is_a_reference_and_not_budgeted(self):
+        from experiments.config import BUDGETED_CONDITIONS, REFERENCE_CONDITIONS
+
+        self.assertIn("E", REFERENCE_CONDITIONS)
+        self.assertNotIn("E", BUDGETED_CONDITIONS)

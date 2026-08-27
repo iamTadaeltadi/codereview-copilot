@@ -23,7 +23,7 @@ _ROOT = os.path.dirname(_HERE)
 if _ROOT not in sys.path:
     sys.path.insert(0, _ROOT)
 
-from experiments.config import CONDITION_LABELS
+from experiments.config import BUDGETED_CONDITIONS, CONDITION_LABELS, REFERENCE_CONDITIONS
 from experiments.matcher import Outcome
 from experiments.metrics import compare, summarise_condition, table
 
@@ -108,15 +108,31 @@ def main() -> int:
     print(f"defects    : {len(balanced) // max(1, len(conditions))} per condition")
     print()
 
-    print("=== context delivered (budget parity check) ===")
+    print("=== context delivered ===")
     for condition in conditions:
         values = context.get(condition) or [0]
-        print(f"  {condition}: mean {sum(values)//len(values):>6} chars   "
-              f"min {min(values):>6}  max {max(values):>6}   n={len(values)}")
-    nonzero = [sum(v) / len(v) for c, v in context.items() if c != "A" and v]
-    if len(nonzero) > 1:
-        spread = (max(nonzero) - min(nonzero)) / max(nonzero)
-        print(f"  spread between context arms: {spread:.1%}")
+        tag = " (reference, unbudgeted)" if condition in REFERENCE_CONDITIONS else ""
+        print(f"  {condition}: mean {sum(values)//len(values):>7} chars   "
+              f"min {min(values):>6}  max {max(values):>7}   n={len(values)}{tag}")
+    # Parity is a claim about the budgeted arms only. E and F are reference
+    # points and are unbudgeted by design, so including them would report a
+    # spread of ~99% and say nothing about whether the comparison is fair.
+    # F is budgeted but is a ceiling, not a competitor: it returns only the
+    # entities covering the answer key, which is legitimately less than the
+    # budget allows. Parity is a claim about the arms compared to each other.
+    comparable = [
+        c for c in BUDGETED_CONDITIONS
+        if c not in REFERENCE_CONDITIONS and c != "A"
+    ]
+    matched = [
+        sum(context[c]) / len(context[c])
+        for c in comparable
+        if context.get(c) and sum(context[c])
+    ]
+    if len(matched) > 1:
+        spread = (max(matched) - min(matched)) / max(matched)
+        verdict = "parity holds" if spread <= 0.10 else "PARITY BROKEN"
+        print(f"  spread across budgeted arms: {spread:.1%}  <- {verdict}")
     print()
 
     summaries = [
