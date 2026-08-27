@@ -54,23 +54,46 @@ class ModelSpec:
     def model_string(self) -> str:
         return f"{self.provider}::{self.name}"
 
+    @property
+    def family(self) -> str:
+        """Who trained the model, not who serves it.
 
+        Both models are reached through OpenRouter, so the provider is the same
+        gateway for each. What has to differ for the generalisability claim is
+        the family: AACR-Bench reports that model choice significantly changes
+        automated review results, and two OpenRouter endpoints onto the same
+        family would not answer that.
+        """
+        return self.name.split("/")[0] if "/" in self.name else self.provider.lower()
+
+
+# Chosen by measurement, not by reputation. Five candidates were run against
+# three real tasks through the same prompt: anthropic/claude-3.5-haiku and
+# google/gemini-2.0-flash-001 returned finish_reason "error" on every call and
+# were dropped; qwen/qwen-2.5-coder-32b-instruct did the same, which is why the
+# first pilot recorded zero findings everywhere. The two below completed every
+# call, come from different model families, and cost within 10% of each other.
 MODELS = {
     "primary": ModelSpec(
         key="primary",
-        provider="CEREBRAS",
-        name="deepseek-r1-distill-llama-70b",
-        input_cost_per_1k=0.0006,
-        output_cost_per_1k=0.0024,
+        provider="OPENROUTER",
+        name="openai/gpt-4o-mini",
+        input_cost_per_1k=0.00015,
+        output_cost_per_1k=0.0006,
     ),
     "secondary": ModelSpec(
         key="secondary",
         provider="OPENROUTER",
-        name="qwen/qwen-2.5-coder-32b-instruct",
-        input_cost_per_1k=0.0002,
-        output_cost_per_1k=0.0006,
+        name="meta-llama/llama-3.3-70b-instruct",
+        input_cost_per_1k=0.00013,
+        output_cost_per_1k=0.0004,
     ),
 }
+
+# Measured on real tasks rather than assumed: a review averages about 3,500
+# input and 350 output tokens once the diff and the budgeted context are in.
+MEASURED_INPUT_TOKENS = 3500
+MEASURED_OUTPUT_TOKENS = 350
 
 
 @dataclass(frozen=True)
@@ -136,8 +159,8 @@ class CostEstimate:
 
 def estimate_cost(
     matrix: RunMatrix,
-    avg_input_tokens: int = 6000,
-    avg_output_tokens: int = 1200,
+    avg_input_tokens: int = MEASURED_INPUT_TOKENS,
+    avg_output_tokens: int = MEASURED_OUTPUT_TOKENS,
 ) -> CostEstimate:
     total_usd = 0.0
     total_in = 0

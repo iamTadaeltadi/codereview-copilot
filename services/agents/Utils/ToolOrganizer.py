@@ -9,7 +9,7 @@ from langchain.tools import tool
 
 from codecontext.retriever import retrieve_node_context, _find_target_node
 
-from .ContextBudget import ContextBudget, DEFAULT_BUDGET_TOKENS
+from .ContextBudget import ContextBudget, DEFAULT_BUDGET_TOKENS, estimate_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -49,10 +49,33 @@ def _node_entry(graph, node_id, depth=None):
 
 
 def _budgeted(payload, entries, budget_tokens):
-    budget = ContextBudget(max_tokens=budget_tokens)
-    payload["neighbors"] = budget.fill(entries)
-    payload["budget"] = budget.report()
-    return json.dumps(payload)
+    """Fit the *delivered string* inside the budget, not the entries inside it.
+
+    Budgeting the entry list alone is not budget parity: each condition wraps
+    its entries in a different envelope and B's entries carry extra fields, so
+    an identical entry budget still delivered B roughly twice the text of G.
+    That is precisely the confound this study exists to remove, so the cap is
+    applied to the serialised payload the model actually receives, and entries
+    are dropped from the end until the whole string fits.
+    """
+    kept = list(entries)
+    while True:
+        payload["neighbors"] = kept
+        payload["budget"] = {
+            "budget_tokens": budget_tokens,
+            "entries_kept": len(kept),
+            "entries_offered": len(entries),
+        }
+        rendered = json.dumps(payload)
+        used = estimate_tokens(rendered)
+        if used <= budget_tokens or not kept:
+            payload["budget"]["used_tokens"] = used
+            payload["budget"]["entries_rejected"] = len(entries) - len(kept)
+            return json.dumps(payload)
+        # drop proportionally when far over, one at a time when close
+        overshoot = used - budget_tokens
+        step = max(1, int(len(kept) * overshoot / max(used, 1)))
+        kept = kept[: max(0, len(kept) - step)]
 
 
 def build_retrieve_graph_tool(
