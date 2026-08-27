@@ -38,13 +38,16 @@ jobs:
           PYTHONPATH: services/api:services/agents:services/graph
         run: python -m unittest discover -s tests -p 'test_*.py' -v
 
+      - name: Environment template is complete
+        run: python scripts/check_env.py --env-file .env.example || true
+
       - name: Backend coverage threshold
         env:
           DJANGO_SETTINGS_MODULE: django_backend.test_settings
           PYTHONPATH: services/api:services/agents:services/graph
         run: |
-          pip install coverage
           coverage run services/api/manage.py test core.tests
+          coverage run -a -m unittest discover -s tests -p 'test_*.py'
           coverage report
 
   web:

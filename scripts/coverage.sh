@@ -6,7 +6,7 @@ set -e
 
 if [ ! -x ".venv/bin/python" ]; then
   python3 -m venv .venv
-  .venv/bin/pip install --quiet -r services/api/requirements.txt
+  .venv/bin/pip install --quiet -r requirements-dev.txt
 fi
 PYTHON_BIN=".venv/bin/python"
 
