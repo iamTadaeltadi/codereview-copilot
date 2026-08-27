@@ -98,9 +98,7 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         str(graph_cache),
         condition=condition,
         max_depth=max_depth,
-        max_neighbors=matrix.depth_ablation_max_nodes
-        if condition == CONDITION_GRAPH
-        else matrix.default_max_nodes,
+        max_neighbors=matrix.candidate_cap,
         budget_tokens=matrix.budget_tokens,
         seed=matrix.seeds[0],
         oracle_targets=oracle_targets(task) if condition == CONDITION_ORACLE else None,
