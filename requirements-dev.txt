@@ -1,0 +1,25 @@
+# One install path for the whole monorepo.
+#
+#   python3 -m venv .venv
+#   .venv/bin/pip install -r requirements-dev.txt
+#   bash scripts/test.sh
+#
+# services/api/requirements.txt is the deployment manifest for the Django
+# service. services/agents/pyproject.toml and services/graph/pyproject.toml are
+# the per-service Poetry manifests. This file is the union, and it is what CI
+# installs, so it is the one that is actually verified.
+
+-r services/api/requirements.txt
+-r services/graph/requirements.txt
+
+# agent runtime
+langchain==0.3.25
+langchain-core==0.3.58
+langchain-community==0.3.23
+langchain-openai==0.3.11
+langchain-text-splitters==0.3.8
+langgraph>=0.3.18,<0.4
+gitpython>=3.1.44
+json-repair==0.40.0
+typing-inspect==0.9.0
+jmespath>=1.0.1,<2.0.0

@@ -17,9 +17,9 @@ def load_module(module_name: str, relative_path: str):
     return module
 
 
-DiffFormatterModule = load_module("diff_formatter_module", "agent_runtime/Utils/DiffFormatter.py")
-LLMHelperModule = load_module("llm_helper_module", "agent_runtime/Utils/LLMHelper.py")
-StorageModule = load_module("storage_module", "agent_runtime/Utils/Storage.py")
+DiffFormatterModule = load_module("diff_formatter_module", "services/agents/Utils/DiffFormatter.py")
+LLMHelperModule = load_module("llm_helper_module", "services/agents/Utils/LLMHelper.py")
+StorageModule = load_module("storage_module", "services/agents/Utils/Storage.py")
 
 DiffFormatter = DiffFormatterModule.DiffFormatter
 LLMResponseParser = LLMHelperModule.LLMResponseParser

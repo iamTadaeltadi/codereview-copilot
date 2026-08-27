@@ -3,16 +3,12 @@ set -e
 
 if [ ! -x ".venv/bin/python" ]; then
   python3 -m venv .venv
-  .venv/bin/pip install --quiet -r services/api/requirements.txt
+  .venv/bin/pip install --quiet -r requirements-dev.txt
 fi
 PYTHON_BIN=".venv/bin/python"
 
 export DJANGO_SETTINGS_MODULE=django_backend.test_settings
 export PYTHONPATH="$PWD/services/api:$PWD/services/agents:$PWD/services/graph${PYTHONPATH:+:$PYTHONPATH}"
-
-if ! "${PYTHON_BIN}" -c "import json_repair" >/dev/null 2>&1; then
-  "${PYTHON_BIN}" -m pip install --quiet json-repair==0.40.0
-fi
 
 echo "==> Django backend tests"
 "${PYTHON_BIN}" services/api/manage.py test core.tests -v 2

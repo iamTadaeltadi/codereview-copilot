@@ -30,13 +30,15 @@ new file mode 100644
 
 @unittest.skipUnless(_DIFFFORMATTER_AVAILABLE, "agent runtime deps not installed")
 class DiffFormatterTests(unittest.TestCase):
-    def test_parse_and_format_returns_text_summary(self):
+    def test_parse_and_format_returns_one_entry_per_file(self):
         formatter = DiffFormatter(SAMPLE_DIFF)
         output = formatter.parse_and_format()
 
-        self.assertIsInstance(output, str)
-        self.assertIn("foo.py", output)
-        self.assertIn("bar.py", output)
+        self.assertIsInstance(output, list)
+        self.assertEqual([entry["file_path"] for entry in output], ["foo.py", "bar.py"])
+        for entry in output:
+            self.assertIsInstance(entry["content"], str)
+            self.assertIn(entry["file_path"], entry["content"])
 
     def test_parse_and_format_tracks_additions_and_deletions(self):
         formatter = DiffFormatter(SAMPLE_DIFF)

@@ -1,0 +1,30 @@
+CodeReview Copilot
+Copyright 2026 Tadael Shewarega Gebre
+
+This product includes software developed as part of the RepoGraph project.
+
+  RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph
+  https://github.com/ozyyshr/RepoGraph
+  Copyright the RepoGraph authors.
+  Licensed under the Apache License, Version 2.0.
+
+Files under services/graph/codecontext/ are derived from RepoGraph. The
+following changes were made to the upstream code:
+
+  * Language support was extended from Python only to Python, JavaScript,
+    Java, and C, using the per-language tree-sitter distribution packages
+    (tree_sitter_python, tree_sitter_javascript, tree_sitter_java,
+    tree_sitter_c) instead of a single bundled grammar.
+  * Parser language selection was migrated to the tree-sitter >= 0.22 API
+    (assignment to Parser.language) from the removed Parser.set_language().
+  * A retrieval layer (services/graph/codecontext/retriever.py) was added to
+    resolve a "relative_path::type::name" query to a graph node and return its
+    bounded neighbourhood. This module is original to this project.
+  * Graph construction was adapted to be driven by an external caller
+    (services/agents/Utils/Graph.py) rather than by a command-line entry point.
+
+If you use this repository in academic work, please cite RepoGraph as prior
+art in addition to this project:
+
+  Ouyang et al. RepoGraph: Enhancing AI Software Engineering with
+  Repository-level Code Graph. arXiv:2410.14684. ICLR 2025.

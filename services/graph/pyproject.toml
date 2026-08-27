@@ -1,14 +1,18 @@
 [tool.poetry]
 name = "codecontext"
 version = "0.1.0"
-description = "Repository graph construction and retrieval utilities for the AI code review platform."
+description = "Repository graph construction and retrieval utilities for the AI code review platform. Derived from RepoGraph (Apache-2.0); see the repository-root NOTICE."
 authors = ["Tadael Shewarega"]
+license = "Apache-2.0"
 packages = [{ include = "codecontext" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-tree-sitter = "0.21.3"
-tree-sitter-languages = "1.10.2"
+tree-sitter = ">=0.23,<0.27"
+tree-sitter-python = "*"
+tree-sitter-javascript = "*"
+tree-sitter-java = "*"
+tree-sitter-c = "*"
 grep-ast = "0.4.1"
 networkx = "^3.2.1"
 pygments = "2.18.0"
