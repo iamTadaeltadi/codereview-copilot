@@ -148,3 +148,148 @@ class SummaryTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+try:
+    from experiments.benchmark import FUNCTIONAL, load_testgen_verdicts
+except Exception:
+    pass
+
+import zipfile
+
+
+def archive(entries):
+    """entries: {instance_id: [(comment_text, comment_type, success), ...]}"""
+    handle = tempfile.NamedTemporaryFile(suffix=".zip", delete=False)
+    handle.close()
+    with zipfile.ZipFile(handle.name, "w") as zf:
+        for instance_id, results in entries.items():
+            payload = {
+                "instance_id": instance_id,
+                "results": [
+                    {
+                        "comment_index": index,
+                        "comment_text": text,
+                        "comment_type": kind,
+                        "success": success,
+                        "before_passed": False,
+                        "after_passed": success,
+                    }
+                    for index, (text, kind, success) in enumerate(results)
+                ],
+            }
+            zf.writestr(f"testgen_combined/{instance_id}/result.json", json.dumps(payload))
+    return handle.name
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class TestgenVerdictTests(unittest.TestCase):
+    def test_verdicts_are_keyed_by_normalised_comment_text(self):
+        path = archive({"i1": [("  a   bug\nhere ", FUNCTIONAL, True)]})
+        verdicts = load_testgen_verdicts(path)
+        self.assertIn(("i1", "a bug here"), verdicts)
+
+    def test_a_verdict_records_type_and_verification(self):
+        verdicts = load_testgen_verdicts(archive({"i1": [("x", FUNCTIONAL, True)]}))
+        v = verdicts[("i1", "x")]
+        self.assertEqual(v["comment_type"], FUNCTIONAL)
+        self.assertTrue(v["test_verified"])
+
+    def test_a_failed_test_is_not_verified(self):
+        verdicts = load_testgen_verdicts(archive({"i1": [("x", FUNCTIONAL, False)]}))
+        self.assertFalse(verdicts[("i1", "x")]["test_verified"])
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class ConfirmedDefectTests(unittest.TestCase):
+    def _load(self, comments, results, **kwargs):
+        rows = [instance("i1", comments=comments)]
+        return load_ccrab(
+            write(rows),
+            testgen_archive=archive({"i1": results}),
+            **kwargs,
+        )
+
+    def test_a_functional_verified_comment_is_confirmed(self):
+        tasks = self._load(
+            [{"path": "a.py", "line": 1, "text": "real bug"}],
+            [("real bug", FUNCTIONAL, True)],
+            confirmed_only=True,
+        )
+        self.assertEqual(len(tasks), 1)
+        self.assertTrue(tasks[0].defects[0].is_confirmed_defect)
+
+    def test_a_style_comment_is_excluded_even_when_verified(self):
+        self.assertEqual(
+            self._load(
+                [{"path": "a.py", "line": 1, "text": "use snake_case"}],
+                [("use snake_case", "style", True)],
+                confirmed_only=True,
+            ),
+            [],
+        )
+
+    def test_a_documentation_comment_is_excluded(self):
+        self.assertEqual(
+            self._load(
+                [{"path": "a.py", "line": 1, "text": "add a docstring"}],
+                [("add a docstring", "documentation", True)],
+                confirmed_only=True,
+            ),
+            [],
+        )
+
+    def test_a_functional_comment_whose_test_never_verified_is_excluded(self):
+        self.assertEqual(
+            self._load(
+                [{"path": "a.py", "line": 1, "text": "maybe wrong"}],
+                [("maybe wrong", FUNCTIONAL, False)],
+                confirmed_only=True,
+            ),
+            [],
+        )
+
+    def test_a_comment_with_no_testgen_record_is_excluded(self):
+        self.assertEqual(
+            self._load(
+                [{"path": "a.py", "line": 1, "text": "never tested"}],
+                [("something else", FUNCTIONAL, True)],
+                confirmed_only=True,
+            ),
+            [],
+        )
+
+    def test_the_join_survives_whitespace_differences(self):
+        tasks = self._load(
+            [{"path": "a.py", "line": 1, "text": "a  bug\n  here"}],
+            [("a bug here", FUNCTIONAL, True)],
+            confirmed_only=True,
+        )
+        self.assertEqual(len(tasks), 1)
+
+    def test_without_confirmed_only_everything_loads_but_is_labelled(self):
+        tasks = self._load(
+            [
+                {"path": "a.py", "line": 1, "text": "real bug"},
+                {"path": "a.py", "line": 2, "text": "nit"},
+            ],
+            [("real bug", FUNCTIONAL, True), ("nit", "style", True)],
+        )
+        flags = [d.is_confirmed_defect for d in tasks[0].defects]
+        self.assertEqual(flags, [True, False])
+
+    def test_confirmed_only_without_an_archive_is_refused(self):
+        with self.assertRaises(ValueError):
+            load_ccrab(write([instance("i1")]), confirmed_only=True)
+
+    def test_the_summary_reports_the_confirmed_count(self):
+        tasks = self._load(
+            [
+                {"path": "a.py", "line": 1, "text": "real bug"},
+                {"path": "a.py", "line": 2, "text": "nit"},
+            ],
+            [("real bug", FUNCTIONAL, True), ("nit", "style", True)],
+        )
+        s = summarise(tasks)
+        self.assertEqual(s["defects"], 2)
+        self.assertEqual(s["confirmed"], 1)

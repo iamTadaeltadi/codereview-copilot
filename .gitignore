@@ -40,3 +40,7 @@ htmlcov/
 *.so
 
 .venv/
+
+# experiment working directories
+runs/
+.repo-cache/
