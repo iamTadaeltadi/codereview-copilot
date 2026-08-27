@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+"""Read a run directory and print the numbers the paper reports.
+
+    python experiments/analyse.py runs/full-gpt4omini
+    python experiments/analyse.py runs/full-gpt4omini --latex
+
+Only tasks scored under every condition are compared, so a task that failed
+to fetch in one arm cannot inflate another.
+"""
+
+from __future__ import annotations
+
+import argparse
+import collections
+import json
+import os
+import sys
+from pathlib import Path
+
+_HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path[:] = [p for p in sys.path if os.path.abspath(p or os.getcwd()) != _HERE]
+_ROOT = os.path.dirname(_HERE)
+if _ROOT not in sys.path:
+    sys.path.insert(0, _ROOT)
+
+from experiments.config import CONDITION_LABELS
+from experiments.matcher import Outcome
+from experiments.metrics import compare, summarise_condition, table
+
+
+def load(run_dir: Path):
+    outcomes = [Outcome(**json.loads(l)) for l in (run_dir / "outcomes.jsonl").read_text().splitlines() if l.strip()]
+    raw = [json.loads(l) for l in (run_dir / "raw.jsonl").read_text().splitlines() if l.strip()]
+    return outcomes, raw
+
+
+def balance(outcomes, conditions):
+    """Keep only tasks scored under every condition."""
+    seen = collections.defaultdict(set)
+    for outcome in outcomes:
+        seen[outcome.task_id].add(outcome.condition)
+    complete = {task for task, got in seen.items() if set(conditions) <= got}
+    return [o for o in outcomes if o.task_id in complete], complete
+
+
+def usage_by_condition(raw):
+    usage = collections.defaultdict(
+        lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0}
+    )
+    context = collections.defaultdict(list)
+    reported = collections.Counter()
+    parse_failures = collections.Counter()
+    for row in raw:
+        condition = row["condition"]
+        usage[condition]["input_tokens"] += row["usage"]["input_tokens"]
+        usage[condition]["output_tokens"] += row["usage"]["output_tokens"]
+        usage[condition]["cost_usd"] += row["usage"]["cost_usd"]
+        context[condition].append(row["context_chars"])
+        reported[condition] += len(row["findings"])
+        parse_failures[condition] += int(bool(row.get("parse_failed")))
+    return usage, context, reported, parse_failures
+
+
+def latex(summaries, comparisons) -> str:
+    lines = [
+        r"\begin{tabular}{llrrrrr}",
+        r"\toprule",
+        r"& Context & Defects & Recall & 95\% CI & Precision & \$/finding \\",
+        r"\midrule",
+    ]
+    for s in summaries:
+        cost = f"{s.cost_per_true_finding:.4f}" if s.cost_per_true_finding is not None else "--"
+        lines.append(
+            f"{s.condition} & {CONDITION_LABELS.get(s.condition, '')} & {s.defects} & "
+            f"{s.recall:.1%} & [{s.recall_low:.1%}, {s.recall_high:.1%}] & "
+            f"{s.precision:.1%} & {cost} \\\\".replace("%", r"\%")
+        )
+    lines += [r"\bottomrule", r"\end{tabular}", "", r"\begin{tabular}{lrr}", r"\toprule",
+              r"Comparison & Difference & 95\% CI \\", r"\midrule"]
+    for c in comparisons:
+        lines.append(
+            f"{c.treatment} vs {c.baseline} & {c.lift:+.1%} & "
+            f"[{c.lift_low:+.1%}, {c.lift_high:+.1%}] \\\\".replace("%", r"\%")
+        )
+    lines += [r"\bottomrule", r"\end{tabular}"]
+    return "\n".join(lines)
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("run_dir")
+    parser.add_argument("--baseline", default="A")
+    parser.add_argument("--bootstrap", type=int, default=2000)
+    parser.add_argument("--latex", action="store_true")
+    args = parser.parse_args()
+
+    run_dir = Path(args.run_dir)
+    outcomes, raw = load(run_dir)
+    conditions = sorted({o.condition for o in outcomes})
+    balanced, complete = balance(outcomes, conditions)
+
+    usage, context, reported, parse_failures = usage_by_condition(raw)
+
+    print(f"run        : {run_dir}")
+    print(f"conditions : {conditions}")
+    print(f"tasks      : {len(complete)} scored under every condition "
+          f"(of {len({o.task_id for o in outcomes})} seen)")
+    print(f"defects    : {len(balanced) // max(1, len(conditions))} per condition")
+    print()
+
+    print("=== context delivered (budget parity check) ===")
+    for condition in conditions:
+        values = context.get(condition) or [0]
+        print(f"  {condition}: mean {sum(values)//len(values):>6} chars   "
+              f"min {min(values):>6}  max {max(values):>6}   n={len(values)}")
+    nonzero = [sum(v) / len(v) for c, v in context.items() if c != "A" and v]
+    if len(nonzero) > 1:
+        spread = (max(nonzero) - min(nonzero)) / max(nonzero)
+        print(f"  spread between context arms: {spread:.1%}")
+    print()
+
+    summaries = [
+        summarise_condition(c, balanced, usage=usage[c], bootstrap=args.bootstrap)
+        for c in conditions
+    ]
+    print(table(summaries))
+    print()
+
+    print("=== reported findings and parse failures ===")
+    for condition in conditions:
+        print(f"  {condition}: {reported[condition]:>4} findings reported, "
+              f"{parse_failures[condition]} parse failures")
+    print()
+
+    comparisons = []
+    print(f"=== against baseline {args.baseline} ===")
+    for condition in conditions:
+        if condition == args.baseline:
+            continue
+        c = compare(balanced, condition, args.baseline, bootstrap=args.bootstrap)
+        comparisons.append(c)
+        print("  " + c.verdict())
+
+    if "B" in conditions and "D" in conditions:
+        print()
+        print("=== the paper's question: graph against lexical, same budget ===")
+        c = compare(balanced, "B", "D", bootstrap=args.bootstrap)
+        comparisons.append(c)
+        print("  " + c.verdict())
+
+    total = sum(u["cost_usd"] for u in usage.values())
+    print(f"\ntotal cost: ${total:.4f}")
+
+    if args.latex:
+        print("\n" + latex(summaries, comparisons))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
