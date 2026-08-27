@@ -30,24 +30,35 @@ def _find_target_node(graph, node_query: str):
     return None
 
 
-def _bounded_neighbors(graph, node_id, max_nodes: int = 12):
+def _bounded_neighbors(graph, node_id, max_nodes: int = 12, max_depth: int = 2):
+    if max_depth < 1 or max_nodes < 1:
+        return []
+
     visited = {node_id}
-    queue = deque([node_id])
+    queue = deque([(node_id, 0)])
     neighbors = []
     while queue and len(neighbors) < max_nodes:
-        current = queue.popleft()
+        current, depth = queue.popleft()
+        if depth >= max_depth:
+            continue
         for candidate in list(graph.predecessors(current)) + list(graph.successors(current)):
             if candidate in visited:
                 continue
             visited.add(candidate)
-            queue.append(candidate)
-            neighbors.append(candidate)
+            queue.append((candidate, depth + 1))
+            neighbors.append((candidate, depth + 1))
             if len(neighbors) >= max_nodes:
                 break
     return neighbors
 
 
-def retrieve_node_context(graph, graph_path: str, node_query: str, max_neighbors: int = 12) -> dict:
+def retrieve_node_context(
+    graph,
+    graph_path: str,
+    node_query: str,
+    max_neighbors: int = 12,
+    max_depth: int = 2,
+) -> dict:
     if graph is None:
         if not graph_path or not os.path.exists(graph_path):
             raise FileNotFoundError(f"graph file not found: {graph_path}")
@@ -59,13 +70,14 @@ def retrieve_node_context(graph, graph_path: str, node_query: str, max_neighbors
         return {
             "query": node_query,
             "found": False,
+            "max_depth": max_depth,
             "node": None,
             "neighbors": [],
         }
 
     node = graph.nodes[node_id]
     neighbors = []
-    for neighbor_id in _bounded_neighbors(graph, node_id, max_neighbors):
+    for neighbor_id, depth in _bounded_neighbors(graph, node_id, max_neighbors, max_depth):
         neighbor = graph.nodes[neighbor_id]
         neighbors.append(
             {
@@ -73,12 +85,14 @@ def retrieve_node_context(graph, graph_path: str, node_query: str, max_neighbors
                 "name": neighbor.get("name"),
                 "type": neighbor.get("type"),
                 "relative_path": neighbor.get("relative_path"),
+                "depth": depth,
             }
         )
 
     return {
         "query": node_query,
         "found": True,
+        "max_depth": max_depth,
         "node": {
             "id": node_id,
             "name": node.get("name"),
