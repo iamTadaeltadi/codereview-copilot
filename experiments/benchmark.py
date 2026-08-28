@@ -275,6 +275,15 @@ def load_crossfile(path) -> list[BenchmarkTask]:
             # unaffected and a reviewer could reasonably decline to flag it.
             if is_test_path(row.get("caller_path", "")) or is_test_path(row.get("defect_path", "")):
                 continue
+
+            # A diff with one change is free: flag the only change and be right
+            # without knowing why. Measured at 97% for the no-context arm.
+            changed = [
+                l for l in row["diff"].split("\n")
+                if l.startswith("-") and not l.startswith("---")
+            ]
+            if len(changed) < 2:
+                continue
             defect = GroundTruthDefect(
                 defect_id=row["task_id"],
                 path=row["defect_path"],
