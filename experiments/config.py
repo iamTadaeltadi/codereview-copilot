@@ -24,7 +24,7 @@ CONDITION_LABELS = {
     CONDITION_RANDOM: "random nodes, type-matched",
     CONDITION_LEXICAL: "lexical retrieval",
     CONDITION_WHOLE_FILE: "whole file, unbounded",
-    CONDITION_ORACLE: "oracle, the benchmark answer key",
+    CONDITION_ORACLE: "fault-location oracle (NOT an evidence oracle)",
     CONDITION_DENSE: "dense embedding retrieval",
 }
 
