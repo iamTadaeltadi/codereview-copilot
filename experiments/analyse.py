@@ -43,6 +43,25 @@ def balance(outcomes, conditions):
     return [o for o in outcomes if o.task_id in complete], complete
 
 
+def false_positives_by_condition(raw, outcomes):
+    """Findings that matched no ground-truth defect.
+
+    A review reporting 1,018 findings against 218 defects is mostly reporting
+    things the benchmark does not confirm. Some are real defects the benchmark
+    never recorded and some are wrong; the benchmark cannot tell them apart, so
+    this is an upper bound on false positives and precision computed from it is
+    a lower bound.
+    """
+    matched = collections.Counter()
+    for outcome in outcomes:
+        if outcome.hit:
+            matched[outcome.condition] += 1
+    reported = collections.Counter()
+    for row in raw:
+        reported[row["condition"]] += len(row["findings"])
+    return {c: max(0, reported[c] - matched[c]) for c in reported}
+
+
 def usage_by_condition(raw):
     usage = collections.defaultdict(
         lambda: {"input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0}
@@ -135,8 +154,12 @@ def main() -> int:
         print(f"  spread across budgeted arms: {spread:.1%}  <- {verdict}")
     print()
 
+    unmatched = false_positives_by_condition(raw, balanced)
     summaries = [
-        summarise_condition(c, balanced, usage=usage[c], bootstrap=args.bootstrap)
+        summarise_condition(
+            c, balanced, false_positives=unmatched.get(c, 0),
+            usage=usage[c], bootstrap=args.bootstrap,
+        )
         for c in conditions
     ]
     print(table(summaries))
@@ -144,8 +167,11 @@ def main() -> int:
 
     print("=== reported findings and parse failures ===")
     for condition in conditions:
-        print(f"  {condition}: {reported[condition]:>4} findings reported, "
+        print(f"  {condition}: {reported[condition]:>5} findings reported, "
+              f"{unmatched.get(condition, 0):>5} matched no confirmed defect, "
               f"{parse_failures[condition]} parse failures")
+    print("  (precision below is a lower bound: the benchmark confirms only a")
+    print("   subset of real defects, so an unmatched finding may still be right)")
     print()
 
     comparisons = []
