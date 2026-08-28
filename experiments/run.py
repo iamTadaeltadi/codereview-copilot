@@ -30,7 +30,7 @@ for _extra in (_ROOT, os.path.join(_ROOT, "services", "agents"), os.path.join(_R
 from dataclasses import asdict
 from pathlib import Path
 
-from experiments.benchmark import load_ccrab, oracle_targets, summarise
+from experiments.benchmark import load_ccrab, load_crossfile, oracle_targets, summarise
 from experiments.config import (
     CONDITION_GRAPH,
     CONDITION_NONE,
@@ -53,7 +53,7 @@ DEFAULT_ARCHIVE = ROOT / "data" / "testgen_combined.zip"
 NEEDS_GRAPH = {"B", "C", "D", "G"}
 
 
-def graph_cache_get(task, graph_cache, token, sparse):
+def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
     """One graph per task, cached, built sparsely when the link is too slow."""
     import pickle
 
@@ -61,14 +61,15 @@ def graph_cache_get(task, graph_cache, token, sparse):
     cache.mkdir(parents=True, exist_ok=True)
     key = f"{task.repo.replace('/', '__')}@{task.review_commit[:12]}"
     if sparse:
-        key += "-sparse"
+        key += f"-sparse-h{hops}"
     cached = cache / f"{key}.pkl"
     if cached.is_file():
         with cached.open("rb") as handle:
             return pickle.load(handle), None
 
     if sparse:
-        sources = collect_sources(task.repo, task.review_commit, task.diff, token=token)
+        sources = collect_sources(task.repo, task.review_commit, task.diff, token=token,
+                                  max_files=max_files, import_hops=hops)
         if not sources:
             raise RepoError(f"{task.repo}@{task.review_commit[:8]}: no source files fetched")
         graph = graph_from_sources(sources)
@@ -81,7 +82,8 @@ def graph_cache_get(task, graph_cache, token, sparse):
     return graph, info
 
 
-def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True):
+def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True,
+                  hops=1, max_files=60):
     """Return the context payload for one condition, or '' when it has none."""
     if condition == CONDITION_NONE:
         return "", None
@@ -106,7 +108,7 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
     graph = None
     info = None
     if condition in NEEDS_GRAPH or condition == CONDITION_ORACLE:
-        graph, info = graph_cache_get(task, graph_cache, token, sparse)
+        graph, info = graph_cache_get(task, graph_cache, token, sparse, hops, max_files)
 
     tools = build_tools(
         graph,
@@ -154,6 +156,12 @@ def main() -> int:
     parser.add_argument("--tolerance", type=int, default=DEFAULT_LINE_TOLERANCE)
     parser.add_argument("--graph-cache", default=str(ROOT / ".repo-cache"))
     parser.add_argument("--max-diff-chars", type=int, default=40000)
+    parser.add_argument("--crossfile", default=None,
+                        help="run the generated cross-file benchmark instead, "
+                             "where the defect is never in the diff")
+    parser.add_argument("--hops", type=int, default=1,
+                        help="import hops when building the graph; the cross-file "
+                             "benchmark needs the wider neighbourhood its defects live in")
     parser.add_argument("--full-repo", action="store_true",
                         help="download whole repositories instead of the diff's files "
                              "and their imports; needs a fast connection")
@@ -169,12 +177,15 @@ def main() -> int:
     client = client_from_env(env)
     token = env.get("GITHUB_TOKEN", "")
 
-    tasks = load_ccrab(
-        args.data,
-        testgen_archive=args.archive,
-        confirmed_only=True,
-        supported_source_only=True,
-    )
+    if args.crossfile:
+        tasks = load_crossfile(args.crossfile)
+    else:
+        tasks = load_ccrab(
+            args.data,
+            testgen_archive=args.archive,
+            confirmed_only=True,
+            supported_source_only=True,
+        )
     tasks = [t for t in tasks if len(t.diff) <= args.max_diff_chars]
     tasks = sorted(tasks, key=lambda t: t.task_id)[: args.limit]
     print(f"benchmark : {json.dumps(summarise(tasks))}")
@@ -204,6 +215,7 @@ def main() -> int:
                 context, info = build_context(
                     task, condition, matrix, args.graph_cache, token, args.depth,
                     sparse=not args.full_repo,
+                    hops=args.hops, max_files=120 if args.crossfile else 60,
                 )
             except RepoError as error:
                 print(f"  [{index}/{len(tasks)}] {task.task_id} {condition}: SKIP {error}")
