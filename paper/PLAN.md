@@ -82,7 +82,11 @@ Kept, and all of it useful:
 - four retrieval implementations sharing one signature and payload shape
 - the mutation generator with caller-evidence verification
 - the cross-file graph fix (0 → 126 cross-file edges on a real repository)
-- ~3,000 review traces, two model families, frozen in `results/`
+- ~3,000 review traces, two model families, frozen in `results/` — **as a
+  pilot that motivated the controlled experiment, not as headline evidence.**
+  The count is not the contribution; a reviewer cares whether the tasks were
+  valid, and for the review-comment benchmark we now believe they answered a
+  question that was framed wrongly.
 - 450 tests, CI, Apache-2.0, RepoGraph attribution
 
 Discarded:
@@ -121,62 +125,129 @@ Secondary questions:
 
 ### Why this is defensible against the crowded field
 
-| Existing work | Covers | Does not isolate |
+| Existing work | Covers | Does not do |
 |---|---|---|
-| RepoGraph, LARGER | repository graph retrieval | retrieval quality vs structural representation |
-| AACR-Bench | context-level annotation, retriever comparison | same |
+| RepoGraph, LARGER | repository graph retrieval | separate retrieval quality from representation |
+| **GRACE** (arXiv 2509.05980) | **ablates graph fusion against plain concatenation** | per-defect fixed evidence; corrupted structure; code review |
+| AACR-Bench | context-level annotation, retriever comparison | hold evidence constant |
 | CodeFuse-CR-Bench, SWR-Bench | repository-level evaluation | same |
 | c-CRAB | executable ground truth | context at all |
 
-No listed paper holds the evidence constant and varies only its representation.
-That is the gap, and it is narrow enough to be answerable.
+**GRACE is the nearest work and the claim must be written around it.** It
+argues that ordinary retrieval loses structure when snippets are concatenated,
+and ablates its fusion component. So no absolute novelty statement is
+available. What remains is narrower and still defensible:
+
+> Prior work evaluates structure-aware retrieval end-to-end, so improvements
+> cannot be attributed to better evidence selection rather than to the
+> structural representation of that evidence. We hold the evidence set fixed at
+> the level of the individual defect, intervene directly on the correctness and
+> the richness of the dependency metadata, and do so for code review rather
+> than completion.
+
+That sentence survives a reviewer who knows GRACE. "Nobody has isolated
+structure" does not. **One overclaim has already been withdrawn in this
+project; a second would be worse than the first.**
 
 ---
 
 ## 4. The core experiment
 
-For each defect, define the **evidence set** `E` = the minimal set of code
-snippets that prove the change is wrong. Every arm below receives the same
-diff; arms 2–4 receive **the same snippets**, differing only in what is said
-about their relationships.
+Revised after a second review. The v2 design had three confounds of its own,
+two of them large enough to swamp the effect being measured.
 
-| Arm | Receives | Isolates |
+### 4.1 What was wrong with the v2 arms
+
+**The relation label leaked the answer.** The worked example was
+`ec2.py:632 --catches--> _text.py:253 (TypeError)`. The defect *is* that the
+raised type changed from `TypeError`. Writing `catches(TypeError)` into the
+metadata hands the model the explanation. Any gain would measure the leak.
+
+**Shuffling one arm and not the other varied two things.** And ordering is not
+a small effect: GraphDO reports BFS order at **89.43%** against random order at
+**78.36%** on identical graphs — an 11-point swing from serialization alone,
+larger than any structure effect we would be measuring. GraphSOS finds
+performance "fluctuates between high performance and random guessing" when node
+or edge order is shuffled.
+
+**The arms were not token-matched.** Arm 3 carries relation tokens that Arm 2
+does not, so length is confounded with structure.
+
+### 4.2 The revised arms
+
+Every arm receives the same diff. Arms 2–6 receive **the same snippets, in the
+same canonical order, with identical formatting**. Only the metadata block
+differs.
+
+| Arm | Metadata block | Isolates |
 |---|---|---|
-| **1 — diff only** | the change | floor |
-| **2 — content** | diff + `E`, shuffled, no relations stated | value of the code itself |
-| **3 — content + structure** | diff + `E` + correct relations | **the variable under test** |
-| **4 — content + wrong structure** | diff + `E` + permuted relations | **negative control** |
-| **5 — random @ same budget** | diff + unrelated snippets | relevance control |
+| **1 — diff only** | — | floor |
+| **2 — evidence** | placebo of matched length | value of the code alone |
+| **3 — topology** | `B → A` | does connectivity alone help? |
+| **4 — typed** | `B --calls--> A` | does the relation *kind* add anything? |
+| **5 — attributed** | `B --catches(TypeError)--> A` | does the *argument* add anything? |
+| **6 — corrupted** | plausible wrong endpoints, degree-preserving | is structure being used at all? |
+| **7 — random evidence** | unrelated snippets @ same budget | relevance control |
 
-Relations are stated explicitly, for example:
+This decomposition is better science than the binary it replaces: it separates
+**connectivity** from **relation type** from **relation argument**, and only
+arm 5 can leak an answer. If the gain appears at arm 3, it is structure. If it
+appears only at arm 5, it is leakage, and that is now visible rather than
+hidden.
 
-```
-ec2.py:632  --catches-->  _text.py:253 (TypeError)
-```
+**Canonical order:** snippets sorted by file path then line number, identical
+across arms 2–6. The order is randomised *across tasks* so no single
+serialisation is privileged, and the same permutation is used for every arm of
+a given task.
 
-**Token parity is enforced on the serialised payload** across arms 2–4, using
-the existing `ContextBudget`. Arm 4 is padded to match arm 3 exactly.
+**Placebo metadata:** arm 2 receives a block of matched token length carrying
+no relational information, so length is held constant rather than confounded.
 
-### Reading the outcome
+**Corruption must be hard.** Preserve edge count, in/out degree, relation
+types, node types, serialised length and ordering; permute only endpoints, and
+only to other nodes present in the evidence set. `A.foo --calls--> C.baz` where
+`C.baz` is real and plausible — never `A.foo --inherits--> local_var_x`, which
+the model can dismiss as nonsense and thereby teach us nothing.
+
+### 4.3 Manipulation check — non-negotiable
+
+If arm 3 ≈ arm 2, there are two explanations and they are not the same:
+
+1. structure carries no additional value, or
+2. **the serialisation failed to communicate structure at all.**
+
+Before interpreting any null, probe comprehension directly on the same
+serialisation: *"which function catches TypeError?"*, *"what calls X?"*. A
+model that cannot answer those has not been given structure in any meaningful
+sense, and the null says nothing about structure.
+
+**Two encodings** are tested, because the GraphRAG literature shows format
+itself matters: an edge table (`B --calls--> A`) and natural language
+(*"Function B calls function A."*). A result that holds only under one encoding
+is a result about that encoding.
+
+### 4.4 Reading the outcome
 
 | Pattern | Conclusion |
 |---|---|
-| 3 > 2 and 4 < 2 | the model uses structure, and wrong structure misleads it |
-| 3 > 2 and 4 ≈ 2 | structure helps, corruption is ignored |
-| 3 ≈ 2 | **structure adds nothing beyond the code** — a clean negative result |
+| 3 > 2, and 6 < 2 | the model consumes structure; wrong structure actively misleads |
+| 3 ≈ 2 but 5 > 2 | the gain is the relation *argument* — likely leakage, not structure |
+| 3 ≈ 2, comprehension probe passes | **structure adds nothing once the code is present** — a clean negative |
+| 3 ≈ 2, comprehension probe fails | the serialisation is broken; the arm is uninterpretable |
 | 2 ≈ 1 | the evidence set is wrong; fix the dataset before interpreting anything |
 
-**A negative result here is publishable and worth writing.** It would say the
-field's graph machinery earns its keep as a *retriever*, not as a
-*representation* — which is a useful correction.
+Two quantities are reported, not one:
 
-### Separately, and not mixed in
+- benefit of correct structure — `P(correct | E,S) − P(correct | E)`
+- **harm of incorrect structure** — `P(correct | E,S̃) − P(correct | E)`
 
-Retriever comparison — graph vs BM25 vs dense vs random — answers a different
-question: *which method finds `E`?* It is reported in its own section, never
-folded into the structure comparison.
+The second is the more interesting number and nobody reports it.
 
----
+### 4.5 Retrieval comparison, kept separate
+
+Graph vs BM25 vs dense vs random answers *which method finds E*. It is a
+different question, reported in its own section, never folded into the
+structure comparison.
 
 ## 5. The dataset
 
@@ -196,7 +267,40 @@ Target **100–300** instances mined from repository history:
    `base PASS → introducing commit FAIL → fix PASS`.
 4. Annotate each instance with the schema below.
 
-**Annotation schema** — this is itself a contribution:
+**The yield will be poor and the timeline in §6 is optimistic.** Separating a
+genuine regression-introducing commit from one that merely exposed an existing
+bug, from a refactor bundled with a fix, from a dependency-version problem, is
+manual work. Historical environments rot: dependency drift, unavailable
+packages, interpreter incompatibility, flaky tests. **80 clean executable
+regressions is worth more than 300 questionable ones**, and the paper reports
+the funnel honestly.
+
+**Selection bias must be stated, not hidden.** Keeping only regressions with a
+clean static cross-file dependency, a small evidence set, and a working
+historical environment selects for graph-shaped bugs. The defensible claim is
+therefore conditional — *among reproducible regressions with explicit static
+dependencies* — not a population claim about real-world regressions.
+
+**Who decides the evidence set is the next oracle problem.** If we choose `E`
+because it demonstrates the dependency we intended, the structured arm
+describes it perfectly by construction and we have rebuilt the circularity one
+level up. The procedure must therefore be independent of the hypothesis:
+
+- **two annotators**, independently, per instance
+- disagreement adjudicated, **agreement reported**
+- **minimality by ablation**: remove each snippet and check whether a competent
+  reviewer can still establish the defect — the set is minimal when no snippet
+  can be dropped
+- the result is an **annotated evidence set**, not an "oracle". Repository code
+  is not a complete proof: documentation, runtime behaviour, API contracts,
+  schemas and conventions can all carry the invariant. Calling it an oracle
+  would repeat the mistake §1.2 documents.
+
+**Annotation schema.** Useful, and domain-specific in one respect only —
+software engineering has separated fault from failure manifestation for
+decades, so the schema is not a new theory of defects. The part worth claiming
+is narrower: **anchor location versus evidence location in review-benchmark
+construction.**
 
 | Field | Meaning |
 |---|---|
@@ -281,15 +385,32 @@ Release: benchmark, miner, generator, prompts, raw traces, analysis scripts.
 
 ## 7. Statistical discipline
 
-- Unit of independence is the **defect**, not the individual review.
-- Cluster the bootstrap by **repository** as well as task — several benchmarks
-  draw many instances from the same project.
-- **Pre-register the primary comparison** (arm 3 vs arm 2) and report everything
-  else as secondary.
+- Unit of independence is the **defect**, not the individual generated review.
+- **Paired** comparisons across arms — every arm reviews the same defect.
+- Cluster the bootstrap by **repository** as well as task; several benchmarks
+  draw many instances from one project.
+- **Pre-register** the primary comparison — arm 3 vs arm 2 — and the secondary
+  — arm 6 vs arm 2. Everything else is exploratory and labelled as such.
 - Report effect sizes with intervals. Never a bare significance verdict.
 - State the minimum detectable effect for the achieved sample size.
 
----
+### Scoring rubric, fixed before any run
+
+"Exactly right" is not a definition. Each review is scored on four binaries and
+one count, and the primary endpoint is declared in advance:
+
+| | |
+|---|---|
+| `defect_detected` | did it report the defect at all |
+| `fault_localised` | did it name the correct file and line |
+| `mechanism_correct` | did it state *why* the change is wrong |
+| `evidence_cited` | did it reference the depended-upon code |
+| `false_positives` | count of other findings |
+
+**False positives require verification, not assumption.** A finding outside the
+labelled set may be a real defect the annotation missed. Three categories:
+`confirmed_false_positive` (checked and wrong), `unverified_finding`,
+`additional_valid_issue`. Only the first counts against precision.
 
 ## 8. Honest risks
 
@@ -297,7 +418,11 @@ Release: benchmark, miner, generator, prompts, raw traces, analysis scripts.
 |---|---|---|
 | Real regressions are hard to mine at scale | **high** | accept 100; report the yield honestly; mutation set as supplement |
 | Structure turns out not to matter | medium | it is a publishable negative result, and the design is what is being judged |
-| Evidence sets are wrong | **high** | verify by ablation: removing `E` must make the defect unrecognisable |
+| Evidence sets are wrong | **high** | two independent annotators, agreement reported, minimality by per-snippet ablation |
+| Structure arm wins by leakage | **high** | attribute is isolated in its own arm; a gain at arm 5 only is leakage, visible not hidden |
+| Serialisation fails to convey structure | **high** | comprehension probe before interpreting any null; two encodings |
+| Ordering swamps the effect | **high** | canonical order identical across arms, randomised across tasks |
+| A second overclaim | **high** | GRACE cited in the claim sentence itself; no absolute novelty statement |
 | Field moves again before submission | medium | the isolation question is durable; retriever rankings are not |
 
 ---
