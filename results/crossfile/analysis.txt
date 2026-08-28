@@ -1,0 +1,37 @@
+CROSS-FILE BENCHMARK — openai/gpt-4o-mini
+tasks scored under every condition: 166
+The defect is never in the diff's own logic: it is a line that reads
+correctly and is wrong only because of what another file assumes.
+
+cond       n   recall  exactly right  conf. FPs  precision
+----------------------------------------------------------
+A        185     86%            34%        227        41%
+B        185     88%            40%        192        46%
+D        184     88%            41%        185        47%
+F        185     88%            40%        198        45%
+G        185     89%            39%        191        46%
+
+by mutation family (exactly-right rate):
+  family                A      B      D      F      G     n
+  boundary           59%    64%    64%    64%    59%    22
+  default_flip       34%    34%    36%    34%    30%    53
+  empty_to_none      33%    33%    33%    33%    33%     3
+  exception_type     12%    25%    38%    38%    38%     8
+  none_sentinel      34%    50%    48%    47%    50%    32
+  normalisation      60%    60%    60%    60%    60%     5
+  slice_bound         8%    17%    17%    17%    17%    12
+  tuple_order        28%    36%    36%    36%    38%    50
+
+tasks: 167
+
+=== exactly right (found the defect, flagged nothing harmless) vs no context ===
+  B vs A: +7.2%  95% CI [+2.4%, +12.6%]  <- interval excludes zero
+  D vs A: +7.8%  95% CI [+3.0%, +13.2%]  <- interval excludes zero
+  F vs A: +7.2%  95% CI [+3.0%, +11.4%]  <- interval excludes zero
+  G vs A: +6.6%  95% CI [+1.8%, +12.0%]  <- interval excludes zero
+
+=== confirmed false positives per task vs no context ===
+  B vs A: -0.21  95% CI [-0.35, -0.08]  <- interval excludes zero
+  D vs A: -0.25  95% CI [-0.39, -0.13]  <- interval excludes zero
+  F vs A: -0.17  95% CI [-0.29, -0.07]  <- interval excludes zero
+  G vs A: -0.22  95% CI [-0.35, -0.09]  <- interval excludes zero
