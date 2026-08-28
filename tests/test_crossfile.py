@@ -204,3 +204,85 @@ class TestFileExclusionTests(unittest.TestCase):
         for path in ("pkg/latest.py", "pkg/contest.py", "src/protest/a.py", "pkg/handlers.py"):
             with self.subTest(path=path):
                 self.assertFalse(is_test_path(path))
+
+
+NOISY = {
+    "pkg/utils.py": (
+        "import os\n\n\nDEFAULT = dict()\n\n\n"
+        "def find_index(items, target):\n"
+        '    label = "index"\n'
+        "    if items == None:\n"
+        "        return None\n"
+        "    for i, x in enumerate(items):\n"
+        "        if x == target:\n"
+        "            return i\n"
+        "    return None\n"
+    ),
+    "pkg/handlers.py": (
+        "from pkg.utils import find_index\n\n\n"
+        "def lookup(rows, key):\n"
+        "    idx = find_index(rows, key)\n"
+        "    if idx is None:\n"
+        "        raise KeyError(key)\n"
+        "    return rows[idx]\n"
+    ),
+}
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class DistractorTests(unittest.TestCase):
+    """A one-line diff makes the task free: flag the only change and be right.
+
+    Measured at 97% for the no-context arm before distractors existed. Real
+    review diffs carry several changes and most are fine, so the reviewer has
+    to say which one is wrong rather than that something is.
+    """
+
+    def setUp(self):
+        self.defect = find_defects(NOISY)[0]
+        self.diff = build_diff(self.defect)
+
+    def _changed(self):
+        return [
+            l for l in self.diff.split("\n")
+            if l.startswith(("-", "+")) and not l.startswith(("---", "+++"))
+        ]
+
+    def test_the_diff_carries_more_than_one_change(self):
+        self.assertGreater(len(self._changed()) // 2, 1)
+
+    def test_the_defect_is_one_of_several_changes(self):
+        self.assertGreater(len(self.defect.distractors), 0)
+
+    def test_the_defect_line_is_present_in_the_diff(self):
+        self.assertIn(f"+{self.defect.after}", self.diff)
+
+    def test_every_distractor_is_behaviour_preserving(self):
+        for change in self.defect.distractors:
+            with self.subTest(line=change.line):
+                pair = {change.before.strip(), change.after.strip()}
+                harmless = (
+                    {"DEFAULT = dict()", "DEFAULT = {}"},
+                    {'label = "index"', "label = 'index'"},
+                    {"if items == None:", "if items is None:"},
+                )
+                self.assertTrue(any(pair == h for h in harmless), pair)
+
+    def test_no_distractor_is_marked_as_the_defect(self):
+        self.assertTrue(all(not c.is_defect for c in self.defect.distractors))
+
+    def test_distractors_never_touch_the_defect_line(self):
+        for change in self.defect.distractors:
+            self.assertNotEqual(change.line, self.defect.definition_line)
+
+    def test_changes_appear_in_line_order_not_defect_first(self):
+        lines = [c.line for c in self.defect.distractors] + [self.defect.definition_line]
+        rendered = [
+            int(l.split(" -")[1].split(",")[0])
+            for l in self.diff.split("\n") if l.startswith("@@")
+        ]
+        self.assertEqual(rendered, sorted(rendered))
+        self.assertGreater(len(lines), 1)
+
+    def test_the_caller_file_still_never_appears(self):
+        self.assertNotIn(self.defect.caller_path, self.diff)
