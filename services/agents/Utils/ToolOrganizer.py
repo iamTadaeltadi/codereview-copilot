@@ -312,11 +312,22 @@ def build_oracle_context_tool(
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
 ):
-    """Condition F: perfect retrieval, using the benchmark's own answer key.
+    """Condition F: the FAULT-LOCATION oracle.
 
-    This condition cheats on purpose. It exists to establish the ceiling: if the
-    oracle scores X, no retrieval strategy can score above X, and the distance
-    between the best real condition and X is the headroom the paper reports.
+    It returns the graph entities whose line range spans the ground-truth
+    defect line — the class, the function, the variables *at the fault site*.
+
+    That is not an evidence oracle and must not be described as one. A defect on
+    a changed line can still require another file to recognise: the fault is the
+    changed `raise ValueError`, the evidence is the `except TypeError` in a file
+    this condition never returns. Supplying more of the fault site supplies more
+    of what the model could already see, so this condition performing like no
+    context at all says only that enlarging the visible fault site does not help.
+    It says nothing about whether useful repository context exists.
+
+    A real evidence oracle supplies the minimal external code that proves the
+    change is wrong. That is a separate condition and is not implemented here.
+
     Nothing that reads `targets` may ever run in a condition being compared
     honestly.
     """
