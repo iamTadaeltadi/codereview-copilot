@@ -254,6 +254,16 @@ def summarise(tasks) -> dict:
     }
 
 
+def _distractor_lines(diff: str, defect_line: int) -> list[int]:
+    """The changed lines in a generated diff other than the defect's."""
+    import re
+
+    # Each change is its own single-line hunk whose header names the line the
+    # change is actually on.
+    lines = [int(m.group(1)) for m in re.finditer(r"@@ -(\d+),1 ", diff or "")]
+    return sorted({l for l in lines if l != defect_line})
+
+
 def load_crossfile(path) -> list[BenchmarkTask]:
     """Load the generated cross-file benchmark.
 
@@ -308,6 +318,12 @@ def load_crossfile(path) -> list[BenchmarkTask]:
                         "caller_path": row["caller_path"],
                         "caller_line": row["caller_line"],
                         "evidence": row["evidence"],
+                        # Lines the benchmark knows are harmless. Flagging one is a
+                        # confirmed false positive, which no annotated benchmark can
+                        # tell you: there, an unmatched finding may simply have found
+                        # something the annotators missed.
+                        "distractor_lines": row.get("distractor_lines")
+                        or _distractor_lines(row["diff"], int(row["defect_line"])),
                     },
                 )
             )

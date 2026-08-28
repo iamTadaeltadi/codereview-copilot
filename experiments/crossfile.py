@@ -487,6 +487,12 @@ def _find_evidence(caller_text, name, pattern):
 def build_diff(defect: CrossFileDefect) -> str:
     """A unified diff of the defect and its distractors, in line order.
 
+    Each change is its own single-line hunk whose header names the line the
+    change is actually on. An earlier version started the header two lines
+    above and then showed the changed line immediately, so every line number a
+    reviewer could compute from the diff was wrong by two and no reviewer could
+    ever name the defect's line exactly.
+
     The defect is not marked and is not placed first: nothing about its
     position distinguishes it from the harmless changes around it.
     """
@@ -495,14 +501,13 @@ def build_diff(defect: CrossFileDefect) -> str:
     ]
     changes.sort(key=lambda c: c.line)
 
-    header = (
-        f"diff --git a/{defect.definition_path} b/{defect.definition_path}\n"
-        f"--- a/{defect.definition_path}\n"
-        f"+++ b/{defect.definition_path}\n"
-    )
-    body = []
+    body = [
+        f"diff --git a/{defect.definition_path} b/{defect.definition_path}",
+        f"--- a/{defect.definition_path}",
+        f"+++ b/{defect.definition_path}",
+    ]
     for change in changes:
-        body.append(f"@@ -{max(1, change.line - 2)},5 +{max(1, change.line - 2)},5 @@")
+        body.append(f"@@ -{change.line},1 +{change.line},1 @@")
         body.append(f"-{change.before}")
         body.append(f"+{change.after}")
-    return header + "\n".join(body) + "\n"
+    return "\n".join(body) + "\n"
