@@ -156,3 +156,51 @@ class MutationFamilyTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class TestFileExclusionTests(unittest.TestCase):
+    """A defect whose only victim is a test is a weaker defect.
+
+    The production code is unaffected, so a reviewer could reasonably decline
+    to flag it. Requiring a non-test caller keeps every task one where shipping
+    the change actually breaks something that runs.
+    """
+
+    LIB = "def find_index(items, target):\n    for i, x in enumerate(items):\n        if x == target:\n            return i\n    return None\n"
+    USE = "from pkg.utils import find_index\n\n\ndef lookup(rows, key):\n    idx = find_index(rows, key)\n    if idx is None:\n        raise KeyError(key)\n    return rows[idx]\n"
+
+    def test_a_test_file_does_not_count_as_the_depending_caller(self):
+        for caller in ("tests/test_utils.py", "pkg/tests/test_x.py", "pkg/utils_test.py", "conftest.py"):
+            with self.subTest(caller=caller):
+                files = {"pkg/utils.py": self.LIB, caller: self.USE}
+                self.assertEqual(find_defects(files), [])
+
+    def test_a_production_caller_still_counts(self):
+        files = {"pkg/utils.py": self.LIB, "pkg/handlers.py": self.USE}
+        self.assertEqual(len(find_defects(files)), 1)
+
+    def test_a_defect_is_never_placed_in_a_test_file(self):
+        files = {"tests/helpers.py": self.LIB, "pkg/handlers.py": self.USE}
+        self.assertEqual(find_defects(files), [])
+
+    def test_a_production_caller_wins_when_both_exist(self):
+        files = {
+            "pkg/utils.py": self.LIB,
+            "tests/test_utils.py": self.USE,
+            "pkg/handlers.py": self.USE,
+        }
+        found = find_defects(files)
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].caller_path, "pkg/handlers.py")
+
+    def test_the_path_matcher_recognises_common_layouts(self):
+        from experiments.crossfile import is_test_path
+
+        for path in ("tests/a.py", "test/a.py", "pkg/tests/a.py", "test_thing.py",
+                     "pkg/test_thing.py", "thing_test.py", "conftest.py", "testing/a.py"):
+            with self.subTest(path=path):
+                self.assertTrue(is_test_path(path))
+        for path in ("pkg/latest.py", "pkg/contest.py", "src/protest/a.py", "pkg/handlers.py"):
+            with self.subTest(path=path):
+                self.assertFalse(is_test_path(path))

@@ -61,6 +61,21 @@ def _returns(fn):
             yield node
 
 
+TEST_PATH = re.compile(r"(^|/)(tests?|testing)/|(^|/)test_[^/]*$|_test\.py$|conftest\.py$")
+
+
+def is_test_path(path: str) -> bool:
+    """Test files are excluded as the depended-upon caller.
+
+    A test that omits an argument or catches an exception is evidence that the
+    behaviour matters, but a defect whose only victim is a test is a weaker
+    defect: the production code is unaffected, and a reviewer could reasonably
+    decline to flag it. Requiring a non-test caller keeps every task one where
+    shipping the change actually breaks something.
+    """
+    return bool(TEST_PATH.search(path or ""))
+
+
 def _calls_name(source, name):
     return re.search(rf"\b{re.escape(name)}\s*\(", source) is not None
 
@@ -327,6 +342,8 @@ def find_defects(sources, max_per_repo: int = 3):
 
     found = []
     for path, (tree, lines, text) in parsed.items():
+        if is_test_path(path):
+            continue
         for fn in _functions(tree, lines):
             if fn.name.startswith("_") or fn.name in {"__init__", "main"}:
                 continue
@@ -334,7 +351,7 @@ def find_defects(sources, max_per_repo: int = 3):
             callers = [
                 (other, otext)
                 for other, (_, _, otext) in parsed.items()
-                if other != path and _calls_name(otext, fn.name)
+                if other != path and not is_test_path(other) and _calls_name(otext, fn.name)
             ]
             if not callers:
                 continue

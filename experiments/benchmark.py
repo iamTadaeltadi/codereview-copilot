@@ -35,6 +35,7 @@ SUPPORTED_SUFFIXES = frozenset(SUPPORTED_LANGUAGES.values())
 
 SOURCE_CCRAB = "c-crab"
 SOURCE_AACR = "aacr-bench"
+SOURCE_CROSSFILE = "crossfile"
 
 FUNCTIONAL = "functional"
 
@@ -251,3 +252,54 @@ def summarise(tasks) -> dict:
         "languages": dict(sorted(languages.items())),
         "defects_per_task": round(defects / len(tasks), 2) if tasks else 0.0,
     }
+
+
+def load_crossfile(path) -> list[BenchmarkTask]:
+    """Load the generated cross-file benchmark.
+
+    One task per defect. The diff contains only the mutated line; the file that
+    makes the change wrong is never in it. A reviewer can only flag these by
+    retrieving code the diff does not mention, which is what the review-comment
+    benchmarks cannot ask.
+    """
+    tasks = []
+    with Path(path).open(encoding="utf-8") as handle:
+        for raw in handle:
+            raw = raw.strip()
+            if not raw:
+                continue
+            row = json.loads(raw)
+            from experiments.crossfile import is_test_path
+
+            # A defect whose only victim is a test is weaker: production code is
+            # unaffected and a reviewer could reasonably decline to flag it.
+            if is_test_path(row.get("caller_path", "")) or is_test_path(row.get("defect_path", "")):
+                continue
+            defect = GroundTruthDefect(
+                defect_id=row["task_id"],
+                path=row["defect_path"],
+                line=int(row["defect_line"]),
+                text=row["why"],
+                comment_type=FUNCTIONAL,
+                test_verified=True,
+            )
+            tasks.append(
+                BenchmarkTask(
+                    task_id=row["task_id"],
+                    source=SOURCE_CROSSFILE,
+                    repo=row["repo"],
+                    language="python",
+                    base_commit=row["commit"],
+                    head_commit=row["commit"],
+                    diff=row["diff"],
+                    defects=(defect,),
+                    problem_statement=row["why"],
+                    metadata={
+                        "kind": row["kind"],
+                        "caller_path": row["caller_path"],
+                        "caller_line": row["caller_line"],
+                        "evidence": row["evidence"],
+                    },
+                )
+            )
+    return tasks
