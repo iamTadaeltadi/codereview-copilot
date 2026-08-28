@@ -1,0 +1,42 @@
+run        : runs/full-llama
+conditions : ['A', 'B', 'C', 'D', 'F', 'G']
+tasks      : 175 scored under every condition (of 191 seen)
+defects    : 215 per condition
+
+=== context delivered ===
+  A: mean       0 chars   min      0  max       0   n=191
+  B: mean    4843 chars   min    236  max    6309   n=187
+  C: mean    5046 chars   min    220  max    6171   n=188
+  D: mean    4745 chars   min    393  max    6631   n=184
+  F: mean     950 chars   min    241  max    3685   n=189 (reference, unbudgeted)
+  G: mean    4789 chars   min    538  max    6152   n=183
+  spread across budgeted arms: 6.0%  <- parity holds
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+A         175      215    101   47.0%    [40.1%, 54.2%]  100.0%   0.64   0.0012
+B         175      215     99   46.0%    [39.0%, 53.3%]  100.0%   0.63   0.0015
+C         175      215     90   41.9%    [34.7%, 49.1%]  100.0%   0.59   0.0016
+D         175      215     96   44.7%    [37.3%, 51.7%]  100.0%   0.62   0.0015
+F         175      215    103   47.9%    [40.7%, 54.8%]  100.0%   0.65   0.0010
+G         175      215     93   43.3%    [36.1%, 50.5%]  100.0%   0.60   0.0017
+
+=== reported findings and parse failures ===
+  A:  927 findings reported, 0 parse failures
+  B:  658 findings reported, 1 parse failures
+  C:  690 findings reported, 0 parse failures
+  D:  698 findings reported, 0 parse failures
+  F:  754 findings reported, 0 parse failures
+  G:  642 findings reported, 0 parse failures
+
+=== against baseline A ===
+  B vs A: -0.9% (95% CI -6.5% to +4.3%) — not distinguishable at this sample size
+  C vs A: -5.1% (95% CI -11.1% to +0.0%) — not distinguishable at this sample size
+  D vs A: -2.3% (95% CI -7.9% to +3.2%) — not distinguishable at this sample size
+  F vs A: +0.9% (95% CI -3.6% to +5.4%) — not distinguishable at this sample size
+  G vs A: -3.7% (95% CI -8.3% to +0.9%) — not distinguishable at this sample size
+
+=== the paper's question: graph against lexical, same budget ===
+  B vs D: +1.4% (95% CI -4.0% to +6.8%) — not distinguishable at this sample size
+
+total cost: $0.8123
