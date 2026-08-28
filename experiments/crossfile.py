@@ -26,6 +26,16 @@ from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
+class Change:
+    """One line in the diff. Exactly one of them is the defect."""
+
+    line: int
+    before: str
+    after: str
+    is_defect: bool
+
+
+@dataclass(frozen=True)
 class CrossFileDefect:
     defect_id: str
     kind: str
@@ -39,6 +49,7 @@ class CrossFileDefect:
     after: str
     why: str
     evidence: str
+    distractors: tuple = field(default_factory=tuple)
 
     @property
     def path(self) -> str:
@@ -328,6 +339,76 @@ MUTATIONS = {
 }
 
 
+
+# --- distractors -----------------------------------------------------------
+# A diff containing a single changed line makes the task trivial: the reviewer
+# flags the only change and is right by default, which measured 97% for the
+# no-context arm. Real review diffs carry several changes and most are fine, so
+# each task carries harmless edits alongside the defect and the reviewer has to
+# say which one is wrong.
+#
+# Every distractor is a rewrite that cannot change behaviour. They are the kind
+# of tidying that appears in real pull requests and that a reviewer reads past.
+
+def _distract_quote_style(line):
+    match = re.search(r'"([^"\\{}]*)"', line)
+    if match and "'" not in match.group(1):
+        return line[: match.start()] + "'" + match.group(1) + "'" + line[match.end():]
+    return None
+
+
+def _distract_none_comparison(line):
+    if "== None" in line:
+        return line.replace("== None", "is None", 1)
+    if "!= None" in line:
+        return line.replace("!= None", "is not None", 1)
+    return None
+
+
+def _distract_empty_literal(line):
+    for old, new in (("dict()", "{}"), ("list()", "[]"), ("tuple()", "()")):
+        if old in line:
+            return line.replace(old, new, 1)
+    return None
+
+
+def _distract_redundant_parens(line):
+    match = re.search(r"return \((\w+)\)\s*$", line)
+    if match:
+        return line.replace(match.group(0), "return " + match.group(1))
+    return None
+
+
+DISTRACTORS = (
+    _distract_quote_style,
+    _distract_none_comparison,
+    _distract_empty_literal,
+    _distract_redundant_parens,
+)
+
+
+def find_distractors(lines, exclude_line, wanted=3, window=60):
+    """Harmless rewrites on other lines near the defect."""
+    out = []
+    lo = max(0, exclude_line - window)
+    hi = min(len(lines), exclude_line + window)
+    for index in range(lo, hi):
+        lineno = index + 1
+        if lineno == exclude_line:
+            continue
+        original = lines[index]
+        if not original.strip() or original.strip().startswith("#"):
+            continue
+        for rewrite in DISTRACTORS:
+            changed = rewrite(original)
+            if changed and changed != original:
+                out.append(Change(lineno, original, changed, is_defect=False))
+                break
+        if len(out) >= wanted:
+            break
+    return tuple(out)
+
+
 def find_defects(sources, max_per_repo: int = 3):
     """Yield defects where a mutation in one file breaks a demonstrated
     assumption made in another."""
@@ -380,6 +461,7 @@ def find_defects(sources, max_per_repo: int = 3):
                             after=after,
                             why=why,
                             evidence=evidence[1].strip(),
+                            distractors=find_distractors(lines, lineno),
                         )
                     )
                     break
@@ -403,13 +485,24 @@ def _find_evidence(caller_text, name, pattern):
 
 
 def build_diff(defect: CrossFileDefect) -> str:
-    """A unified diff containing only the mutation."""
-    start = max(1, defect.definition_line - 3)
-    return (
+    """A unified diff of the defect and its distractors, in line order.
+
+    The defect is not marked and is not placed first: nothing about its
+    position distinguishes it from the harmless changes around it.
+    """
+    changes = list(defect.distractors) + [
+        Change(defect.definition_line, defect.before, defect.after, is_defect=True)
+    ]
+    changes.sort(key=lambda c: c.line)
+
+    header = (
         f"diff --git a/{defect.definition_path} b/{defect.definition_path}\n"
         f"--- a/{defect.definition_path}\n"
         f"+++ b/{defect.definition_path}\n"
-        f"@@ -{start},7 +{start},7 @@\n"
-        f"-{defect.before}\n"
-        f"+{defect.after}\n"
     )
+    body = []
+    for change in changes:
+        body.append(f"@@ -{max(1, change.line - 2)},5 +{max(1, change.line - 2)},5 @@")
+        body.append(f"-{change.before}")
+        body.append(f"+{change.after}")
+    return header + "\n".join(body) + "\n"
