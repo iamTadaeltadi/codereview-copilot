@@ -89,6 +89,7 @@ def main() -> int:
                     "after": defect.after,
                     "why": defect.why,
                     "evidence": defect.evidence,
+                    "distractor_lines": [c.line for c in defect.distractors],
                 }) + "\n")
             handle.flush()
             total += len(defects)
