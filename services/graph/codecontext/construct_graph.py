@@ -635,7 +635,7 @@ class CodeGraph:
                     continue
 
                 caller_node_key = self._get_func_node_key(tag.rel_fname, caller)
-                callee_node_key = self._get_func_node_key(tag.rel_fname, callee)
+                callee_node_key = self._resolve_callee(G, tag.rel_fname, callee)
 
 
                 # Ensure we have a node for caller
@@ -687,7 +687,7 @@ class CodeGraph:
                     continue
 
                 child_key = self._get_class_node_key(tag.rel_fname, child_cls)
-                parent_key = self._get_class_node_key(tag.rel_fname, parent_cls)
+                parent_key = self._resolve_class(G, tag.rel_fname, parent_cls)
 
                 if not G.has_node(child_key):
                     G.add_node(
@@ -797,6 +797,48 @@ class CodeGraph:
 
     def _get_func_node_key(self, rel_fname, func_name):
         return f"{rel_fname}::function::{func_name}"
+
+    def _resolve_definition(self, G, rel_fname, name, kind):
+        """Find where `name` is actually defined, which is often another file.
+
+        Keys are namespaced by file, so looking a callee up in the caller's own
+        file invents a phantom node whenever the definition lives elsewhere.
+        Every call and every inheritance edge then stays inside one file, and a
+        repository graph with no edges between files cannot supply the
+        cross-file context it exists to supply.
+
+        Resolution order, most specific first: the caller's own file, then the
+        files it imports, then a definition that is unique across the graph.
+        Ambiguous names outside the import set are left unresolved rather than
+        guessed, because a wrong edge is worse than a missing one.
+        """
+        local = f"{rel_fname}::{kind}::{name}"
+        if G.has_node(local):
+            return local
+
+        imported = []
+        if G.has_node(rel_fname):
+            imported = G.nodes[rel_fname].get("metadata", {}).get("dependencies", []) or []
+        for dependency in imported:
+            candidate = f"{dependency}::{kind}::{name}"
+            if G.has_node(candidate):
+                return candidate
+
+        matches = [
+            node
+            for node, data in G.nodes(data=True)
+            if data.get("type") == kind and data.get("name") == name
+        ]
+        if len(matches) == 1:
+            return matches[0]
+
+        return local
+
+    def _resolve_callee(self, G, rel_fname, name):
+        return self._resolve_definition(G, rel_fname, name, "function")
+
+    def _resolve_class(self, G, rel_fname, name):
+        return self._resolve_definition(G, rel_fname, name, "class")
 
     def _get_var_node_key(self, rel_fname, var_name):
         return f"{rel_fname}::var::{var_name}"
