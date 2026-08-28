@@ -182,7 +182,7 @@ differs.
 | Arm | Metadata block | Isolates |
 |---|---|---|
 | **1 — diff only** | — | floor |
-| **2 — evidence** | placebo of matched length | value of the code alone |
+| **2 — evidence** | label-shuffled graph string | value of the code alone |
 | **3 — topology** | `B → A` | does connectivity alone help? |
 | **4 — typed** | `B --calls--> A` | does the relation *kind* add anything? |
 | **5 — attributed** | `B --catches(TypeError)--> A` | does the *argument* add anything? |
@@ -200,8 +200,20 @@ across arms 2–6. The order is randomised *across tasks* so no single
 serialisation is privileged, and the same permutation is used for every arm of
 a given task.
 
-**Placebo metadata:** arm 2 receives a block of matched token length carrying
-no relational information, so length is held constant rather than confounded.
+**The unstructured control must match semantic density, not just length.** A
+block of low-signal filler dilutes attention across the context window, while
+`B --calls--> A` is dense. If arm 3 beat a filler arm, the cause could be
+signal-to-noise rather than topology.
+
+So arm 2 receives the **same graph string with node labels shuffled**: identical
+token count, identical vocabulary, identical edge syntax, identical density —
+and no recoverable topology. Arm 3 versus arm 2 then differs in whether the
+edges point anywhere true, and nothing else.
+
+Arm 6 provides the same guarantee from the other side: same edge count, degree
+distribution, relation types and length, with only the endpoints permuted. Two
+independent density-matched controls, one destroying topology and one falsifying
+it.
 
 **Corruption must be hard.** Preserve edge count, in/out degree, relation
 types, node types, serialised length and ordering; permute only endpoints, and
@@ -221,10 +233,18 @@ serialisation: *"which function catches TypeError?"*, *"what calls X?"*. A
 model that cannot answer those has not been given structure in any meaningful
 sense, and the null says nothing about structure.
 
-**Two encodings** are tested, because the GraphRAG literature shows format
-itself matters: an edge table (`B --calls--> A`) and natural language
-(*"Function B calls function A."*). A result that holds only under one encoding
-is a result about that encoding.
+**Three encodings** are tested, because the GraphRAG literature shows format
+itself matters and because a naive format invites the charge of testing a
+strawman against GRACE's multi-semantic fusion:
+
+| | Form |
+|---|---|
+| flat edge table | `B --calls--> A` |
+| structured tag | `<dependency type="call" target="A.py:42"/>` |
+| natural language | *"Function B calls function A."* |
+
+A result that holds under only one encoding is a result about that encoding,
+and must be reported as such.
 
 ### 4.4 Reading the outcome
 
@@ -243,11 +263,22 @@ Two quantities are reported, not one:
 
 The second is the more interesting number and nobody reports it.
 
-### 4.5 Retrieval comparison, kept separate
+### 4.5 Two stages, framed explicitly
 
-Graph vs BM25 vs dense vs random answers *which method finds E*. It is a
-different question, reported in its own section, never folded into the
-structure comparison.
+Holding the evidence constant removes retrieval as a variable. That is the
+design, not an oversight — structure cannot be isolated while retrieval varies
+— but it does bound what the result can say, and the paper must say so in the
+abstract rather than leave it for a reviewer to notice.
+
+| Stage | Question | Arms |
+|---|---|---|
+| **1 — retrieval** | can the method *find* `E` in the repository at all? | graph vs BM25 vs dense vs random, reported alone |
+| **2 — reasoning** | **given** `E`, does representing its structure help? | arms 1–7, the core experiment |
+
+The paper's claim is therefore explicitly conditional: *assuming the relevant
+evidence has been retrieved, does explicit dependency structure improve
+reasoning over it?* A finding of "no" in stage 2 says nothing about whether
+graphs are useful retrievers, and the two are never combined into one number.
 
 ## 5. The dataset
 
@@ -275,11 +306,17 @@ packages, interpreter incompatibility, flaky tests. **80 clean executable
 regressions is worth more than 300 questionable ones**, and the paper reports
 the funnel honestly.
 
-**Selection bias must be stated, not hidden.** Keeping only regressions with a
-clean static cross-file dependency, a small evidence set, and a working
-historical environment selects for graph-shaped bugs. The defensible claim is
-therefore conditional — *among reproducible regressions with explicit static
-dependencies* — not a population claim about real-world regressions.
+**Selection bias must be stated, and the excluded classes named.** Keeping only
+regressions with a clean static cross-file dependency, a small evidence set and
+a working historical environment selects for graph-shaped bugs. A static call
+graph does not represent dynamic dispatch, event listeners and callbacks,
+dependency injection, framework lifecycle hooks, reflection, database schema
+mismatches, or configuration-driven behaviour — and real cross-file defects
+frequently arrive through exactly those channels.
+
+The defensible claim is therefore conditional: *among reproducible regressions
+whose dependency is statically expressible*. Not a population claim about
+cross-file regressions, and the paper says which mechanisms it cannot speak to.
 
 **Who decides the evidence set is the next oracle problem.** If we choose `E`
 because it demonstrates the dependency we intended, the structured arm
@@ -380,6 +417,48 @@ Release: benchmark, miner, generator, prompts, raw traces, analysis scripts.
 2. Two or three real readers.
 3. Then Sheleme, with the draft in hand, for co-authorship.
 4. arXiv cs.SE only after 2 and 3.
+
+---
+
+## 6b. Two review points examined and rejected
+
+Not everything raised in review survived checking. Recording both, so neither is
+quietly re-adopted.
+
+### Underpowering
+
+A reviewer argued that 100–300 defects across seven arms yields a standard error
+near 4%, that intervals would heavily overlap, and that the null could not be
+rejected.
+
+**This treats the arms as independent samples.** They are paired — every arm
+reviews the same defect — so the test is McNemar's on discordant pairs and the
+standard error depends on the discordance rate, not the marginal proportions.
+Measured on the cross-file run already completed:
+
+| | |
+|---|---|
+| paired n | 167 |
+| discordant pairs | 18 (15 one way, 3 the other) |
+| observed effect | +7.2% |
+| 95% CI | [+2.4%, +12.0%] — excludes zero |
+| implied SE | **2.44%**, not 4% |
+
+The null was rejected at n=167. The same review's own remedy specifies
+McNemar's, which contradicts its power calculation.
+
+**Still adopted from it:** more data is better regardless, and the target
+remains 100–300 with the funnel reported honestly.
+
+### "The study misses GRACE"
+
+GRACE is cited by arXiv number, named as the nearest work, and the novelty
+sentence in §3 is written around it. The observation was made against an earlier
+draft.
+
+**Still adopted from it:** the point that a naive `B --calls--> A` format invites
+the charge of testing a strawman against GRACE's multi-semantic fusion. Hence
+three encodings in §4.3 rather than two.
 
 ---
 
