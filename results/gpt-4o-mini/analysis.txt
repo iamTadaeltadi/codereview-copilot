@@ -15,22 +15,24 @@ defects    : 218 per condition
 
 cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
 --------------------------------------------------------------------------------
-A         175      218     76   34.9%    [28.4%, 41.6%]  100.0%   0.52   0.0015
-B         175      218     77   35.3%    [28.7%, 42.1%]  100.0%   0.52   0.0018
-C         175      218     75   34.4%    [28.0%, 41.2%]  100.0%   0.51   0.0016
-D         175      218     75   34.4%    [27.9%, 40.9%]  100.0%   0.51   0.0016
-E         175      218     78   35.8%    [29.2%, 42.6%]  100.0%   0.53   0.0094
-F         175      218     77   35.3%    [28.9%, 42.1%]  100.0%   0.52   0.0011
-G         175      218     78   35.8%    [29.5%, 42.4%]  100.0%   0.53   0.0016
+A         175      218     76   34.9%    [28.4%, 41.6%]    7.5%   0.12   0.0015
+B         175      218     77   35.3%    [28.7%, 42.1%]    8.0%   0.13   0.0018
+C         175      218     75   34.4%    [28.0%, 41.2%]    8.6%   0.14   0.0016
+D         175      218     75   34.4%    [27.9%, 40.9%]    8.1%   0.13   0.0016
+E         175      218     78   35.8%    [29.2%, 42.6%]    7.6%   0.13   0.0094
+F         175      218     77   35.3%    [28.9%, 42.1%]    8.8%   0.14   0.0011
+G         175      218     78   35.8%    [29.5%, 42.4%]    8.3%   0.13   0.0016
 
 === reported findings and parse failures ===
-  A: 1018 findings reported, 0 parse failures
-  B:  960 findings reported, 0 parse failures
-  C:  872 findings reported, 0 parse failures
-  D:  929 findings reported, 0 parse failures
-  E: 1027 findings reported, 0 parse failures
-  F:  880 findings reported, 0 parse failures
-  G:  944 findings reported, 0 parse failures
+  A:  1018 findings reported,   942 matched no confirmed defect, 0 parse failures
+  B:   960 findings reported,   883 matched no confirmed defect, 0 parse failures
+  C:   872 findings reported,   797 matched no confirmed defect, 0 parse failures
+  D:   929 findings reported,   854 matched no confirmed defect, 0 parse failures
+  E:  1027 findings reported,   949 matched no confirmed defect, 0 parse failures
+  F:   880 findings reported,   803 matched no confirmed defect, 0 parse failures
+  G:   944 findings reported,   866 matched no confirmed defect, 0 parse failures
+  (precision below is a lower bound: the benchmark confirms only a
+   subset of real defects, so an unmatched finding may still be right)
 
 === against baseline A ===
   B vs A: +0.5% (95% CI -3.9% to +4.9%) — not distinguishable at this sample size
