@@ -237,6 +237,55 @@ measurement contradicts a claim, the measurement wins.
 
 ---
 
+## 1.7 Phase B — the measurement §1.1 should have made
+
+The withdrawn claim reasoned from *where comments sit* to *what they need*.
+Those are different, and now both are measured on the same 291 confirmed
+defects.
+
+| | Count | |
+|---|---|---|
+| anchored in a file the pull request changed | 291 | **100%** |
+| anchored on a line the pull request changed | 213 | 98% |
+| **refer to something outside the diff — strict** | **97** | **33%** |
+| refer to something outside the diff — loose | 146 | 50% |
+
+**Anchoring is near-total. Evidence scope is not.** A reviewer attaches the
+note to the changed line because GitHub allows nothing else, then justifies it
+with something the diff does not contain:
+
+> *"`augment()` is called by `augment_squad()` and it passes the device as a
+> str so this won't work as intended."*
+
+That comment sits on a changed line. Its justification does not.
+
+### Why the classification is mechanical
+
+A model-assigned label would inherit exactly the weakness this project has
+criticised in benchmarks whose ground truth is model-generated, and could not
+be checked. Every rule is a regular expression over the comment and a
+membership test against the diff, and each decision records the reason that
+produced it, so a reader can disagree with a specific case and see why.
+
+**Two bounds, not one number.** Strict counts only comments naming a file the
+diff does not contain, linking outside it, or using a phrase such as *"called
+by"*. Loose also counts identifiers absent from the diff, which over-triggers
+on assertion messages — the test suite pins that case as loose-only rather than
+hiding it.
+
+A test caught a bug in the first version: paths were matched against the diff's
+content lines but not its headers, so a comment naming a file the pull request
+*had* changed counted as pointing outside it. The figure moved by one point,
+which is the useful thing to know about it.
+
+### The comparison worth one sentence
+
+AACR-Bench labels **233 of 1,505** issues repository-level — **15%**. Our
+strict figure on c-CRAB is **33%**. Two estimates of the same quantity by
+different means; the gap belongs in the paper as an observation, not a claim.
+
+---
+
 ## 2. What survives
 
 Kept, and all of it useful:
