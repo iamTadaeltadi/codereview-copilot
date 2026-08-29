@@ -72,6 +72,67 @@ SWR-Bench (1,000 verified PRs), c-CRAB, Magistrate.
 
 ---
 
+## 1.5 Two results that arrived after this plan was written
+
+Both blocking items ran. Both changed what the study says.
+
+### The random control removes the relevance reading
+
+Condition C had run on the cross-file benchmark and had never been scored. 176
+tasks under all seven conditions, strict measure:
+
+| | Condition | Context | Exactly right | vs no context |
+|---|---|---|---|---|
+| A | none | 0 | 36% | — |
+| B | graph | 3,603 | 43% | +6.8% [+2.3, +11.4] |
+| **C** | **random** | 3,806 | **46%** | **+9.7% [+4.5, +14.8]** |
+| D | lexical | 4,631 | 44% | +7.4% [+2.8, +12.5] |
+| F | fault-loc oracle | 591 | 43% | +6.8% [+2.8, +11.4] |
+| G | dense | 4,767 | 43% | +6.2% [+1.7, +11.4] |
+| E | whole file | 55,850 | 36% | +0.0% |
+
+**Random context scores highest.** Against random at the same budget: graph
+−2.8% [−5.7, +0.0], lexical −2.3% [−5.1, +0.0], dense −3.4% [−6.8, −0.6] with
+the interval excluding zero.
+
+So the +7 points is real and **is not caused by relevance**. Every strategy
+beats no context; none beats random selection from the same repository; the
+strategy targeting the actual dependency does not beat the one ignoring it.
+
+The effect is not monotonic in volume either, which rules out the simplest
+alternative: 0 chars → 36%, 591 → 43%, 3,806 → 46%, 55,850 → 36%. A moderate
+amount of repository code of any kind helps. None does not. Fifteen times as
+much stops helping.
+
+**This makes §4 the only remaining version of the question.** If relevance is
+undetectable, whether *representing relationships among* relevant evidence
+helps is what is left to ask.
+
+### The agent's zero tool calls were behaviour, not breakage
+
+Same model, same tools, same repository, same diff; one sentence of framing
+varies. 40 paired tasks:
+
+| Arm | Searched at all | Reached the caller | Mean tool calls |
+|---|---|---|---|
+| NEUTRAL — the review prompt | **0 / 40** | 0% | 0.00 |
+| PRIMED — "the defect is in another file" | **40 / 40** | 20% | 2.83 |
+
+`+100% [+100%, +100%]` on searching. Perfect separation.
+
+The tools fire when the model decides they are needed, and on a diff that looks
+locally correct it never decides that. **Two failure stages, and only the second
+is in the literature:** a *retrieval gap* — even primed, it reached the caller
+on 20% of tasks — preceded by a **trigger gap** that prior work cannot observe,
+because SWE-bench and Terminal-Bench agents are handed an issue or a failing
+test. Code review has no such signal.
+
+This is one small model on 40 generated tasks. It is reported as such, and it
+is no longer a candidate for deletion — it is a separate, narrow, supported
+result.
+
+---
+
 ## 2. What survives
 
 Kept, and all of it useful:
@@ -371,8 +432,8 @@ comparison precisely because `E` is known exactly by construction.
 | Rewrite the briefing artifact around the corrected position | |
 | Build a **real evidence oracle**: supply `E`, not the fault site | |
 | Re-run F' on both benchmarks | this is the number v1 should have had |
-| **Run condition C on the cross-file set** | still blocking, still 30¢ |
-| Drop the agent section from the paper | park the harness |
+| ~~Run condition C~~ | ✅ **done** — it removed the relevance reading, §1.5 |
+| ~~Drop the agent section~~ | **kept** — the trigger gap is supported, see §1.5 |
 
 ### Phase B — the evidence annotation (4 days)
 
