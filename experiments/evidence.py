@@ -287,3 +287,34 @@ def metadata_block(evidence: Evidence, arm: str, encoding: str = FLAT, seed: str
     if arm == ARM_CORRUPTED:
         return _serialise(_corrupt(evidence.relations, evidence.snippets, seed), encoding)
     return ""
+
+
+def random_evidence(task, sources, evidence: Evidence, seed: str = "",
+                    radius: int = WINDOW) -> Evidence:
+    """Arm 7: the same number of snippets, none of them the ones that matter.
+
+    Arms 2-6 vary what is *said* about the evidence. This one varies the
+    evidence itself, and it is the control the earlier cross-file run showed to
+    be indispensable: random repository code scored higher there than targeted
+    retrieval, so a study that omits it cannot tell relevance from presence.
+
+    Snippets are drawn from the same files at positions far from the true
+    evidence, so language, style and density match and only the content differs.
+    """
+    rng = random.Random(hashlib.sha1((seed + "random").encode()).hexdigest())
+    avoid = {(s.path, s.start, s.end) for s in evidence.snippets}
+    pool = []
+    for path, text in sorted(sources.items()):
+        lines = text.split("\n")
+        for index, line in enumerate(lines, 1):
+            if not re.match(r"\s*def\s+\w+", line):
+                continue
+            lo, hi, body = window(text, index, radius)
+            if any(p == path and not (hi < a or lo > b) for p, a, b in avoid):
+                continue
+            pool.append(Snippet(path, lo, hi, body, _label(path, index)))
+
+    if len(pool) < len(evidence.snippets):
+        return evidence
+    rng.shuffle(pool)
+    return Evidence(snippets=tuple(pool[: len(evidence.snippets)]), relations=())
