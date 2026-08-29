@@ -1,0 +1,27 @@
+TWO MODEL FAMILIES — tag encoding, identical tasks and arms
+
+arm                 gpt-4o-mini (tag) n=179llama-3.3-70b (tag) n=160
+--------------------------------------------------------------------
+diff only                              37%                     37% 
+scrambled control                      39%                     61% 
+topology                               40%                     62% 
+typed relation                         37%                     65% 
+attributed                             38%                     66% 
+CORRUPTED                              29%                     58% 
+random evidence                        40%                     44% 
+
+=== PRIMARY   correct structure vs control ===
+  gpt-4o-mini (tag)       +1.1%  [-2.8%, +5.0%]  spans zero
+  llama-3.3-70b (tag)     +0.6%  [-3.7%, +5.0%]  spans zero
+
+=== SECONDARY corrupted structure vs control ===
+  gpt-4o-mini (tag)       -9.5%  [-15.1%, -3.9%]  EXCLUDES ZERO
+  llama-3.3-70b (tag)     -3.1%  [-8.1%, +1.9%]  spans zero
+
+=== does the evidence itself help? ===
+  gpt-4o-mini (tag)       +1.1%  [-4.5%, +6.7%]  spans zero
+  llama-3.3-70b (tag)    +24.4%  [+16.9%, +31.9%]  EXCLUDES ZERO
+
+=== does relevance matter? real vs random ===
+  gpt-4o-mini (tag)       -1.1%  [-7.3%, +5.0%]  spans zero
+  llama-3.3-70b (tag)    +16.9%  [+10.6%, +23.7%]  EXCLUDES ZERO
