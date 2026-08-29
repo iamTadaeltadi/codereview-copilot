@@ -44,3 +44,4 @@ htmlcov/
 # experiment working directories
 runs/
 .repo-cache/
+.source-cache/
