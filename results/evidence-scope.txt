@@ -1,0 +1,40 @@
+ANCHOR LOCATION IS NOT EVIDENCE LOCATION
+c-CRAB confirmed defects - functional, and demonstrated by a test that
+failed before the fix and passed after.
+
+  confirmed defects                                291
+  anchored in a file the pull request changed      291   (100%)
+  anchored on a line the pull request changed      213   ( 98%)
+
+  refer to something outside the diff, strict      97   (33%)
+  refer to something outside the diff, loose       146   (50%)
+
+  Strict counts only comments naming a file the diff does not contain,
+  linking to code outside it, or using a phrase such as 'called by'.
+  Loose also counts any identifier absent from the diff, which over-triggers
+  on assertion messages and stack traces. The true figure lies between.
+
+=== strict signals ===
+    51  refers to code elsewhere
+    51  links to code outside the diff
+    50  names a file the diff does not contain
+
+=== examples, strict ===
+
+  utils.py:92
+    @user1: Better to include the original message, which will contain " '.0' is not a valid parameter name". Also, it is weird that p
+    -> refers to code elsewhere: 'Looking at the'
+
+  retriever.py:209
+    @user1: Would this stop MultiModal retriever from using all the document stores? @user2: My understanding is that any document sto
+    -> names a file the diff does not contain: test_retriever.py
+
+  node_provider.py:192
+    @user1: Can we have some rate limit error handling / retrying for the place we call the lambda API? One possible problem that I co
+    -> names a file the diff does not contain: github.com/skypilot-org/skypilot/blob/4e7d7172f2a3c9196315f5
+
+  testing.py:884
+    @user1: As far as I know `shell=True` should be avoided. See https://stackoverflow.com/a/3172488/1791279 Why do you think that `cw
+    -> links to code outside the diff
+
+wrote results/evidence-scope.jsonl (291 rows)
