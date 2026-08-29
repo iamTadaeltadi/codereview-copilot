@@ -1,0 +1,22 @@
+STRUCTURE OR CONTENT — three serialisations, openai/gpt-4o-mini
+Same snippets, same order, same formatting. Only the metadata differs.
+
+arm                     flat (n=84)     tag (n=179)   prose (n=166)
+--------------------------------------------------------------------
+diff only                      42%             37%             36% 
+scrambled control              42%             39%             39% 
+topology                       38%             40%             36% 
+typed relation                 44%             37%             36% 
+attributed                     44%             38%             37% 
+CORRUPTED                      43%             29%             33% 
+random evidence                45%             40%             41% 
+
+=== PRIMARY   correct structure vs control ===
+  flat    -3.6%  [-9.5%, +2.4%]  spans zero
+  tag     +1.1%  [-2.8%, +5.0%]  spans zero
+  prose   -3.0%  [-7.8%, +1.8%]  spans zero
+
+=== SECONDARY corrupted structure vs control ===
+  flat    +1.2%  [-4.8%, +7.1%]  spans zero
+  tag     -9.5%  [-15.1%, -3.9%]  EXCLUDES ZERO
+  prose   -5.4%  [-10.8%, +0.0%]  spans zero
