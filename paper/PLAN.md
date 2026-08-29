@@ -199,8 +199,41 @@ arriving in our own data.
 Random evidence scores highest under all three encodings — 45%, 40%, 41% —
 matching §1.5, where random repository code beat targeted retrieval.
 
-**Running:** the second model family on the tag encoding, since that is where
-the effect appears.
+### The second model family — and a correction to §1.5
+
+160 paired tasks on llama-3.3-70b, tag encoding, identical tasks and arms.
+
+| Comparison | gpt-4o-mini | llama-3.3-70b |
+|---|---|---|
+| **correct structure vs control** | +1.1% [−2.8, +5.0] | +0.6% [−3.7, +5.0] |
+| corrupted vs control | **−9.5%** [−15.1, −3.9] | −3.1% [−8.1, +1.9] |
+| evidence vs diff only | +1.1% [−4.5, +6.7] | **+24.4%** [+16.9, +31.9] |
+| real evidence vs random | −1.1% [−7.3, +5.0] | **+16.9%** [+10.6, +23.7] |
+
+**The primary comparison replicates.** Correct structural metadata does not
+improve defect detection, on either model family, under any of three
+serialisations. That is the result the study was built to produce, and it
+holds.
+
+**§1.5's relevance claim does not replicate, and is withdrawn in that form.**
+The cross-file run reported that which code is retrieved does not matter,
+because random repository code scored highest. On llama the evidence set is
+worth **24.4 points** over the diff alone, and real evidence beats random by
+**16.9**, both intervals excluding zero.
+
+So *"retrieval relevance is undetectable"* was a claim about gpt-4o-mini, not
+about code review. What the two models share is narrower and is what the paper
+carries:
+
+> **Relevant context can matter a great deal. Stating the relationships among
+> that context adds nothing on top of it.**
+
+The corruption effect inverts between them — significant for the model that
+ignores the evidence, absent for the one that uses it. Worth reporting, not yet
+worth explaining.
+
+**Third correction in this project.** The discipline is unchanged: when a
+measurement contradicts a claim, the measurement wins.
 
 ---
 
