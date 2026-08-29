@@ -133,6 +133,62 @@ result.
 
 ---
 
+## 1.6 The core experiment has run — and it answers the question
+
+§4's pre-registered comparison executed on 84 paired tasks, flat encoding,
+`openai/gpt-4o-mini`. Prompt lengths across arms 2–6 measured 4,255–4,264
+characters, so the metadata block is the only material difference.
+
+| Arm | Exactly right |
+|---|---|
+| 1 — diff only (1,145 chars) | 42% |
+| 2 — scrambled control | 42% |
+| **3 — topology** | **38%** |
+| 4 — typed relation | 44% |
+| 5 — attributed | 44% |
+| **6 — corrupted** | **43%** |
+| 7 — random evidence | **45%** |
+
+| Comparison | Effect | 95% CI |
+|---|---|---|
+| **PRIMARY** — topology vs control | −3.6% | [−9.5%, +2.4%] |
+| **SECONDARY** — corrupted vs control | +1.2% | [−4.8%, +7.1%] |
+
+**Both span zero. Stating true relationships does not help; stating false ones
+does not hurt.**
+
+### The manipulation check is what makes this a result rather than a shrug
+
+§4.3 said a null would be uninterpretable without it, and it is why this one is
+interpretable. Asked to read the relation back out of the same serialisation:
+
+| Arm | Read it back correctly |
+|---|---|
+| topology | **13 / 13** |
+| typed | **13 / 13** |
+| attributed | **12 / 12** |
+| corrupted | 12 / 12 — faithfully reports the *wrong* endpoint |
+| scrambled control | 1 / 13 ✓ correctly carries nothing |
+
+**The model parses the dependency metadata perfectly and does not use it.** That
+is a different and stronger claim than "structure did not help", and it is only
+available because the check was built before the result was seen.
+
+### The sequence, now complete
+
+1. **Which** code is retrieved does not matter — random beat targeted (§1.5)
+2. **Whether** the retrieved code is the right code does not matter — scrambled
+   control vs diff only is +0.0% [−9.5%, +9.5%], on 4,264 characters against 1,145
+3. **Whether relationships among it are stated** does not matter — the primary
+4. **Whether those relationships are true** does not matter — the secondary
+5. But the model **can** read them, 50/50 when asked directly
+
+**Limits, stated plainly:** 84 tasks, one model, one encoding, generated
+defects. The tag and prose encodings and a second model family must run before
+this is a result about structure rather than about this serialisation.
+
+---
+
 ## 2. What survives
 
 Kept, and all of it useful:
