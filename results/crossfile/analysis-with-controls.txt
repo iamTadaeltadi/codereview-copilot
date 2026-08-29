@@ -1,0 +1,24 @@
+CROSS-FILE BENCHMARK — all seven conditions, openai/gpt-4o-mini
+tasks scored under every condition: 176
+
+    condition             recall  exactly right  conf.FP
+----------------------------------------------------------
+A   no context              96%            36%      231
+B   graph                   98%            43%      197
+C   RANDOM (control)        99%            46%      190
+D   lexical                 97%            44%      190
+E   whole file              98%            36%      232
+F   fault-loc oracle        98%            43%      200
+G   dense                   99%            43%      194
+
+=== THE CONTROL: is it relevance, or just more text? ===
+  RANDOM (control)   vs no context: +9.7%  [+4.5%, +14.8%] <- excludes zero
+  graph              vs no context: +6.8%  [+2.3%, +11.4%] <- excludes zero
+  lexical            vs no context: +7.4%  [+2.8%, +12.5%] <- excludes zero
+  dense              vs no context: +6.2%  [+1.7%, +11.4%] <- excludes zero
+  fault-loc oracle   vs no context: +6.8%  [+2.8%, +11.4%] <- excludes zero
+
+=== relevant retrieval vs RANDOM at the same budget ===
+  graph              vs random:     -2.8%  [-5.7%, +0.0%]
+  lexical            vs random:     -2.3%  [-5.1%, +0.0%]
+  dense              vs random:     -3.4%  [-6.8%, -0.6%] <- excludes zero
