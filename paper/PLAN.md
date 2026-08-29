@@ -133,59 +133,74 @@ result.
 
 ---
 
-## 1.6 The core experiment has run — and it answers the question
+## 1.6 The core experiment has run, on three serialisations
 
-§4's pre-registered comparison executed on 84 paired tasks, flat encoding,
-`openai/gpt-4o-mini`. Prompt lengths across arms 2–6 measured 4,255–4,264
-characters, so the metadata block is the only material difference.
+§4's pre-registered comparison executed under all three encodings the plan
+required. Same snippets, same canonical order, same formatting; only the
+metadata block differs, and prompt lengths across arms 2–6 sit within nine
+characters of each other.
 
-| Arm | Exactly right |
+| Arm | flat (n=84) | tag (n=179) | prose (n=166) |
+|---|---|---|---|
+| 1 — diff only | 42% | 37% | 36% |
+| 2 — scrambled control | 42% | 39% | 39% |
+| **3 — topology** | 38% | 40% | 36% |
+| 4 — typed | 44% | 37% | 36% |
+| 5 — attributed | 44% | 38% | 37% |
+| **6 — corrupted** | 43% | **29%** | 33% |
+| 7 — random evidence | **45%** | **40%** | **41%** |
+
+### Primary — correct structure against the control
+
+| | Effect | 95% CI | |
+|---|---|---|---|
+| flat | −3.6% | [−9.5, +2.4] | spans zero |
+| tag | +1.1% | [−2.8, +5.0] | spans zero |
+| prose | −3.0% | [−7.8, +1.8] | spans zero |
+
+**Stating the true relationships does not help, under any encoding.**
+
+### Secondary — corrupted structure against the control
+
+| | Effect | 95% CI | |
+|---|---|---|---|
+| flat | +1.2% | [−4.8, +7.1] | spans zero |
+| **tag** | **−9.5%** | **[−15.1, −3.9]** | **excludes zero** |
+| prose | −5.4% | [−10.8, +0.0] | boundary |
+
+**Stating false ones costs 9.5 points under the tag encoding.**
+
+### The asymmetry is the result
+
+A model that ignored the metadata could not be harmed by corrupting it. So it
+is being read — and the manipulation check confirms it directly:
+
+| Arm | Read the relation back correctly |
 |---|---|
-| 1 — diff only (1,145 chars) | 42% |
-| 2 — scrambled control | 42% |
-| **3 — topology** | **38%** |
-| 4 — typed relation | 44% |
-| 5 — attributed | 44% |
-| **6 — corrupted** | **43%** |
-| 7 — random evidence | **45%** |
-
-| Comparison | Effect | 95% CI |
-|---|---|---|
-| **PRIMARY** — topology vs control | −3.6% | [−9.5%, +2.4%] |
-| **SECONDARY** — corrupted vs control | +1.2% | [−4.8%, +7.1%] |
-
-**Both span zero. Stating true relationships does not help; stating false ones
-does not hurt.**
-
-### The manipulation check is what makes this a result rather than a shrug
-
-§4.3 said a null would be uninterpretable without it, and it is why this one is
-interpretable. Asked to read the relation back out of the same serialisation:
-
-| Arm | Read it back correctly |
-|---|---|
-| topology | **13 / 13** |
-| typed | **13 / 13** |
-| attributed | **12 / 12** |
-| corrupted | 12 / 12 — faithfully reports the *wrong* endpoint |
+| topology / typed / attributed | **50 / 50** |
+| corrupted | faithfully reports the *wrong* endpoint |
 | scrambled control | 1 / 13 ✓ correctly carries nothing |
 
-**The model parses the dependency metadata perfectly and does not use it.** That
-is a different and stronger claim than "structure did not help", and it is only
-available because the check was built before the result was seen.
+**The dependency information is parsed, provides no benefit when true, and
+misleads when false.** That is a sharper claim than either "structure helps" or
+"structure is inert", and it is available only because both directions were
+measured.
 
-### The sequence, now complete
+### Why three encodings mattered
 
-1. **Which** code is retrieved does not matter — random beat targeted (§1.5)
-2. **Whether** the retrieved code is the right code does not matter — scrambled
-   control vs diff only is +0.0% [−9.5%, +9.5%], on 4,264 characters against 1,145
-3. **Whether relationships among it are stated** does not matter — the primary
-4. **Whether those relationships are true** does not matter — the secondary
-5. But the model **can** read them, 50/50 when asked directly
+Reported under flat alone the conclusion would have been *structure is inert*.
+Under tag alone, *structure matters and corruption is dangerous*. Both would
+have been claims about the format rather than about structure. GraphSOS and
+GraphDO warned that serialisation carries its own effect; this is that warning
+arriving in our own data.
 
-**Limits, stated plainly:** 84 tasks, one model, one encoding, generated
-defects. The tag and prose encodings and a second model family must run before
-this is a result about structure rather than about this serialisation.
+### And the relevance result replicates
+
+Random evidence scores highest under all three encodings — 45%, 40%, 41% —
+matching §1.5, where random repository code beat targeted retrieval.
+
+**Running:** the second model family on the tag encoding, since that is where
+the effect appears.
 
 ---
 
