@@ -1,0 +1,17 @@
+DOES ANYTHING IN A CODE REVIEW MAKE AN AGENT SEARCH?
+google/gemini-2.5-flash · same tools, same repository, same diff
+
+paired tasks: 40
+
+arm         searched at all   reached the caller   mean tool calls
+--------------------------------------------------------------------
+NEUTRAL                 0%                   0%              0.00
+PRIMED                100%                  20%              2.83
+
+  searched at all      PRIMED - NEUTRAL: +100%  [+100%, +100%] <- excludes zero
+  reached the caller   PRIMED - NEUTRAL: +20%  [+8%, +32%] <- excludes zero
+
+  NEUTRAL made zero searches on 40 of 40 tasks
+  PRIMED searched on 40 of 40 tasks
+
+total cost: $0.0845
