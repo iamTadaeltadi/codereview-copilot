@@ -80,24 +80,50 @@ def window(text: str, line: int, radius: int = WINDOW):
     return lo, hi, "\n".join(lines[lo - 1 : hi])
 
 
-def sources_for(task, token: str = "") -> dict:
-    """Fetch exactly the two files E needs.
+SOURCE_CACHE = ".source-cache"
+
+
+def sources_for(task, token: str = "", cache_dir: str = SOURCE_CACHE) -> dict:
+    """Fetch exactly the two files E needs, and keep them.
 
     Import traversal cannot reach the caller: it walks from the diff's files to
     what *they* import, and the caller imports the definition rather than the
     reverse. The evidence set is known by construction here, so the files are
     fetched by name instead of discovered.
+
+    The cache is not an optimisation. Each encoding and each model family is a
+    separate run over the same tasks, and on a slow link re-fetching the same
+    two files per task turns a twenty-minute run into an overnight one — the
+    first tag-encoding attempt produced nothing in ten minutes. Sources at a
+    fixed commit never change, so caching them costs nothing in validity.
     """
+    import json as _json
+    from pathlib import Path as _Path
+
     from experiments.sparse import fetch_file
 
     meta = task.metadata or {}
+    wanted = [p for p in (task.defects[0].path, meta.get("caller_path", "")) if p]
+
+    cache = _Path(cache_dir)
+    cache.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha1(f"{task.repo}@{task.review_commit}::{'|'.join(wanted)}".encode()).hexdigest()
+    hit = cache / f"{key}.json"
+    if hit.is_file():
+        try:
+            return _json.loads(hit.read_text())
+        except Exception:
+            pass
+
     out = {}
-    for path in (task.defects[0].path, meta.get("caller_path", "")):
-        if not path or path in out:
+    for path in wanted:
+        if path in out:
             continue
         text = fetch_file(task.repo, task.review_commit, path, token=token)
         if text is not None:
             out[path] = text
+    if out:
+        hit.write_text(_json.dumps(out))
     return out
 
 
