@@ -1,0 +1,6 @@
+=== manipulation check across the run ===
+  2-evidence     read the relation back correctly: 1/13
+  3-topology     read the relation back correctly: 13/13
+  4-typed        read the relation back correctly: 13/13
+  5-attributed   read the relation back correctly: 12/12
+  6-corrupted    read the relation back correctly: 12/12
