@@ -1,0 +1,15 @@
+=== CRITICISM 2: is the +9 a response-policy effect? ===
+cond         exactly right  findings/review  confirmed FP/review
+diff only             37%             2.42                 1.29
+graph                 46%             2.09                 1.06
+random                46%             2.07                 1.05
+lexical               46%             2.07                 1.06
+dense                 49%             2.03                 1.00
+
+=== CRITICISM 3: paired table, graph vs random ===
+                  random right  random wrong
+graph right                 76             4
+graph wrong                  5            90
+
+  discordant pairs: 9 of 175 (5%)
+  they disagree on 9 tasks — identical marginals, different behaviour
