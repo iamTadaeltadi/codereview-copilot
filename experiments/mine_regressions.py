@@ -50,6 +50,13 @@ TEST_PATH = re.compile(r"(^|/)(tests?|testing)/|(^|/)test_[^/]*$|_test\.[a-z]+$|
 # prefixes announce work that is not a production regression.
 NOT_A_REGRESSION = re.compile(r"^(test|ci|docs?|chore|style|build|refactor|bump)\b[:(\s]", re.I)
 
+# A typo or a wording change is not a behavioural regression, whatever the
+# subject line says, and blame attributes such lines to whichever commit last
+# touched them — which is noise, not causation.
+COSMETIC = re.compile(
+    r"\b(typo|typos|spelling|grammar|wording|comment|docstring|changelog|"
+    r"formatting|whitespace|lint|rename|readme|documentation)\b", re.I)
+
 
 def is_test(path: str) -> bool:
     return bool(TEST_PATH.search(path or ""))
@@ -94,7 +101,7 @@ def mine(repo_dir, limit=8):
     for sha, subject in entries:
         if not (FIX.search(subject) or REVERT.match(subject)):
             continue
-        if NOT_A_REGRESSION.match(subject):
+        if NOT_A_REGRESSION.match(subject) or COSMETIC.search(subject):
             continue
         if sha in seen_fixes:
             continue
@@ -132,7 +139,7 @@ def mine(repo_dir, limit=8):
                     continue
                 intro_subject = run(["git", "log", "-1", "--pretty=format:%s", intro],
                                     cwd=repo_dir).strip()
-                if NOT_A_REGRESSION.match(intro_subject):
+                if NOT_A_REGRESSION.match(intro_subject) or COSMETIC.search(intro_subject):
                     continue
                 found.append({
                     "fix_sha": sha, "fix_subject": subject,
