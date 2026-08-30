@@ -1,0 +1,18 @@
+RETRIEVAL RE-RUN — function query, depth 3, cross-file ranking
+The comparison that was retracted, with an arm that now retrieves.
+
+paired tasks: 175
+
+condition           recall  exactly right  conf.FP
+----------------------------------------------------
+no context            95%            37%      225
+graph (FIXED)         98%            46%      186
+random                99%            46%      184
+lexical               98%            46%      185
+dense                 98%            49%      175
+
+=== THE QUESTION: does graph retrieval beat random, now that it runs? ===
+  graph vs random          -0.6%  [-4.0%, +2.9%]  spans zero
+  graph vs no context      +9.1%  [+4.0%, +14.9%]  EXCLUDES ZERO
+  lexical vs random        +0.0%  [-2.9%, +2.9%]  spans zero
+  dense vs random          +2.3%  [-0.6%, +5.7%]  spans zero
