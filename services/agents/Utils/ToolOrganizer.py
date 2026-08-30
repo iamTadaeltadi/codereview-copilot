@@ -84,6 +84,7 @@ def build_retrieve_graph_tool(
     max_depth: int = DEFAULT_MAX_DEPTH,
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+    prefer_cross_file: bool = False,
 ):
     @tool
     def retrieve_graph(node: str) -> str:
@@ -96,7 +97,8 @@ def build_retrieve_graph_tool(
         logger.debug("Retrieving graph context for %s", node)
         graph_path = os.path.join(graph_folder_path, "graph.pkl")
         payload = retrieve_node_context(
-            graph, graph_path, node, max_neighbors=max_neighbors, max_depth=max_depth
+            graph, graph_path, node, max_neighbors=max_neighbors, max_depth=max_depth,
+            prefer_cross_file=prefer_cross_file,
         )
         neighbors = payload.pop("neighbors", [])
         payload["condition"] = CONDITION_GRAPH
@@ -381,6 +383,7 @@ def build_tools(
     seed: int = 0,
     embed_fn=None,
     oracle_targets=None,
+    prefer_cross_file: bool = False,
 ):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}, expected one of {CONDITIONS}")
@@ -438,6 +441,7 @@ def build_tools(
             max_depth=max_depth,
             max_neighbors=max_neighbors,
             budget_tokens=budget_tokens,
+            prefer_cross_file=prefer_cross_file,
         )
     ]
 
