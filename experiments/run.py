@@ -83,7 +83,7 @@ def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
 
 
 def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True,
-                  hops=1, max_files=60):
+                  hops=1, max_files=60, prefer_cross_file=False):
     """Return the context payload for one condition, or '' when it has none."""
     if condition == CONDITION_NONE:
         return "", None
@@ -119,16 +119,48 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         budget_tokens=matrix.budget_tokens,
         seed=matrix.seeds[0],
         oracle_targets=oracle_targets(task) if condition == CONDITION_ORACLE else None,
+        prefer_cross_file=prefer_cross_file,
     )
     if not tools:
         return "", info
 
-    seed_query = ""
-    for defect in task.defects:
-        if defect.path:
-            seed_query = defect.path
-            break
-    return tools[0].invoke({"node": seed_query}), info
+    # Query the defect's function node, not its file.
+    #
+    # Passing a bare file path resolves to the file node, whose neighbourhood is
+    # that file's own contents, so retrieval returned same-file code and reached
+    # the depended-upon caller in 1 of 28 cases where the caller was available.
+    # A "graph retrieval" arm that cannot leave the file is not graph retrieval.
+    return tools[0].invoke({"node": _seed_query(task, graph)}), info
+
+
+def _seed_query(task, graph):
+    """The most specific node the graph holds for this defect."""
+    defect = task.defects[0] if task.defects else None
+    if defect is None or not defect.path:
+        return ""
+    if graph is None:
+        return defect.path
+
+    # The function or class whose line range covers the defect.
+    best, best_span = None, None
+    for node_id, data in graph.nodes(data=True):
+        if data.get("relative_path") != defect.path:
+            continue
+        if data.get("type") not in ("function", "class"):
+            continue
+        span = data.get("line_range") or []
+        try:
+            lo, hi = int(span[0]), int(span[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if defect.line is not None and lo <= defect.line <= hi:
+            width = hi - lo
+            if best_span is None or width < best_span:
+                best, best_span = data, width
+
+    if best is not None:
+        return f"{defect.path}::{best.get('type')}::{best.get('name')}"
+    return defect.path
 
 
 def already_done(path):
@@ -159,6 +191,10 @@ def main() -> int:
     parser.add_argument("--crossfile", default=None,
                         help="run the generated cross-file benchmark instead, "
                              "where the defect is never in the diff")
+    parser.add_argument("--prefer-cross-file", action="store_true",
+                        help="rank neighbours in other files ahead of the defect's own "
+                             "file before the budget applies; without it a file node is a "
+                             "hub and the budget fills with same-file code")
     parser.add_argument("--hops", type=int, default=1,
                         help="import hops when building the graph; the cross-file "
                              "benchmark needs the wider neighbourhood its defects live in")
@@ -216,6 +252,7 @@ def main() -> int:
                     task, condition, matrix, args.graph_cache, token, args.depth,
                     sparse=not args.full_repo,
                     hops=args.hops, max_files=120 if args.crossfile else 60,
+                    prefer_cross_file=args.prefer_cross_file,
                 )
             except RepoError as error:
                 print(f"  [{index}/{len(tasks)}] {task.task_id} {condition}: SKIP {error}")

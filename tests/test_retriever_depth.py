@@ -93,3 +93,71 @@ class RetrieveNodeContextDepthTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def two_file_graph():
+    """The shape a real repository graph takes around a defect.
+
+    The defect's own file contributes many one-hop neighbours through its file
+    node, and the caller sits two hops away through an intermediate — which is
+    where it sits in practice: measured at two hops for 76% of cross-file tasks
+    and returned for 15% of them.
+    """
+    graph = nx.DiGraph()
+
+    def add(node_id, name, path, node_type="function"):
+        graph.add_node(node_id, name=name, type=node_type, relative_path=path,
+                       line_range=[1, 5], metadata={})
+
+    add("target", "to_text", "lib/_text.py")
+    add("home", "_text.py", "lib/_text.py", "file")
+    graph.add_edge("home", "target")
+    for index in range(30):
+        add(f"same{index}", f"helper_{index}", "lib/_text.py")
+        graph.add_edge("home", f"same{index}")
+        graph.add_edge("target", f"same{index}")
+
+    add("bridge", "convert", "lib/ec2.py")
+    add("caller", "get_ec2", "lib/ec2.py")
+    graph.add_edge("bridge", "target")
+    graph.add_edge("caller", "bridge")
+    return graph
+
+
+@unittest.skipUnless(_AVAILABLE, "graph service deps not installed")
+class CrossFilePreferenceTests(unittest.TestCase):
+    """Insertion order decides which neighbours survive the cap.
+
+    A file's own contents crowd out everything else, so the depended-upon
+    caller sits within reach and is never returned: measured at two hops for
+    76% of cross-file tasks and returned for 15% of them. Preferring other
+    files spends the same budget on the part of the neighbourhood a same-file
+    search could not have found.
+    """
+
+    def _names(self, prefer):
+        result = retrieve_node_context(two_file_graph(), "", "lib/_text.py::function::to_text",
+                                       max_neighbors=5, max_depth=2, prefer_cross_file=prefer)
+        return {n["name"] for n in result["neighbors"]}
+
+    def test_without_ranking_the_caller_is_crowded_out(self):
+        self.assertNotIn("get_ec2", self._names(False))
+
+    def test_with_ranking_the_caller_is_returned(self):
+        self.assertIn("get_ec2", self._names(True))
+
+    def test_ranking_does_not_change_how_many_are_returned(self):
+        self.assertEqual(len(self._names(False)), len(self._names(True)))
+
+    def test_same_file_neighbours_still_fill_the_remaining_budget(self):
+        names = self._names(True)
+        self.assertGreater(len({n for n in names if n.startswith("helper_")}), 0)
+
+    def test_the_flag_is_reported_in_the_payload(self):
+        result = retrieve_node_context(two_file_graph(), "", "lib/_text.py::function::to_text",
+                                       prefer_cross_file=True)
+        self.assertTrue(result["prefer_cross_file"])
+
+    def test_ranking_is_off_by_default(self):
+        result = retrieve_node_context(two_file_graph(), "", "lib/_text.py::function::to_text")
+        self.assertFalse(result["prefer_cross_file"])

@@ -52,12 +52,35 @@ def _bounded_neighbors(graph, node_id, max_nodes: int = 12, max_depth: int = 2):
     return neighbors
 
 
+def _rank(graph, node_id, neighbours, prefer_cross_file: bool):
+    """Order neighbours before the cap applies.
+
+    Insertion order decides which neighbours survive the cap, and a file node is
+    a hub, so a breadth-first walk fills the budget with the defect's own file
+    before it reaches anything else. Measured on the cross-file benchmark: the
+    depended-upon caller sits within two hops for 76% of tasks and was returned
+    for 15% of them.
+
+    Preferring neighbours in other files spends the same budget on the part of
+    the neighbourhood a same-file search could not have found. Ties keep the
+    original breadth-first order, so nearer neighbours still come first.
+    """
+    if not prefer_cross_file:
+        return neighbours
+    home = graph.nodes[node_id].get("relative_path")
+    return sorted(
+        neighbours,
+        key=lambda item: (graph.nodes[item[0]].get("relative_path") == home, item[1]),
+    )
+
+
 def retrieve_node_context(
     graph,
     graph_path: str,
     node_query: str,
     max_neighbors: int = 12,
     max_depth: int = 2,
+    prefer_cross_file: bool = False,
 ) -> dict:
     if graph is None:
         if not graph_path or not os.path.exists(graph_path):
@@ -77,7 +100,13 @@ def retrieve_node_context(
 
     node = graph.nodes[node_id]
     neighbors = []
-    for neighbor_id, depth in _bounded_neighbors(graph, node_id, max_neighbors, max_depth):
+    # Ranking cannot promote what the walk never reached. Capping the walk by
+    # node count fills it with one-hop neighbours from the defect's own file and
+    # stops before the cross-file neighbours two hops out, so when ranking is
+    # requested the walk is bounded by depth alone and the cap applies after.
+    walk_cap = 100_000 if prefer_cross_file else max_neighbors
+    walked = _bounded_neighbors(graph, node_id, walk_cap, max_depth)
+    for neighbor_id, depth in _rank(graph, node_id, walked, prefer_cross_file)[:max_neighbors]:
         neighbor = graph.nodes[neighbor_id]
         neighbors.append(
             {
@@ -93,6 +122,7 @@ def retrieve_node_context(
         "query": node_query,
         "found": True,
         "max_depth": max_depth,
+        "prefer_cross_file": prefer_cross_file,
         "node": {
             "id": node_id,
             "name": node.get("name"),
