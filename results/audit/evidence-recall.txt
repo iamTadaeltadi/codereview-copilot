@@ -1,0 +1,7 @@
+EVIDENCE RECALL — did the retriever return the file the defect depends on?
+measured on 36 tasks where that file is in the pool
+
+  graph      22/36    61%
+  random     30/36    83%
+  lexical    32/36    89%
+  dense      28/36    78%
