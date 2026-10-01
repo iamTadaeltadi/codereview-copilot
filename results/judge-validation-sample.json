@@ -1,0 +1,362 @@
+[
+ {
+  "i": 0,
+  "task_id": "xf::conan-io__conan::conan/internal/api/detect/detect_api.py::default_msvc_runtime::tuple_order::286",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return values are swapped; it should return 'dynamic' first and then 'v143'.",
+  "judge": true
+ },
+ {
+  "i": 1,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'symlinked_folders' and 'file_dict' is reversed; this may lead to incorrect usage of the return values in the calling code.",
+  "judge": true
+ },
+ {
+  "i": 2,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return statement is incorrectly formatted; it has an extra parenthesis that will cause a syntax error.",
+  "judge": false
+ },
+ {
+  "i": 3,
+  "task_id": "xf::dmlc__dgl::python/dgl/graphbolt/internal/utils.py::read_edges::tuple_order::168",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "Syntax error: unmatched parentheses in the return statement.",
+  "judge": false
+ },
+ {
+  "i": 4,
+  "task_id": "xf::ansible__ansible::lib/ansible/utils/color.py::stringc::default_flip::72",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "why": "the default for `wrap_nonvisible_chars` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter",
+  "message": "The default value of 'wrap_nonvisible_chars' is changed to True, which may lead to unintended behavior in cases where non-visible characters should not be wrapped.",
+  "judge": true
+ },
+ {
+  "i": 5,
+  "task_id": "xf::frappe__frappe::frappe/utils/global_search.py::get_doctypes_with_global_search::default_flip::37",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "why": "the default for `with_child_tables` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so",
+  "message": "Changing the default value of 'with_child_tables' from True to False may lead to unexpected behavior in functions relying on this parameter.",
+  "judge": true
+ },
+ {
+  "i": 6,
+  "task_id": "xf::PostHog__posthog::products/tasks/backend/logic/services/code_usage_gate.py::usage_limit_response::none_sentinel::198",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to unexpected behavior in the calling function, which expects a Response or None.",
+  "judge": true
+ },
+ {
+  "i": 7,
+  "task_id": "xf::conan-io__conan::conan/api/subapi/cache.py::save::default_flip::309",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "why": "the default for `no_source` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there i",
+  "message": "Changing the default value of 'no_source' to True may lead to unintended behavior, as it could prevent the removal of the source folder when the function is called without specifying this argument.",
+  "judge": false
+ },
+ {
+  "i": 8,
+  "task_id": "xf::dmlc__dgl::python/dgl/transforms/functional.py::to_bidirected::default_flip::788",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "why": "the default for `copy_ndata` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there ",
+  "message": "The default value for 'copy_ndata' in 'to_bidirected' is set to True, which may not align with the expected behavior in the context where it is called, potentially leading to unintended data duplication.",
+  "judge": false
+ },
+ {
+  "i": 9,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'symlinked_folders' and 'file_dict' is inconsistent with the expected order in the rest of the code, which may lead to incorrect usage of the returned values.",
+  "judge": false
+ },
+ {
+  "i": 10,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return values have been swapped; the function is expected to return (content_files, error) but now returns (None, content_files). This will cause the calling function to misinterpret the results.",
+  "judge": false
+ },
+ {
+  "i": 11,
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/utils/addresses.py::parse_address::tuple_order::214",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return statement has incorrect syntax; it should return a tuple (host, port) instead of (port), (host.",
+  "judge": false
+ },
+ {
+  "i": 12,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::dotted_name::none_sentinel::68",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to unexpected behavior in functions expecting a None return value.",
+  "judge": true
+ },
+ {
+  "i": 13,
+  "task_id": "xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'module_id' and 'module' is inconsistent with the expected return in 'load_python_file', which expects 'module, module_id'.",
+  "judge": true
+ },
+ {
+  "i": 14,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'symlinked_folders' and 'file_dict' is reversed; it should be 'file_dict, symlinked_folders' to match the expected usage in the calling code.",
+  "judge": true
+ },
+ {
+  "i": 15,
+  "task_id": "xf::PostHog__posthog::products/tasks/backend/logic/services/code_usage_gate.py::usage_limit_response::none_sentinel::198",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to unexpected behavior in the calling function, which expects a Response or None.",
+  "judge": true
+ },
+ {
+  "i": 16,
+  "task_id": "xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'conanfile' and 'ref' is reversed, which may lead to incorrect usage of the returned values.",
+  "judge": true
+ },
+ {
+  "i": 17,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return statement is incorrectly formatted; it has an extra parenthesis that will cause a syntax error.",
+  "judge": false
+ },
+ {
+  "i": 18,
+  "task_id": "xf::frappe__frappe::frappe/utils/global_search.py::get_doctypes_with_global_search::default_flip::37",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "why": "the default for `with_child_tables` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so",
+  "message": "The default value of 'with_child_tables' is changed from True to False, which may lead to missing child tables in the global search results when the function is called without arguments.",
+  "judge": false
+ },
+ {
+  "i": 19,
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition_feats::tuple_order::485",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of node_feats and edge_feats is reversed, which may lead to incorrect usage of the returned values.",
+  "judge": true
+ },
+ {
+  "i": 20,
+  "task_id": "xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "why": "the default for `shell` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is no",
+  "message": "Changing shell to False may cause issues if the command relies on shell features like globbing or environment variable expansion.",
+  "judge": false
+ },
+ {
+  "i": 21,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return values have been swapped; the function should return content_files first and error second, as expected by the caller.",
+  "judge": true
+ },
+ {
+  "i": 22,
+  "task_id": "xf::conan-io__conan::conan/api/subapi/cache.py::save::default_flip::309",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "why": "the default for `no_source` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there i",
+  "message": "The default value for 'no_source' is set to True, which contradicts the expected behavior as described in the docstring where it states that if True, the source folders in the cache will not be added to the archive. This may lead to unintended behavior when saving packages.",
+  "judge": false
+ },
+ {
+  "i": 23,
+  "task_id": "xf::ansible__ansible::lib/ansible/plugins/filter/mathstuff.py::human_to_bytes::default_flip::156",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "why": "the default for `isbits` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is n",
+  "message": "Changing default_unit to None while isbits is set to True may lead to unexpected behavior in the function.",
+  "judge": false
+ },
+ {
+  "i": 24,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to unexpected behavior, as the function is expected to return None when the value is None.",
+  "judge": true
+ },
+ {
+  "i": 25,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to type errors or unexpected behavior if the return value is expected to be None.",
+  "judge": false
+ },
+ {
+  "i": 26,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::dotted_name::none_sentinel::68",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to incorrect handling of cases where no valid line number is found.",
+  "judge": true
+ },
+ {
+  "i": 27,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "why": "the function no longer returns None to signal absence, so a caller guarding on `is None` stops detecting the failure case; -1 is a valid index, so the lookup silently returns the last element",
+  "message": "Returning -1 instead of None may lead to unexpected behavior, as the function is expected to return None when the value is None.",
+  "judge": false
+ },
+ {
+  "i": 28,
+  "task_id": "xf::conan-io__conan::conan/internal/api/detect/detect_api.py::default_msvc_runtime::tuple_order::286",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return values have been swapped; this may lead to incorrect behavior if the caller expects the original order.",
+  "judge": true
+ },
+ {
+  "i": 29,
+  "task_id": "xf::dask__dask::dask/dataframe/dask_expr/_expr.py::is_filter_pushdown_available::default_flip::3975",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "why": "the default for `allow_reduction` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so t",
+  "message": "The default value of 'allow_reduction' has been changed from True to False, which may lead to unintended behavior in the function 'is_filter_pushdown_available' when called from other parts of the code that expect the original behavior.",
+  "judge": false
+ },
+ {
+  "i": 30,
+  "task_id": "xf::frappe__frappe::frappe/installer.py::update_site_config::default_flip::799",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "why": "the default for `validate` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is",
+  "message": "The default value of 'validate' is changed from True to False, which may lead to unintended behavior if validation is expected during site configuration updates. | The function 'update_site_config' is called in a try-except block without handling specific exceptions, which may mask errors that shoul",
+  "judge": false
+ },
+ {
+  "i": 31,
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition::default_flip::286",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "why": "the default for `load_feats` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there ",
+  "message": "Changing load_feats to default to False may lead to unexpected behavior if the calling code expects it to be True.",
+  "judge": true
+ },
+ {
+  "i": 32,
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_missing_parameters::exception_type::318",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "why": "the raised type changes from TypeError to ValueError, so a caller catching TypeError stops catching it and the error escapes as an unhandled exception instead of being recovered from",
+  "message": "Raising ValueError instead of TypeError may lead to unhandled exceptions in the calling code, which expects TypeError.",
+  "judge": true
+ },
+ {
+  "i": 33,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::update_progress_bar::default_flip::648",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "why": "the default for `absolute` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is",
+  "message": "Changing the default value of 'absolute' to True may alter the expected behavior of the function without proper justification or documentation.",
+  "judge": false
+ },
+ {
+  "i": 34,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::validate_email_address::default_flip::183",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "why": "the default for `throw` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is no",
+  "message": "Changing the default value of 'throw' to True in validate_email_address may lead to exceptions being thrown when they were previously not, potentially breaking existing functionality.",
+  "judge": true
+ },
+ {
+  "i": 35,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return statement is incorrectly formatted; it has an extra parenthesis that will cause a syntax error.",
+  "judge": false
+ },
+ {
+  "i": 36,
+  "task_id": "xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "why": "the default for `shell` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is no",
+  "message": "Changing shell to False may affect command execution if the command requires shell features.",
+  "judge": false
+ },
+ {
+  "i": 37,
+  "task_id": "xf::conan-io__conan::conan/internal/model/conanconfig.py::loadconanconfig_yml::tuple_order::36",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return order of 'urls' and 'config_versions' is inconsistent with their usage in the code, which may lead to incorrect behavior when the return values are unpacked.",
+  "judge": true
+ },
+ {
+  "i": 38,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "why": "the two returned values are swapped; both remain valid values of their own types, so nothing fails at the boundary and the caller silently binds each name to the other's value",
+  "message": "The return statement has been changed to return None, content_files, which may lead to unexpected behavior if the caller expects the first return value to be content_files.",
+  "judge": true
+ },
+ {
+  "i": 39,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::update_progress_bar::default_flip::648",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "why": "the default for `absolute` is inverted, so every caller that omits it silently changes behaviour while every caller that passes it explicitly is unaffected; nothing at those call sites mentions the parameter, so there is",
+  "message": "Changing the default value of 'absolute' from False to True may alter the expected behavior of the function without proper justification.",
+  "judge": false
+ }
+]

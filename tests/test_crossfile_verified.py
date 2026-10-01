@@ -275,3 +275,30 @@ class ChainTests(unittest.TestCase):
         from experiments.crossfile import find_chains
         mid = self.MID + "def h(x):\n    try:\n        wrap(x)\n    except TypeError:\n        pass\n"
         self.assertEqual(find_chains({"pkg/m.py": DEF, "pkg/mid.py": mid}, min_distractors=0), [])
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class TupleSwapTests(unittest.TestCase):
+    def _swap(self, src):
+        from experiments.crossfile import _mutate_tuple_order
+        fn = next(n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.FunctionDef))
+        return _mutate_tuple_order(fn, src.split("\n"))
+
+    def test_parenthesised_return_swaps_cleanly(self):
+        r = self._swap("def f():\n    return (host, port)\n")
+        self.assertEqual(r[2], "    return (port, host)")
+
+    def test_call_with_comma_inside_is_not_split(self):
+        r = self._swap("def f(x, y):\n    return a, g(x, y)\n")
+        self.assertEqual(r[2], "    return g(x, y), a")
+
+    def test_multiline_tuple_is_skipped(self):
+        self.assertIsNone(self._swap("def f():\n    return (\n        a,\n        b,\n    )\n"))
+
+    def test_every_generated_mutation_leaves_the_file_parseable(self):
+        from experiments.crossfile import find_defects
+        src = "def pair():\n    return (host, port)\ndef other():\n    x = dict()\n    y = dict()\n    return x\n"
+        caller = "from pkg.m import pair\ndef g():\n    h, p = pair()\n    return h\n"
+        for d in find_defects({"pkg/m.py": src, "pkg/c.py": caller}, min_distractors=0):
+            lines = src.split("\n"); lines[d.definition_line - 1] = d.after
+            ast.parse("\n".join(lines))

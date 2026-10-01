@@ -147,27 +147,36 @@ def _mutate_none_sentinel(fn, lines):
 
 
 def _mutate_tuple_order(fn, lines):
-    """Swap a returned pair, where a caller unpacks it into two names."""
+    """Swap a returned pair, where a caller unpacks it into two names.
+
+    The swap uses the syntax tree's column spans for the two elements, not a
+    regular expression. The first version split the line at its first comma,
+    so `return (host, port)` became `return port), (host` and `return a, f(x, y)`
+    was cut inside the call. Five of forty hand-checked messages were the
+    model correctly reporting a syntax error the generator had introduced.
+    """
     for node in _returns(fn):
-        if isinstance(node.value, ast.Tuple) and len(node.value.elts) == 2:
-            before = _line(lines, node.lineno)
-            match = re.search(r"return\s+(.+?),\s*(.+?)\s*$", before)
-            if not match:
-                continue
-            after = before.replace(
-                match.group(0), f"return {match.group(2).strip()}, {match.group(1).strip()}"
-            )
-            if after == before:
-                continue
-            return (
-                node.lineno,
-                before,
-                after,
-                "the two returned values are swapped; both remain valid values of "
-                "their own types, so nothing fails at the boundary and the caller "
-                "silently binds each name to the other's value",
-                r"=\s*\w+\s*\([^)]*\)\s*$",
-            )
+        value = node.value
+        if not (isinstance(value, ast.Tuple) and len(value.elts) == 2):
+            continue
+        a, b = value.elts
+        if not all(getattr(e, "lineno", None) == node.lineno == getattr(e, "end_lineno", None) for e in (a, b)):
+            continue
+        before = _line(lines, node.lineno)
+        a_src = before[a.col_offset:a.end_col_offset]
+        b_src = before[b.col_offset:b.end_col_offset]
+        after = before[:a.col_offset] + b_src + before[a.end_col_offset:b.col_offset] + a_src + before[b.end_col_offset:]
+        if after == before:
+            continue
+        return (
+            node.lineno,
+            before,
+            after,
+            "the two returned values are swapped; both remain valid values of "
+            "their own types, so nothing fails at the boundary and the caller "
+            "silently binds each name to the other's value",
+            r"=\s*\w+\s*\([^)]*\)\s*$",
+        )
     return None
 
 
@@ -717,6 +726,8 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
                 if not result:
                     continue
                 lineno, before, after, why, _pattern = result
+                if not _still_parses(lines, lineno - 1, after):
+                    continue
                 detail = _detail(kind, fn, before, after)
                 if detail is None:
                     continue
@@ -848,6 +859,8 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
                 if not result:
                     continue
                 lineno, before, after, why, _ = result
+                if not _still_parses(lines, lineno - 1, after):
+                    continue
                 detail = _detail(kind, fn, before, after)
                 if detail is None:
                     continue
@@ -938,6 +951,8 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
                 if not result:
                     continue
                 lineno, before, after, why, _ = result
+                if not _still_parses(lines, lineno - 1, after):
+                    continue
                 detail = _detail(kind, fn, before, after)
                 if detail is None:
                     continue
