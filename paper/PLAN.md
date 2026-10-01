@@ -286,6 +286,72 @@ different means; the gap belongs in the paper as an observation, not a claim.
 
 ---
 
+## 1.8 The sixth withdrawal — the benchmark itself (1 October 2026)
+
+An independent audit of the code, prompted by the request to criticise the
+paper before finishing it, found three faults in the generated cross-file
+benchmark. Each was confirmed against the data.
+
+| Fault | Measured |
+|---|---|
+| Distractors broke the file (`"""` → `''"`) | 304 hunks, 145 of 204 tasks |
+| Evidence line actually calls the mutated function | 65/65 `default_flip`; 18/139 all other kinds |
+| Diff-only already finds the defect line | 93% |
+
+**Everything in §1.5–§1.6 measured on that benchmark is withdrawn**: the
++9-point context effect, the structure null, the corruption asymmetry, the
+retrieval re-run. The "confirmed false positives" were correct flags of syntax
+errors. §1.7 (anchor vs evidence), the trigger gap, and the c-CRAB runs do not
+use this benchmark and stand.
+
+The structure arms had faults of their own: the control kept line numbers and
+the relation kind, typed and attributed were identical on 171/179 tasks, the
+random arm drew from the two relevant files, the analysis script was not in
+the repository, and 133 duplicate rows were counted.
+
+### The rebuild
+
+- calls resolved through imports; each kind verified on the caller's syntax
+  tree; four unverifiable kinds dropped; every distractor parse-checked;
+  ids carry the line; each record carries its verified `argument`
+- control scrambles stem, line, kind and argument; random arm draws from
+  requests/click/rich; every kind has an argument; an eighth arm carries the
+  dependency header with no snippets; a hidden-evidence mode windows the caller
+  above the demonstrating line
+- messages stored; a per-kind keyword rubric scores whether the finding names
+  what the caller depends on (`mechanism`)
+- `experiments/analyse_structure.py`: dedup with counts, repo-clustered and
+  task-clustered paired bootstrap side by side, exact McNemar, Holm across cells
+
+### Pre-registration for the re-run — written before any result exists
+
+| | Comparison | Metric |
+|---|---|---|
+| **Primary** | 3-topology vs 2-evidence | `mechanism` |
+| Secondary | 3-topology vs 2-evidence | `precise` |
+| Secondary | 6-corrupted vs 2-evidence | `mechanism`, `precise` |
+| Exploratory, Holm family | 5 vs 2; 2 vs 8; 8 vs 1; 7 vs 1; 2 vs 7 | both |
+| Conditional | hidden-evidence variant, 5 vs 2 | `mechanism` |
+
+Two models, tag and flat encodings. Interval excludes zero or spans zero;
+the word "significant" is not used. Clustering by repository is the reported
+interval; task-clustered shown beside it.
+
+### What the literature sweep (June–October 2026) changes
+
+- No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487
+  as general-graph precedents; confront 2606.25356.
+- **SWE-PRBench (2603.26130)** reports monotonic degradation as file context is
+  added to a diff across eight frontier models. Any context effect must be
+  reconciled with it.
+- The trigger gap is scoped to a bare tool-equipped LLM: CodeCompass
+  (2602.20048) supports it; harnessed products explore unprompted
+  (2607.16740).
+- CR-Bench (2603.11078) and the ICSE 2026 Fudan regression paper are the prior
+  art for mined regressions.
+
+---
+
 ## 2. What survives
 
 Kept, and all of it useful:
