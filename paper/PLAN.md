@@ -337,6 +337,20 @@ Two models, tag and flat encodings. Interval excludes zero or spans zero;
 the word "significant" is not used. Clustering by repository is the reported
 interval; task-clustered shown beside it.
 
+
+### Pre-analysis note, written on the first 34 tasks before the run completed
+
+The run-time `mechanism` rubric looks for the dependency token (the exception
+type, the parameter name) and a reference to the caller. The typed, attributed
+and corrupted blocks *contain* those tokens, so a model that echoes the
+metadata passes the rubric without using the snippets. The primary comparison
+is clean — neither the topology block nor the scrambled control carries a
+rubric token. Every other `mechanism` comparison is read on `mechanism_strict`
+(`experiments/mechanism_strict.py`), which additionally requires the message to
+name the caller by its enclosing function or file stem, which only the caller
+snippet shows. `precise` and `hit` are unaffected. This is recorded here so it
+cannot be adopted after seeing which way the contaminated numbers point.
+
 ### What the literature sweep (June–October 2026) changes
 
 - No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487
