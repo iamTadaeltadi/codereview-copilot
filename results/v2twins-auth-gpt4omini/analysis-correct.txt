@@ -3,55 +3,55 @@ model:                openai/gpt-4o-mini
 encoding:             tag
 metric:               correct
 arms:                 1-diff, 2-evidence, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
-tasks compared:       60
+tasks compared:       143
 duplicates dropped:   0  (first occurrence kept)
-incomplete dropped:   1  (tasks missing from at least one arm)
+incomplete dropped:   0  (tasks missing from at least one arm)
 bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
 
 arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
 -----------------------------------------------------------------------------------------------------
-1-diff           60        60         0.050      1.52      0.45           0          1237     0.00011
-2-evidence       60        60         0.083      1.28      0.20           0          4563     0.00023
-3-topology       60        60         0.017      1.12      0.07           0          4530     0.00020
-4-typed          60        60         0.000      1.13      0.05           0          4541     0.00018
-5-attributed     60        60         0.000      1.05      0.03           0          4563     0.00018
-6-corrupted      60        60         0.183      1.18      0.10           0          4563     0.00018
-7-random         60        60         0.100      1.10      0.18           0          3729     0.00019
-8-header         60        60         0.067      1.15      0.08           0          1744     0.00012
+1-diff          143       143         0.049      1.71      0.68           0          1214     0.00012
+2-evidence      143       143         0.091      1.40      0.36           0          4486     0.00023
+3-topology      143       143         0.014      1.22      0.17           0          4453     0.00020
+4-typed         143       143         0.000      1.16      0.11           0          4464     0.00018
+5-attributed    143       143         0.000      1.12      0.09           0          4486     0.00018
+6-corrupted     143       143         0.203      1.20      0.13           0          4486     0.00018
+7-random        143       143         0.140      1.00      0.13           0          3637     0.00018
+8-header        143       143         0.056      1.17      0.15           0          1720     0.00012
 
 arm            n_defect n_twin  on defects  on twins  balanced
-1-diff                0     60         nan     0.050       nan
-2-evidence            0     60         nan     0.083       nan
-3-topology            0     60         nan     0.017       nan
-4-typed               0     60         nan     0.000       nan
-5-attributed          0     60         nan     0.000       nan
-6-corrupted           0     60         nan     0.183       nan
-7-random              0     60         nan     0.100       nan
-8-header              0     60         nan     0.067       nan
+1-diff                0    143         nan     0.049       nan
+2-evidence            0    143         nan     0.091       nan
+3-topology            0    143         nan     0.014       nan
+4-typed               0    143         nan     0.000       nan
+5-attributed          0    143         nan     0.000       nan
+6-corrupted           0    143         nan     0.203       nan
+7-random              0    143         nan     0.140       nan
+8-header              0    143         nan     0.056       nan
 
 comparisons (5 in the Holm family)
 
-primary: 2-evidence minus 1-diff  (metric=correct, n=60, skipped=0)
-  difference   0.033   repo-clustered 95% CI [ -0.028,   0.119]   task-clustered 95% CI [ -0.050,   0.117]
+primary: 2-evidence minus 1-diff  (metric=correct, n=143, skipped=0)
+  difference   0.042   repo-clustered 95% CI [  0.000,   0.095]   task-clustered 95% CI [ -0.014,   0.098]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=4 (a right, b wrong)  c=2 (a wrong, b right)  exact p=0.6875  Holm-adjusted p=1.0000
+  McNemar b=11 (a right, b wrong)  c=5 (a wrong, b right)  exact p=0.2101  Holm-adjusted p=0.4202
 
-secondary: 3-topology minus 2-evidence  (metric=correct, n=60, skipped=0)
-  difference  -0.067   repo-clustered 95% CI [ -0.163,   0.000]   task-clustered 95% CI [ -0.150,   0.000]
-  repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=1 (a right, b wrong)  c=5 (a wrong, b right)  exact p=0.2188  Holm-adjusted p=0.8750
-
-extra 1: 5-attributed minus 2-evidence  (metric=correct, n=60, skipped=0)
-  difference  -0.083   repo-clustered 95% CI [ -0.170,  -0.028]   task-clustered 95% CI [ -0.167,  -0.017]
+secondary: 3-topology minus 2-evidence  (metric=correct, n=143, skipped=0)
+  difference  -0.077   repo-clustered 95% CI [ -0.136,  -0.026]   task-clustered 95% CI [ -0.126,  -0.028]
   repo-clustered: interval excludes zero; task-clustered: interval excludes zero
-  McNemar b=0 (a right, b wrong)  c=5 (a wrong, b right)  exact p=0.0625  Holm-adjusted p=0.3125
+  McNemar b=2 (a right, b wrong)  c=13 (a wrong, b right)  exact p=0.0074  Holm-adjusted p=0.0295
 
-extra 2: 7-random minus 1-diff  (metric=correct, n=60, skipped=0)
-  difference   0.050   repo-clustered 95% CI [ -0.039,   0.138]   task-clustered 95% CI [ -0.050,   0.150]
-  repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=6 (a right, b wrong)  c=3 (a wrong, b right)  exact p=0.5078  Holm-adjusted p=1.0000
+extra 1: 5-attributed minus 2-evidence  (metric=correct, n=143, skipped=0)
+  difference  -0.091   repo-clustered 95% CI [ -0.143,  -0.049]   task-clustered 95% CI [ -0.140,  -0.049]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=0 (a right, b wrong)  c=13 (a wrong, b right)  exact p=2.44e-04  Holm-adjusted p=0.0012
 
-extra 3: 8-header minus 1-diff  (metric=correct, n=60, skipped=0)
-  difference   0.017   repo-clustered 95% CI [ -0.035,   0.083]   task-clustered 95% CI [ -0.033,   0.067]
+extra 2: 7-random minus 1-diff  (metric=correct, n=143, skipped=0)
+  difference   0.091   repo-clustered 95% CI [  0.030,   0.154]   task-clustered 95% CI [  0.028,   0.154]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=18 (a right, b wrong)  c=5 (a wrong, b right)  exact p=0.0106  Holm-adjusted p=0.0319
+
+extra 3: 8-header minus 1-diff  (metric=correct, n=143, skipped=0)
+  difference   0.007   repo-clustered 95% CI [ -0.022,   0.041]   task-clustered 95% CI [ -0.028,   0.042]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=2 (a right, b wrong)  c=1 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+  McNemar b=4 (a right, b wrong)  c=3 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
