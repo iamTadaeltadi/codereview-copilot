@@ -58,6 +58,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("path")
     ap.add_argument("--model", default="deepseek/deepseek-v3.2")
+    ap.add_argument("--suffix", default="", help="output name suffix, e.g. gemini -> structure-judged-gemini.jsonl")
     ap.add_argument("--strict", action="store_true", help="(prompt is now strict by default; flag kept for file naming)")
     ap.add_argument("--benchmark", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
     a = ap.parse_args()
@@ -67,6 +68,8 @@ def main() -> int:
     out_path = Path(a.path).with_name("structure-judged.jsonl")
     if a.strict:
         out_path = Path(a.path).with_name("structure-judged-strict.jsonl")
+    if a.suffix:
+        out_path = Path(a.path).with_name(f"structure-judged-{a.suffix}.jsonl")
     done = {}
     if out_path.is_file():
         for l in open(out_path):
