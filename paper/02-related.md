@@ -1,80 +1,21 @@
 # Related work
 
-## Repository-level context for code review
+## 1. Context for LLM code review
 
-**AACR-Bench** (arXiv:2601.19494) is the closest work. It evaluates automated
-code review with cross-file context across ten languages and reports that
-"context granularity, retrieval methods, LLM type, programming language, and
-architecture paradigm significantly influence performance". Two properties
-motivate the present study.
+AACR-Bench [arXiv:2601.19494] evaluates automated review on 1,505 issues and reports that context granularity, with arms for diff, file and repository, and the choice of retrieval method both change performance, with effects that vary by model and language. It labels 233 of its 1,505 issues as repository-level, about 15%, so most of its ground truth is resolvable from the changed file alone. c-CRAB [arXiv:2603.23448] converts human review comments into tests that fail before the fix and pass after it, yielding 291 confirmed functional defects; it evaluates finished reviewers rather than context strategies, and we reuse its defects for a secondary measurement of anchor scope against evidence scope. SWR-Bench [arXiv:2509.01494], CodeFuse-CR-Bench (2025) and MCR-Bench [arXiv:2608.27442] broaden the task to whole pull requests and multi-round review; MCR-Bench includes a long-range dependency miss error category, which names the failure we study without isolating its cause. SWE-PRBench [arXiv:2603.26130] evaluates 350 pull requests and finds that all eight frontier models degrade monotonically as same-file context is appended to the diff, which its authors call attention dilution; its Type3_Latent class, 26% of defects, resides in files that import the changed files. Together these benchmarks establish that cross-file defects exist, that more raw context does not reliably help, and that retrieval choice matters, but in each the content of the context and its representation move together. This paper adds a design in which the evidence snippets are fixed across arms and only the dependency metadata between them varies, from bare topology through typed and attributed relations, measured on generated cross-file defects whose evidence is verified on the caller's AST and secondarily on the 291 c-CRAB defects.
 
-First, it does not hold input size constant. Its setup fixes the *number* of
-retrieved snippets — "for similarity-based retrieval methods, the number of
-retrieved code contexts was uniformly set to 3" — while its granularity arms
-(diff, file, repository) differ by an order of magnitude in length. A gain
-attributed to richer context is therefore inseparable from a gain caused by
-more text.
+## 2. Graph-structured retrieval for code
 
-Second, 1,114 of its 1,505 ground-truth comments are model-generated, and the
-authors state that "constructing a fully comprehensive Ground Truth remains a
-formidable challenge".
+RepoGraph [arXiv:2410.14684] builds a repository-level graph of definitions and references and retrieves ego-graphs around matched entities for agents; our graph construction follows it. GRACE [arXiv:2509.05980] couples graph-guided retrieval with structural fusion of the retrieved subgraph into the prompt and reports a gain of 8.19 exact match on repository-level completion; because the retrieved set and its structural encoding change in the same step, the gain cannot be attributed to either alone. DyRetriever [arXiv:2608.01927] and LARGER [arXiv:2605.16352] report further gains from graph-guided methods on generation and localisation, which shows that graphs help when the bottleneck is finding the right code. GrepRAG [arXiv:2601.23254] reports that ripgrep over the repository matches or beats graph retrieval on CrossCodeEval, and Agent Retrieval Bench [arXiv:2607.24882] finds that no retriever dominates, although any retrieved seed beats a random non-gold seed. These results bound the retrieval question on both sides: a graph can select better evidence, and a cheap lexical search can often select it just as well. None of them separates the selection of evidence from the statement of how the selected pieces relate. This paper holds selection fixed by construction and intervenes on the relation statement only, for review rather than completion.
 
-**LAURA** (arXiv:2512.01356) augments review generation with retrieved
-exemplars and reports gains over prior work, again without equalising context
-length.
+## 3. Do LLMs use serialised structure?
 
-## Executable ground truth
+Outside code, the evidence that prompted models read graph structure is mixed. On text-attributed graphs, "When Structure Doesn't Help" [arXiv:2511.16767] finds node text alone strong and structural encodings marginal or negative. "Actions Speak Louder than Prompts" [arXiv:2509.18487] uses shuffled-adjacency controls and finds that prompting-mode models lean on node features while a code-execution mode does use the structure; our scrambled control follows the same logic. "Lost in Serialization" [arXiv:2511.10234] shows that graph reasoning is not invariant to node labelling or encoding, and [arXiv:2606.15633] traces part of this to RoPE-induced attention decay between nodes that are adjacent in the graph but distant in the linearisation. GraphSOS [arXiv:2501.14427] and GraphDO [arXiv:2402.07140] show that serialisation order alone moves accuracy, with GraphDO reporting 89.43% under BFS order against 78.36% under random order. For code, "Representation Matters" [arXiv:2606.25356] reports that prompts built from AST and PDG views beat raw source on vulnerability reasoning, 83.2 against 53.5; there the structural view replaces the source, so the comparison measures a change of content as much as a change of representation. Our arms add metadata to constant content, so the two designs answer different questions, and we read that result as a ceiling on what structure can carry rather than as a measurement of its marginal value. This paper adds three serialisations, a comprehension probe that asks the model to read the relation back, and a per-kind rubric that scores whether a finding names the mechanism the caller depends on, so that use of structure is measured separately from detection.
 
-**c-CRAB** (arXiv:2603.23448) converts human review comments into tests that
-fail before the fix and pass after, and evaluates whether a review guides a
-coding agent to a passing patch. It reports that current agents solve roughly
-40% of its tasks. c-CRAB supplies evidence but does not study retrieval: it
-evaluates finished products, not context strategies. We take its verified
-labels and ask the question it does not.
+## 4. Context length and distractors
 
-## Graph retrieval over repositories
+"Context Length Alone Hurts" [arXiv:2510.05381] shows that padding a prompt with irrelevant text degrades performance independently of the task. RepoReasoner [arXiv:2607.25996] finds that longer context is not consistently better and that models struggle on cross-file reasoning even with oracle context, so perfect evidence does not guarantee the right inference. "When Retrieval Hurts Code Completion" [arXiv:2605.14478] identifies cases in which retrieved context lowers accuracy. Two review-specific results pull in different directions. "Measuring and Exploiting Contextual Bias in LLM Security Code Review" [arXiv:2603.18740] finds that non-code metadata can override the semantic content of the code, which is the mechanism by which corrupted dependency metadata could cause harm. "LLM Code Reviewers Are Harder to Fool" [arXiv:2602.16741] finds that text distractors did not reduce detection. Neither study varies structural metadata about the code under review while holding the code fixed. This paper adds controls for the matched-length confound: a scrambled arm with the same density and nothing true, a corrupted arm with a plausible wrong endpoint, a random-code arm drawn from an unrelated repository with distractors parse-checked, and a header-only arm, so that length, plausibility and truth can be separated.
 
-**RepoGraph** (arXiv:2410.14684, ICLR 2025) builds a repository-level code graph
-and retrieves ego-graphs around matched entities; our graph service is derived
-from it. **LARGER** (arXiv:2605.16352) extends graph exploration with lexical
-anchoring and reports hop-depth ablations against RepoGraph and CodeXGraph.
-**GraphCoder** (ASE 2024) uses a code context graph for completion.
+## 5. Agents, exploration, and mined regressions
 
-These target issue resolution, localisation, and completion. None studies code
-review, and none equalises the token budget across retrieval strategies.
-
-## Cheap baselines
-
-**GrepRAG** (arXiv:2601.23254) studies grep-like retrieval for code completion
-and finds it competitive with graph approaches at lower latency. A controlled
-chunking study (arXiv:2605.04763) varies the context budget for completion and
-reports that doubling it yields up to 4.2 points while swapping the retriever
-moves performance by at most 1.11 — evidence that *quantity* dominates
-*strategy* when quantity is free to vary.
-
-Both are completion, not review. The present study is the review analogue.
-
-## Model choice and multi-agent review
-
-A comparative evaluation (arXiv:2606.15689) finds that combining models lowers
-F1 — 0.365 alone against 0.333 in ensemble — because "the models largely detect
-the same bugs; adding a second model introduces its false positives without
-meaningfully increasing true positives". **CodeX-Verify** (arXiv:2511.16708)
-tests all 15 combinations of four specialised agents and reports negative
-marginal contributions for three of them.
-
-Both motivate reporting model family as a factor rather than assuming results
-transfer.
-
-## Position of this work
-
-| | AACR-Bench | c-CRAB | LARGER | This work |
-|---|---|---|---|---|
-| Task | review | review | localisation | review |
-| Studies retrieval strategy | ✓ | ✗ | ✓ | ✓ |
-| Token budget held constant | ✗ | n/a | ✗ | **✓** |
-| Ground truth | 73% model-generated | executed tests | — | executed tests |
-| Cost per true finding | ✗ | ✗ | ✗ | **✓** |
-
-We contribute the budget-controlled comparison, on executed-test ground truth,
-with cost per true finding reported alongside accuracy.
+Whether an agent looks for a dependency on its own depends on the harness. CodeCompass [arXiv:2602.20048] reports that claude-sonnet-4-5 made zero tool calls in 58% of trials despite an instruction to search, and that a trailing checklist raised this to 100%. "Agentic Code Review in the Terminal" [arXiv:2607.16740] finds that harnessed products such as Claude Code and Gemini CLI take 5.5 to 7.5 exploration steps unprompted, and OpenCodeReview [arXiv:2608.09290] offers an open implementation of such a reviewer. Any claim that agents do not search therefore has to be scoped to a bare tool-equipped model. For ground truth, CR-Bench [arXiv:2603.11078] mines 584 bug-inducing pull requests from SWE-bench fixes with an SZZ-style procedure, and Song et al. (ICSE 2026) characterise 280 Java regressions, including compatibility errors in which a correct change violates an assumption held elsewhere in the repository; AgentSZZ [arXiv:2604.02665] automates the mining step with an agent. These are the prior art for mined cross-file regressions and the natural external check on a generated benchmark. This paper adds a search-trigger test on a bare tool-equipped model, scoped as above, and relates its generated cross-file defects to the mined compatibility class rather than replacing it.
