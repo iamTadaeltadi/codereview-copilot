@@ -81,6 +81,8 @@ The twins were re-run with one added sentence, identical across arms: the relate
 
 Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 92% of cases with the evidence and in 100% with the attributed relation. The attributed arm is 8.3 points below the control [−17.0, −2.8]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The only arm above 10% is the corrupted one, where the pointer leads away from the caller. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
 
+On the defect side the same instruction changes one thing: showing the caller no longer costs precision. On 188 defects, evidence against diff-only is +2.7 [−4.4, +9.5] on precision where it was −23.5 without the instruction, and the bare link raises precision to 91.5%, +17.6 [+12.6, +22.6] over the control; the attributed arm reaches 96.3%. The judge comparisons keep their direction (real caller over foreign code +15.4 [+7.1, +23.9]; link over control +3.2 [−3.6, +10.2]). Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect and still flags the twin.
+
 ## 4.6 Real defects: c-CRAB
 
 The c-CRAB runs from August stand for the conditions that do not retrieve: on 223 test-verified defects, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
