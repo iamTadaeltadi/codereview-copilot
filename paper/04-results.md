@@ -20,7 +20,7 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 | 7 random | 1.4% | 13.4% |
 | 8 header | 5.6% | 17.2% |
 
-No arm on either model clears more than a fifth of the twins, and on gpt-4o-mini none clears more than one in sixteen. Shown the robust caller, the model flags the change anyway; on deepseek the caller lifts the clear rate from 15.5% to 20.2%, which is within its interval. Balanced accuracy over defects and twins is therefore near chance for every arm, and no form of context moves it far. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
+No arm on either model clears more than a fifth of the twins, and on gpt-4o-mini none clears more than one in sixteen. Shown the robust caller, the model flags the change anyway; on deepseek the caller lifts the clear rate from 17.2% to 20.9%, which is within its interval. Balanced accuracy over defects and twins is therefore near chance for every arm, and no form of context moves it far. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
 
 ## 4.2 Does the caller help? The relevance control done properly
 
