@@ -368,6 +368,37 @@ the sample is released. `hit` is at ceiling on the rebuilt benchmark too
 among cosmetic ones. `precise` therefore measures distractor silence, now on
 distractors that are genuinely harmless.
 
+
+### Gap search, 1 October 2026 (second sweep, ~45 further papers)
+
+Nothing found does any of: a diff-only ceiling as a benchmark-level verdict;
+anchor-vs-evidence as a measured property; matched safe twins with an
+identical surface mutation; hop-stratified defect detection with pass-through
+intermediaries; a noise × structure factorial on a review task; graph-as-
+metadata vs graph-as-tool for review.
+
+Direct support for the diagnostic framing: on paired vulnerability datasets
+the function alone already scores ≈0.98 and adding callers/callees *lowers*
+accuracy (arXiv 2604.08417); ContextCRBench (2511.07017) finds code context
+lowers line-level localisation; Mono (2506.03651) and VulAgentRL (2607.26656)
+audit evidence scope per sample by judge, not by a diff-only model. Nearest
+cousin to twins: equivalent-mutant detection (2607.00511), intra-function
+only. CodeGlance (2602.13962) is the one-hop hidden-evidence precedent
+(37.5% → 6.0% with callee hidden). 2607.25851 finds only 16% of CodeReviewer
+comments context-dependent, which must be reconciled with our 33–50% on
+c-CRAB (different dataset, different measure). CodeNib (2607.25431) gives the
+only upfront-vs-on-demand number, for issue resolution.
+
+### The reframed paper
+
+**Can this benchmark measure context?** Three diagnostics — diff-only
+ceiling, anchor-vs-evidence scope, twin discrimination — applied to c-CRAB,
+the withdrawn v1, and v2 with twins. The structure experiment runs only on
+the benchmark that passes, with moderators: hidden evidence, noise (k foreign
+snippets), two-hop chains, one 2026 model. Built today: twins, noise,
+chains, balanced accuracy, typed-signature default flips, tokenizer-based
+spacing distractors.
+
 ### What the literature sweep (June–October 2026) changes
 
 - No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487

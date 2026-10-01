@@ -248,6 +248,26 @@ def _mean(values: Sequence[float]) -> float:
     return sum(values) / len(values) if values else float("nan")
 
 
+def balanced(data, metric):
+    """Per-arm mean of `metric` on defects and on safe twins separately, and
+    their average. A reviewer that flags every mutated line scores at ceiling
+    on defects and at zero on twins; the balanced mean exposes that. Rows
+    without `is_defect` are treated as defects."""
+    out = {}
+    for arm in data.arms:
+        d, t = [], []
+        for task_id, arms in data.items():
+            row = arms.get(arm)
+            if row is None or row.get(metric) is None:
+                continue
+            (d if row.get("is_defect", True) else t).append(1.0 if row[metric] else 0.0)
+        md = sum(d) / len(d) if d else float("nan")
+        mt = sum(t) / len(t) if t else float("nan")
+        bal = (md + mt) / 2 if d and t else float("nan")
+        out[arm] = {"n_defect": len(d), "n_twin": len(t), "defect": md, "twin": mt, "balanced": bal}
+    return out
+
+
 def table(data: Dataset, metric: str) -> List[dict]:
     """One row per arm: n, mean metric (over rows that carry it), findings,
     flagged distractors, parse failures, prompt size and cost."""
@@ -388,6 +408,13 @@ def report(
             f"{r['parse_failed']:>12}{_fmt(r['mean_prompt_chars'], 14, 0)}{_fmt(r['mean_cost_usd'], 12, 5)}"
         )
     lines.append("")
+
+    bal = balanced(data, metric)
+    if any(v["n_twin"] for v in bal.values()):
+        lines.append(f"{'arm':<14}{'n_defect':>9}{'n_twin':>7}{'on defects':>12}{'on twins':>10}{'balanced':>10}")
+        for arm, v in bal.items():
+            lines.append(f"{arm:<14}{v['n_defect']:>9}{v['n_twin']:>7}{v['defect']:>12.3f}{v['twin']:>10.3f}{v['balanced']:>10.3f}")
+        lines.append("")
 
     family: List[Tuple[str, Tuple[str, str]]] = [("primary", tuple(primary)), ("secondary", tuple(secondary))]
     family += [(f"extra {i + 1}", tuple(p)) for i, p in enumerate(extra_pairs)]
