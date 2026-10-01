@@ -8,3 +8,5 @@
 | `regressions-candidates.jsonl` | 96 mined real cross-file regression candidates, unverified. See `REGRESSIONS.md`. |
 | `stage3_testgen_verified.jsonl`, `testgen_combined.zip` | c-CRAB, test-verified subset. |
 | `evidence-scope` outputs | in `results/`. |
+
+**Sampling note for `crossfile-v2.jsonl`.** Repositories are listed once via the GitHub tree API and up to 300 production Python files are fetched per repository. The first fifteen repositories in alphabetical order (OpenMined/PySyft through home-assistant/core) were sampled at random with seed 7; the remainder, and every pool used for twins, were taken as whole directories in descending size so that callers and callees sit in the same pool. The difference affects yield, not validity.

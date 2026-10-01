@@ -214,19 +214,34 @@ def _tree(repo, sha):
 
 
 def _pick_from_tree(tree, cap, seed):
-    files = []
+    """Whole directories, largest first, until the cap.
+
+    A random sample of three hundred files from a sprawling repository rarely
+    holds both a definition and its caller, and import resolution then finds
+    nothing: airflow and home-assistant yielded zero defects from 300 files
+    each. Files that import each other live near each other, so the pool is
+    built from complete directories in descending size, which keeps callers
+    and callees together. The first fifteen repositories were sampled at
+    random before this change; the data README records which.
+    """
+    by_dir = collections.defaultdict(list)
     for entry in tree.get("tree", []):
         path = entry.get("path", "")
         if entry.get("type") != "blob" or not path.endswith(".py"):
             continue
-        parts = set(path.split("/")[:-1]); name = path.rsplit("/", 1)[-1]
-        if parts & SKIP_DIR or name.startswith("test_") or name in {"setup.py", "conftest.py"}:
+        parts = path.split("/"); name = parts[-1]; dirs = set(parts[:-1])
+        if dirs & SKIP_DIR or name.startswith("test_") or name in {"setup.py", "conftest.py"}:
             continue
         size = entry.get("size") or 0
         if 800 < size < 200_000:
-            files.append(path)
-    random.Random(seed).shuffle(files)
-    return files[:cap]
+            by_dir["/".join(parts[:-1])].append(path)
+    out = []
+    for d in sorted(by_dir, key=lambda d: (-len(by_dir[d]), d)):
+        for path in sorted(by_dir[d]):
+            if len(out) >= cap:
+                return out
+            out.append(path)
+    return out
 
 
 POOL_DIR = Path(_ROOT) / ".pool-cache"
