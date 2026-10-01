@@ -51,6 +51,9 @@ class CrossFileDefect:
     evidence: str
     distractors: tuple = field(default_factory=tuple)
     argument: str = ""
+    via_path: str = ""
+    via_line: int = 0
+    via_name: str = ""
 
     @property
     def path(self) -> str:
@@ -228,6 +231,14 @@ def _mutate_exception_type(fn, lines):
 
 
 
+def _default_token(name, value):
+    """`name=True`, `name: bool = True`, `name : Optional[bool]=True` — the
+    annotated forms are how typed codebases write it, and the first version
+    matched only the bare form, so no default-flip task could come from a
+    typed repository. Returns a compiled pattern over one source line."""
+    return re.compile(rf"\b{re.escape(name)}\s*(?::\s*[^=,)]+?)?\s*=\s*{value}\b")
+
+
 def _mutate_default_flip(fn, lines):
     """Flip a boolean default, where a caller relies on it by omitting the argument.
 
@@ -242,14 +253,18 @@ def _mutate_default_flip(fn, lines):
     for name, default in zip(names, defaults):
         if not (isinstance(default, ast.Constant) and isinstance(default.value, bool)):
             continue
-        before = _line(lines, fn.lineno)
-        old, new = (f"{name}=True", f"{name}=False") if default.value else (f"{name}=False", f"{name}=True")
-        if old not in before:
+        # The default may sit on a later line of a multi-line signature.
+        lineno = getattr(default, "lineno", fn.lineno)
+        before = _line(lines, lineno)
+        pattern = _default_token(name, default.value)
+        match = pattern.search(before)
+        if not match:
             continue
+        after = before[: match.start()] + match.group(0).replace(str(default.value), str(not default.value)) + before[match.end():]
         return (
-            fn.lineno,
+            lineno,
             before,
-            before.replace(old, new, 1),
+            after,
             f"the default for `{name}` is inverted, so every caller that omits it "
             "silently changes behaviour while every caller that passes it "
             "explicitly is unaffected; nothing at those call sites mentions the "
@@ -380,11 +395,31 @@ def _distract_redundant_parens(line):
     return None
 
 
+def _distract_spacing(line):
+    """`f(a,b)` -> `f(a, b)`: whitespace after a comma that is a token, not a
+    character inside a string. Whitespace outside literals cannot change
+    behaviour, and this is the commonest tidy-up in real pull requests. Found
+    with the tokenizer so a comma inside a string is never touched; a line
+    the tokenizer cannot read on its own is left alone."""
+    import io, tokenize
+    try:
+        toks = list(tokenize.generate_tokens(io.StringIO(line + "\n").readline))
+    except (tokenize.TokenError, SyntaxError, IndentationError):
+        return None
+    for t in toks:
+        if t.type == tokenize.OP and t.string == ",":
+            end = t.end[1]
+            if end < len(line) and line[end] not in " \n)" and line[end] != ",":
+                return line[:end] + " " + line[end:]
+    return None
+
+
 DISTRACTORS = (
     _distract_quote_style,
     _distract_none_comparison,
     _distract_empty_literal,
     _distract_redundant_parens,
+    _distract_spacing,
 )
 
 
@@ -613,7 +648,8 @@ def _detail(kind, fn, before, after):
         args = fn.args.args[len(fn.args.args) - len(defaults):]
         for arg, default in zip(args, defaults):
             if isinstance(default, ast.Constant) and isinstance(default.value, bool):
-                if f"{arg.arg}={default.value}" in before and f"{arg.arg}={not default.value}" in after:
+                if _default_token(arg.arg, default.value).search(before) and \
+                        _default_token(arg.arg, not default.value).search(after):
                     return {"param": arg.arg, "index": fn.args.args.index(arg)}
         return None
     return {}
@@ -827,6 +863,107 @@ def _robust_reason(kind, argument):
         return {"bare-except": "catches every exception", "Exception": "catches Exception"}.get(
             argument, f"catches both {argument.replace(',', ' and ')}")
     return f"passes {argument} explicitly, so the default is never used"
+
+
+# --- two-hop chains ----------------------------------------------------------
+# A one-hop task gives a dependency map almost nothing to do: two snippets and
+# one edge. In a chain the definition f is called by a pass-through g in a
+# second file, which returns f's result unchanged, and the dependent check sits
+# in h in a third file around a call to g. The map's job is to connect h's
+# check to f's change through g, which is the first task here where structure
+# has something to carry.
+
+CHAIN_KINDS = ("exception_type", "none_sentinel", "tuple_order", "empty_to_none")
+
+
+def _passthrough_line(tree, name, bound, parents):
+    """The line in this module where a call to `name` is returned directly,
+    or assigned to a variable that is then returned, and the enclosing
+    function's name. None if the module does not pass the result through."""
+    for call in _calls(tree, name, bound):
+        owner = _enclosing(call, parents)
+        if owner is None:
+            continue
+        parent = parents.get(call)
+        if isinstance(parent, ast.Return):
+            return parent.lineno, owner.name
+        var = _assigned_to(call, parents)
+        if var:
+            for node in ast.walk(owner):
+                if isinstance(node, ast.Return) and isinstance(node.value, ast.Name) and node.value.id == var:
+                    return node.lineno, owner.name
+    return None
+
+
+def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distractors: int = 2):
+    """Defects whose dependent check is two calls away through a pass-through."""
+    parsed = {}
+    for path, text in sources.items():
+        if not path.endswith(".py"):
+            continue
+        try:
+            parsed[path] = (ast.parse(text), text.split("\n"), text)
+        except SyntaxError:
+            continue
+    found = []
+    for path, (tree, lines, text) in parsed.items():
+        if is_test_path(path):
+            continue
+        for fn in _functions(tree, lines):
+            if fn.name.startswith("_") or fn.name in {"__init__", "main"}:
+                continue
+            mids = [(o, ot, ol) for o, (ot, ol, otx) in parsed.items()
+                    if o != path and not is_test_path(o) and _calls_name(otx, fn.name)]
+            if not mids:
+                continue
+            for kind in kinds:
+                result = MUTATIONS[kind](fn, lines)
+                if not result:
+                    continue
+                lineno, before, after, why, _ = result
+                detail = _detail(kind, fn, before, after)
+                if detail is None:
+                    continue
+                hit = None
+                for mid_path, mid_tree, mid_lines in mids:
+                    bound = _resolves(mid_tree, fn.name, path)
+                    if bound is None:
+                        continue
+                    through = _passthrough_line(mid_tree, fn.name, bound, _parents(mid_tree))
+                    if not through:
+                        continue
+                    via_line, g_name = through
+                    g_fn = next((n for n in ast.walk(mid_tree)
+                                 if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and n.name == g_name), None)
+                    if g_fn is None or g_name.startswith("_"):
+                        continue
+                    ends = [(o, ot, ol) for o, (ot, ol, otx) in parsed.items()
+                            if o not in (path, mid_path) and not is_test_path(o) and _calls_name(otx, g_name)]
+                    for end_path, end_tree, end_lines in ends:
+                        ev = find_evidence(end_tree, end_lines, g_fn, g_name, mid_path, kind, detail)
+                        if ev:
+                            hit = (mid_path, via_line, g_name, end_path, ev)
+                            break
+                    if hit:
+                        break
+                if not hit:
+                    continue
+                distractors = find_distractors(lines, lineno)
+                if len(distractors) < min_distractors:
+                    continue
+                mid_path, via_line, g_name, end_path, ev = hit
+                found.append(CrossFileDefect(
+                    defect_id=f"{path}::{fn.name}::{kind}::{lineno}::hop2",
+                    kind=kind, definition_path=path, definition_name=fn.name, definition_line=lineno,
+                    caller_path=end_path, caller_name=g_name, caller_line=ev[0],
+                    before=before, after=after,
+                    why=why + f"; the result reaches the caller through `{g_name}`, which returns it unchanged",
+                    evidence=ev[1].strip(), distractors=distractors, argument=ev[2],
+                    via_path=mid_path, via_line=via_line, via_name=g_name,
+                ))
+                if len(found) >= max_per_repo:
+                    return found
+    return found
 
 
 def _find_evidence(caller_text, name, pattern):

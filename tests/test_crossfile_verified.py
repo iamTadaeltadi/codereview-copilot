@@ -196,3 +196,82 @@ class SafeTwinTests(unittest.TestCase):
         t = self._twins("from pkg.m import lookup\ndef g(k):\n    return lookup(k, strict=False)\n")
         dd = next(x for x in d if x.kind == "default_flip")
         self.assertEqual((dd.before, dd.after), (t[0].before, t[0].after))
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class AnnotatedDefaultTests(unittest.TestCase):
+    """Typed codebases write `flag: bool = True`; the first version matched
+    only `flag=True` and so never produced a default-flip task from them."""
+
+    def _flip(self, src):
+        from experiments.crossfile import _mutate_default_flip
+        tree = ast.parse(src)
+        fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef))
+        return _mutate_default_flip(fn, src.split("\n"))
+
+    def test_annotated_default_is_flipped(self):
+        r = self._flip("def f(x: int, strict: bool = True) -> int:\n    return x\n")
+        self.assertIsNotNone(r)
+        self.assertIn("strict: bool = False", r[2])
+
+    def test_multiline_signature_targets_the_default_line(self):
+        r = self._flip("def f(\n    x: int,\n    strict: bool = True,\n) -> int:\n    return x\n")
+        self.assertEqual(r[0], 3)
+        self.assertIn("strict: bool = False", r[2])
+
+    def test_detail_recovers_param_and_index_for_annotated_form(self):
+        src = "def f(x: int, strict: bool = True) -> int:\n    return x\n"
+        tree = ast.parse(src); fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef))
+        r = self._flip(src)
+        self.assertEqual(_detail("default_flip", fn, r[1], r[2]), {"param": "strict", "index": 1})
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class SpacingDistractorTests(unittest.TestCase):
+    def test_comma_outside_a_string_gets_a_space(self):
+        from experiments.crossfile import _distract_spacing
+        self.assertEqual(_distract_spacing("    return f(a,b)"), "    return f(a, b)")
+
+    def test_comma_inside_a_string_is_untouched(self):
+        from experiments.crossfile import _distract_spacing
+        self.assertIsNone(_distract_spacing('    x = "a,b"'))
+
+    def test_already_spaced_line_yields_nothing(self):
+        from experiments.crossfile import _distract_spacing
+        self.assertIsNone(_distract_spacing("    return f(a, b)"))
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class ChainTests(unittest.TestCase):
+    """A two-hop task: f is mutated, g returns f's result unchanged from a
+    second file, and the dependent check sits in h in a third file."""
+
+    MID = "from pkg.m import to_text, lookup\ndef wrap(x):\n    return to_text(x)\ndef find(k):\n    v = lookup(k)\n    return v\n"
+
+    def test_exception_chain_is_found_with_via_recorded(self):
+        from experiments.crossfile import find_chains
+        end = "from pkg.mid import wrap\ndef h(x):\n    try:\n        wrap(x)\n    except TypeError:\n        pass\n"
+        c = find_chains({"pkg/m.py": DEF, "pkg/mid.py": self.MID, "pkg/end.py": end}, min_distractors=0)
+        kinds = {d.kind: d for d in c}
+        self.assertIn("exception_type", kinds)
+        d = kinds["exception_type"]
+        self.assertEqual((d.via_path, d.via_name, d.caller_path), ("pkg/mid.py", "wrap", "pkg/end.py"))
+        self.assertEqual(d.via_line, 3)
+        self.assertTrue(d.defect_id.endswith("::hop2"))
+
+    def test_none_chain_through_an_assigned_return(self):
+        from experiments.crossfile import find_chains
+        end = "from pkg.mid import find\ndef h(k):\n    r = find(k)\n    if r is None:\n        return 0\n    return r\n"
+        c = find_chains({"pkg/m.py": DEF, "pkg/mid.py": self.MID, "pkg/end.py": end}, min_distractors=0)
+        self.assertIn("none_sentinel", {d.kind for d in c})
+
+    def test_no_chain_when_the_middle_does_not_pass_the_result_through(self):
+        from experiments.crossfile import find_chains
+        mid = "from pkg.m import to_text\ndef wrap(x):\n    to_text(x)\n    return 1\n"
+        end = "from pkg.mid import wrap\ndef h(x):\n    try:\n        wrap(x)\n    except TypeError:\n        pass\n"
+        self.assertEqual(find_chains({"pkg/m.py": DEF, "pkg/mid.py": mid, "pkg/end.py": end}, min_distractors=0), [])
+
+    def test_the_end_file_must_differ_from_both_others(self):
+        from experiments.crossfile import find_chains
+        mid = self.MID + "def h(x):\n    try:\n        wrap(x)\n    except TypeError:\n        pass\n"
+        self.assertEqual(find_chains({"pkg/m.py": DEF, "pkg/mid.py": mid}, min_distractors=0), [])

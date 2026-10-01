@@ -138,3 +138,22 @@ class EncodingAndOrderingTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class NoiseTests(unittest.TestCase):
+    def test_noise_adds_k_foreign_snippets_and_keeps_relations(self):
+        from experiments.evidence import with_noise
+        out = with_noise(evidence(), 3, seed="t")
+        if len(out.snippets) == 3:
+            self.skipTest("foreign pool absent")
+        self.assertEqual(len(out.snippets), 6)
+        self.assertEqual(out.relations, evidence().relations)
+        for s in out.snippets[3:]:
+            self.assertNotIn(s.path, {"a/_text.py", "a/ec2.py"})
+
+    def test_noise_is_deterministic_per_seed_and_zero_is_identity(self):
+        from experiments.evidence import with_noise
+        self.assertEqual(with_noise(evidence(), 0, "t").snippets, evidence().snippets)
+        a = with_noise(evidence(), 2, "s"); b = with_noise(evidence(), 2, "s")
+        self.assertEqual([x.label for x in a.snippets], [x.label for x in b.snippets])

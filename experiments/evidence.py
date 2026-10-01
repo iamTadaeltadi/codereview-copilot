@@ -104,7 +104,7 @@ def sources_for(task, token: str = "", cache_dir: str = SOURCE_CACHE) -> dict:
     from experiments.sparse import fetch_file
 
     meta = task.metadata or {}
-    wanted = [p for p in (task.defects[0].path, meta.get("caller_path", "")) if p]
+    wanted = [p for p in (task.defects[0].path, meta.get("caller_path", ""), meta.get("via_path", "")) if p]
 
     cache = _Path(cache_dir)
     cache.mkdir(parents=True, exist_ok=True)
@@ -182,12 +182,22 @@ def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = Fals
     # plausible to point.
     decoy = _decoy(definition_src, defect.path, defect.line, radius)
     snippets = (definition, caller) + ((decoy,) if decoy else ())
-
     kind, argument = _relation_for(meta.get("kind", ""), meta.get("argument", ""), meta.get("evidence", ""))
-    return Evidence(
-        snippets=snippets,
-        relations=(Relation(caller.label, definition.label, kind, argument),),
-    )
+    relations = [Relation(caller.label, definition.label, kind, argument)]
+
+    # Two-hop chain: the pass-through sits between caller and definition, and
+    # the map carries two edges instead of one.
+    via_path, via_line = meta.get("via_path", ""), meta.get("via_line")
+    if via_path and via_line:
+        via_src = find(via_path)
+        if via_src is None:
+            return None
+        v_lo, v_hi, v_text = window(via_src, int(via_line), radius)
+        via = Snippet(via_path, v_lo, v_hi, v_text, _label(via_path, int(via_line)))
+        snippets = snippets + (via,)
+        relations = [Relation(caller.label, via.label, kind, argument),
+                     Relation(via.label, definition.label, "returns-result-of", "")]
+    return Evidence(snippets=snippets, relations=tuple(relations))
 
 
 def _decoy(source: str, path: str, avoid_line: int, radius: int):
@@ -361,6 +371,27 @@ def _foreign_pool(path: str = FOREIGN_POOL):
                 if line.strip():
                     _FOREIGN.append(_json.loads(line))
     return _FOREIGN
+
+
+def with_noise(evidence: Evidence, k: int, seed: str = "") -> Evidence:
+    """E plus k unrelated snippets, the same k for every arm of a task.
+
+    The noise moderator: real retrieval returns relevant and irrelevant code
+    together, and a dependency map might earn its place by telling the model
+    which snippets to connect. Noise comes from the foreign pool so it cannot
+    be relevant by accident, and the rendering order stays canonical, so the
+    added snippets interleave with the evidence by path rather than sitting
+    at the end where they would be easy to ignore.
+    """
+    if k <= 0:
+        return evidence
+    pool = _foreign_pool()
+    if len(pool) < k:
+        return evidence
+    rng = random.Random(hashlib.sha1((seed + f"noise{k}").encode()).hexdigest())
+    extra = tuple(Snippet(r["path"], r["start_line"], r["end_line"], r["text"], r["label"])
+                  for r in rng.sample(pool, k))
+    return Evidence(snippets=evidence.snippets + extra, relations=evidence.relations)
 
 
 def random_evidence(task, sources, evidence: Evidence, seed: str = "",

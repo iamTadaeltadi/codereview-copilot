@@ -338,3 +338,24 @@ class ReportTests(_TempDirCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BalancedViewTests(unittest.TestCase):
+    def test_balanced_separates_defects_from_twins(self):
+        import json, tempfile, os
+        from experiments.analyse_structure import load, balanced
+        rows = []
+        for i in range(4):
+            for arm in ("1-diff", "2-evidence"):
+                rows.append({"task_id": f"xf::o__r::p.py::f::k::{i}", "arm": arm, "is_defect": True,
+                             "correct": True, "hit": True, "precise": True})
+            for arm in ("1-diff", "2-evidence"):
+                rows.append({"task_id": f"xf::o__r::p.py::f::k::{i}::safe", "arm": arm, "is_defect": False,
+                             "correct": arm == "2-evidence", "hit": arm == "1-diff", "precise": False})
+        d = tempfile.mkdtemp(); path = os.path.join(d, "s.jsonl")
+        with open(path, "w") as h:
+            for r in rows: h.write(json.dumps(r) + "\n")
+        b = balanced(load(path), "correct")
+        self.assertEqual(b["1-diff"]["n_defect"], 4); self.assertEqual(b["1-diff"]["n_twin"], 4)
+        self.assertAlmostEqual(b["1-diff"]["balanced"], 0.5)
+        self.assertAlmostEqual(b["2-evidence"]["balanced"], 1.0)

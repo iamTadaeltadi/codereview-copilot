@@ -126,8 +126,8 @@ def _production_files(repo_dir, cap, seed):
     return out
 
 
-def _cache_sources(repo, commit, defect_path, caller_path, sources, cache_dir=".source-cache"):
-    wanted = [p for p in (defect_path, caller_path) if p]
+def _cache_sources(repo, commit, defect_path, caller_path, sources, cache_dir=".source-cache", via_path=""):
+    wanted = [p for p in (defect_path, caller_path, via_path) if p]
     key = hashlib.sha1(f"{repo}@{commit}::{'|'.join(wanted)}".encode()).hexdigest()
     Path(cache_dir).mkdir(parents=True, exist_ok=True)
     (Path(cache_dir) / f"{key}.json").write_text(json.dumps({p: sources[p] for p in wanted}))

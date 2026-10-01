@@ -33,7 +33,7 @@ from experiments.benchmark import load_crossfile
 from experiments.crossfile_score import score_review
 from experiments.evidence import (ARM_DIFF_ONLY, ARM_HEADER, ARM_RANDOM, ARMS, EVIDENCE_ARMS,
                                   FLAT, evidence_for, metadata_block, random_evidence,
-                                  sources_for)
+                                  sources_for, with_noise)
 from experiments.llm import LLMError, client_from_env, load_env
 from experiments.matcher import ReportedFinding
 from experiments.review import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
@@ -114,6 +114,8 @@ def main() -> int:
     ap.add_argument("--arms", default=",".join(ARMS))
     ap.add_argument("--name", default="structure")
     ap.add_argument("--check-every", type=int, default=8)
+    ap.add_argument("--noise", type=int, default=0,
+                    help="add this many unrelated snippets to the evidence set, identical across arms")
     ap.add_argument("--hide-evidence", action="store_true",
                     help="window the caller above the evidence line so the call is "
                          "visible and the relation is not; only exception and None kinds")
@@ -139,6 +141,8 @@ def main() -> int:
         try:
             src = sources_for(task, token=token)
             ev = evidence_for(task, src, hide_evidence=a.hide_evidence)
+            if ev is not None and a.noise:
+                ev = with_noise(ev, a.noise, task.task_id)
         except Exception as e:
             print(f"  [{i}] SKIP fetch: {e}"); continue
         if ev is None or len(ev.snippets) < 3:
@@ -190,7 +194,7 @@ def main() -> int:
                     "mechanism": mech, "message": " | ".join(on_defect)[:600],
                     "is_defect": is_defect, "correct": correct, "correct_precise": correct_precise,
                     "finish_reason": getattr(c, "finish_reason", None),
-                    "hide_evidence": a.hide_evidence, "benchmark": os.path.basename(a.benchmark),
+                    "hide_evidence": a.hide_evidence, "noise": a.noise, "benchmark": os.path.basename(a.benchmark),
                     "usage": c.usage.as_dict(),
                 }) + "\n")
             print(f"  [{i}/{len(tasks)}] {arm:<14} hit={'Y' if sc.hit else 'n'} "
