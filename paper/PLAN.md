@@ -457,8 +457,8 @@ Readings, provisional:
   the hidden fact. Noise k=4: topology +2.6 [−1.7, +6.9].
 - **c-CRAB, real defects, controlled (219 paired, same day/pipeline/budget)**:
   diff 32.9%, random 34.7%, lexical 35.6%, **graph 48.4%**; graph − random
-  +13.7 [+8.7, +19.2], graph − lexical +12.8 [+7.8, +17.8]. Caveat: only the
-  graph arm ranks cross-file nodes first; a random-cross-file control was not run.
+  +13.7 [+8.7, +19.2], graph − lexical +12.8 [+7.8, +17.8]. Random-other-files-only control: 33.5%; graph − that +15.1 [+9.6, +21.1].
+  It is the graph, not "any other file".
 
 ### What the literature sweep (June–October 2026) changes
 
