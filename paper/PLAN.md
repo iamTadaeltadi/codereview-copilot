@@ -351,6 +351,23 @@ name the caller by its enclosing function or file stem, which only the caller
 snippet shows. `precise` and `hit` are unaffected. This is recorded here so it
 cannot be adopted after seeing which way the contaminated numbers point.
 
+
+### Second pre-analysis note, at 51 of ~170 tasks
+
+The keyword rubric also passes boilerplate. A diff-only reviewer writes "may
+lead to unexpected behavior if the caller expects a None return value", which
+satisfies it without any evidence; and it fails genuine explanations that say
+"the calling code". A keyword rubric cannot measure mechanism. The
+pre-registered primary stays on the keyword rubric as written, and is reported
+as such. Alongside it, `experiments/judge_mechanism.py` asks a third model
+family (deepseek-v3.2), blind to arm and to the snippets, whether the message
+states the same specific reason the generator recorded. The judge is validated
+against a hand-labelled sample before any arm comparison is read on it, and
+the sample is released. `hit` is at ceiling on the rebuilt benchmark too
+(≈97% diff-only), as the audit predicted: the semantic hunk is conspicuous
+among cosmetic ones. `precise` therefore measures distractor silence, now on
+distractors that are genuinely harmless.
+
 ### What the literature sweep (June–October 2026) changes
 
 - No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487
