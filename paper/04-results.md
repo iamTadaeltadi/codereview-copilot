@@ -1,153 +1,82 @@
 # Results
 
-## Model 1: `openai/gpt-4o-mini`
+All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/analyse_structure.py` from the frozen per-call records. Intervals are 95% percentile bootstraps that resample repositories; the task-resampled interval, shown in the analysis files, is never narrower in a way that changes a conclusion. "Excludes zero" and "spans zero" are the only verdicts used. Each run has 225–230 defects paired across all eight arms; a handful of the 229 generated defects lack a decoy and are dropped before any arm sees them.
 
-175 pull requests scored under every condition; 218 confirmed defects.
-Budget parity across the four competing arms: **6.4% spread**.
+## 4.1 The three diagnostics
 
-| | Condition | Context | Recall | 95% CI | \$/finding |
-|---|---|---|---|---|---|
-| A | none | 0 | 34.9% | [28.4, 41.6] | 0.0015 |
-| B | graph | 4,756 | 35.3% | [28.7, 42.1] | 0.0018 |
-| C | random | 5,019 | 34.4% | [28.0, 41.2] | 0.0016 |
-| D | lexical | 4,698 | 34.4% | [27.9, 40.9] | 0.0016 |
-| G | dense | 4,757 | 35.8% | [29.5, 42.4] | 0.0016 |
-| E | whole file *(ref)* | 102,459 | 35.8% | [29.2, 42.6] | 0.0094 |
-| F | **oracle** *(ref)* | 965 | 35.3% | [28.9, 42.1] | 0.0011 |
+**Diff-only ceiling.** On the rebuilt benchmark, a model given nothing but the diff finds the defect line in 97.8% of tasks (gpt-4o-mini). The mutated line is conspicuous among cosmetic edits, and hit rate cannot distinguish any arm from any other. Hit is reported in the analysis files and nowhere else in this section. The withdrawn first benchmark had the same ceiling (93%) and, in addition, distractors that broke the file; its numbers are not reported (Section 7).
 
-**Every condition falls within 1.4 percentage points of every other.**
+**Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-| Comparison | Difference | 95% CI |
+**Discrimination with safe twins.** Sixty twins, each the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. Correct on a twin means not flagging the mutated line.
+
+| Arm | gpt-4o-mini | deepseek-v3.2 |
 |---|---|---|
-| B vs A (graph vs none) | +0.5% | [−3.9, +4.9] |
-| D vs A (lexical vs none) | −0.5% | [−4.5, +3.5] |
-| G vs A (dense vs none) | +0.9% | [−3.7, +5.5] |
-| E vs A (whole file vs none) | +0.9% | [−5.0, +6.9] |
-| **F vs A (oracle vs none)** | **+0.5%** | **[−3.2, +4.2]** |
-| **B vs D (graph vs lexical)** | **+0.9%** | **[−3.1, +5.2]** |
+| 1 diff only | 1.7% | 8.3% |
+| 2 evidence | 1.7% | 3.3% |
+| 3 topology | 0.0% | 0.0% |
+| 5 attributed | 0.0% | 1.7% |
+| 7 random | 0.0% | 1.7% |
 
-Not one interval excludes zero. At this sample size the minimum detectable
-lift is roughly 7 points, so we report these as **not distinguishable**, not as
-demonstrated equality.
+No arm on either model declines to flag a change that the shown caller tolerates. Shown the robust caller, the model flags the change anyway. Balanced accuracy over defects and twins is therefore at chance for every arm, and no form of context moves it. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
 
-## The oracle result
+## 4.2 Does the caller help? The relevance control done properly
 
-The finding that constrains every other one is **F**. Condition F is handed the
-graph entities that span the ground-truth defect location — the class, function
-and variables on the exact line the human reviewer commented on. It cheats by
-construction and exists to establish the ceiling.
+The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the same number of snippets at the same budget; only arm 2's snippets are the real definition, caller and decoy. The header-only arm (arm 8) receives the dependency section with no snippets. The metric is the validated judge: does the message on the defect line name a concrete fact about the caller.
 
-**It scores 35.3% against no-context's 34.9%.**
+| Comparison (judge) | gpt tag | gpt flat | deepseek tag | llama tag |
+|---|---|---|---|---|
+| real snippets − foreign snippets | +11.9 [+7.1, +17.2] | +13.7 [+7.4, +20.5] | +35.2 [+26.7, +43.6] | +7.6 [+3.8, +11.6] |
+| real snippets − header only | +13.7 [+9.0, +19.1] | +16.4 [+10.6, +22.7] | +37.0 [+29.9, +44.0] | +8.0 [+5.2, +10.9] |
+| header only − diff only | 0.0 [−2.7, +2.7] | −1.3 [−4.3, +1.8] | −3.0 [−8.3, +2.5] | −0.9 [−3.4, +1.6] |
+| foreign − diff only | +1.8 [−1.0, +4.9] | +1.3 [−2.4, +5.2] | −1.3 [−5.7, +3.4] | −0.4 [−3.1, +2.2] |
 
-We verified F is functioning: on `scikit-learn-9802`, whose confirmed defect is
-at `sklearn/linear_model/stochastic_gradient.py:53`, F returns the `BaseSGD`
-class, its `__init__`, and the variables declared at that line. Only 1% of F's
-reviews received a context under 300 characters.
+Every real-versus-foreign and real-versus-header interval excludes zero on every model and encoding. Foreign code and the header alone do nothing. The caller is what helps, and it helps the model say why the change is wrong. Arms that never see the caller sit at 2–7% on this metric for gpt-4o-mini and llama and at 14–17% for deepseek, which is the floor set by the judge's strictness.
 
-Perfect retrieval, therefore, does not help. **The bottleneck is not context.**
-Either the model recognises the defect from the diff or it does not, and
-supplying the surrounding code — whether structurally selected, lexically
-selected, embedding-selected, randomly selected, exhaustively supplied, or
-selected using the answer key — does not change the outcome.
+The same snippets lower precision. Precise means the defect line was found and no harmless line was flagged. Showing the real snippets costs 18.5 to 23.5 points of precision against the diff alone on gpt-4o-mini and deepseek, while foreign snippets cost nothing (+0.4 and −8.7, the latter spanning zero on deepseek only in the task-clustered interval). Relevant code makes the model flag more of the diff; irrelevant code does not.
 
-This subsumes the budget question we set out to ask. There is no confound to
-remove between strategies that are all equivalent to supplying nothing.
+## 4.3 Does stating the structure help, given the caller?
 
-## Context reduces reported findings
+Arms 2 through 6 receive identical snippets. The pre-registered primary comparison is bare topology (arm 3) against the scrambled control (arm 2).
 
-| Condition | Findings reported |
-|---|---|
-| A none | 1,018 |
-| E whole file | 1,027 |
-| B graph | 960 |
-| G dense | 944 |
-| D lexical | 929 |
-| F oracle | 880 |
-| C random | 872 |
+**On the pre-registered keyword rubric, the primary spans zero** on both runs where it was computed: −0.9 [−5.3, +3.2] on gpt-4o-mini and −2.7 [−6.7, +0.9] on llama. The rubric was found, before the full data existed, to pass boilerplate: a diff-only reviewer writing "may lead to unexpected behavior if the caller expects a None return value" satisfies it, and 50% of diff-only messages do. It is reported as pre-registered and not interpreted further.
 
-Every budgeted retrieval arm reports **fewer** findings than the no-context
-baseline while hitting the same number of true defects. Retrieval makes this
-reviewer quieter without making it more accurate.
+**On the validated judge**, with a miss counted as a failure so that arms are compared on the same tasks:
 
-## Cost
+| 3 topology − 2 control | gpt tag | gpt flat | deepseek tag | llama tag |
+|---|---|---|---|---|
+| judge | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.3 [+4.2, +18.3]** | **+7.6 [+3.3, +12.2]** |
+| McNemar b / c, exact p | 25 / 8, 0.005 | — | — | — |
+| precise | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.6 [+4.0, +14.7]** | **+14.2 [+9.2, +18.9]** |
 
-| Condition | \$ per true finding | Relative |
-|---|---|---|
-| F oracle | 0.0011 | 0.7× |
-| A none | 0.0015 | 1.0× |
-| D, G, C | 0.0016 | 1.1× |
-| B graph | 0.0018 | 1.2× |
-| **E whole file** | **0.0094** | **6.3×** |
+Stating a bare true link between the snippets raises the rate at which the model explains the defect through the caller by 7 to 11 points on three model families under the tag encoding, and by nothing under the flat encoding on gpt-4o-mini. On precision the gain is 10 to 14 points on all four runs: the link recovers roughly half of what showing the snippets cost. Encoding dependence on the judge metric is real and is reported, not averaged away [arXiv:2511.10234].
 
-Supplying whole files costs **six times more per true finding** than supplying
-nothing, for a difference of 0.9 points with an interval spanning zero. Three
-of E's reviews failed outright with HTTP 400 because the file exceeded the
-model's context window — a limitation of the approach, not of the measurement.
+The typed and attributed arms add the relation kind and its argument on top of the link. Attributed exceeds the control by 11.1 [+6.6, +15.8] on gpt-4o-mini and 25.2 [+17.6, +32.1] on deepseek on the judge; the argument names the thing the judge looks for, so this comparison measures information supplied as much as structure, and is read as an upper bound.
 
-Total experiment cost: **$1.43** for 1,718 scored reviews.
+**Corrupted structure.** Arm 6 keeps the relation kind and argument and moves the target to the decoy. Against the control it is 0.0 [−4.8, +4.9] on gpt tag, +2.7 [−2.1, +7.2] on gpt flat, +3.1 [−1.3, +8.0] on llama and +13.0 [+7.3, +18.6] on deepseek. A wrong pointer is inert on three runs and helps on deepseek, which extracts the kind and argument regardless of where the arrow points. This arm measures a wrong endpoint, not absent structure; the clean comparison for topology is arm 3 against arm 2. Corruption does lower hit rate on gpt-4o-mini, 88.9% against 95.1% for the control [−10.6, −2.3]: the model follows the wrong pointer.
 
-## Reliability
+**Comprehension probe.** Asked to read each block back alone, the model returns the correct endpoint for topology, typed and attributed in every probe and the wrong endpoint under corruption, and the scrambled label for the control. The serialisation conveys the structure; a null under flat encoding is a null of use, not of parsing.
 
-0 parse failures across all 1,718 reviews. 13 replies (1.4%) arrived truncated
-and were excluded rather than scored as empty; without that guard they would
-have entered the results as false zeros.
+## 4.4 Moderators
 
+**Hidden evidence** (40 tasks of the two kinds that admit it). With the demonstrating line removed from the caller window, topology against control is 0.0 [−12.5, +15.8] and attributed is +20.0 [+4.7, +36.1]. A bare link does nothing when the fact it points to is not visible; the attributed relation supplies the fact.
 
-## Model 2: `meta-llama/llama-3.3-70b-instruct`
+**Noise** (four foreign snippets added, 232 tasks). Topology against control is +2.6 [−1.7, +6.9] on the judge and the attributed arm +5.2 [0.0, +10.7]. The structural gain shrinks under clutter rather than growing; the hypothesis that a map organises noisy evidence is not supported here.
 
-The same 175 pull requests, 215 confirmed defects, six conditions. Budget
-parity: **6.0% spread**.
+**Two-hop chains.** The generator found three pass-through chains in 41 repositories at 300 to 500 files each. That is too few to run, and the hop moderator is reported as not evaluated.
 
-| | Condition | Recall | 95% CI |
-|---|---|---|---|
-| A | none | **47.0%** | [40.1, 54.2] |
-| B | graph | 46.0% | [39.0, 53.3] |
-| C | random | 41.9% | [34.7, 49.1] |
-| D | lexical | 44.7% | [37.3, 51.7] |
-| G | dense | 43.3% | [36.1, 50.5] |
-| F | oracle *(ref)* | 47.9% | [40.7, 54.8] |
+## 4.5 The authoritative-callers variant
 
-Llama localises defects considerably better in absolute terms — 47.0% against
-gpt-4o-mini's 34.9% — and the pattern is unchanged. **No retrieval arm
-separates from the baseline**, every interval spans zero, and the oracle sits
-0.9 points from supplying nothing.
+*Pending: twins and defects re-run with the instruction that the shown related code is every use of the changed function. Filled in when the run completes.*
 
-| Comparison | gpt-4o-mini | llama-3.3-70b |
-|---|---|---|
-| B vs A | +0.5% [−3.9, +4.9] | −0.9% [−6.5, +4.3] |
-| D vs A | −0.5% [−4.5, +3.5] | −2.3% [−7.9, +3.2] |
-| G vs A | +0.9% [−3.7, +5.5] | −3.7% [−8.3, +0.9] |
-| **F vs A** | **+0.5% [−3.2, +4.2]** | **+0.9% [−3.6, +5.4]** |
-| **B vs D** | **+0.9% [−3.1, +5.2]** | **+1.4% [−4.0, +6.8]** |
+## 4.6 Real defects: c-CRAB
 
-**The null replicates across two model families.**
+The c-CRAB runs from August stand for the conditions that do not retrieve: on 223 test-verified defects, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
 
-The quieting effect is larger on llama: 927 findings reported with no context
-against 658 with graph context and 642 with dense — a 30% reduction in what the
-reviewer says, for no change in what it finds.
+Re-run with the repaired retrieval, the graph condition localises 49.3% of the same 223 defects, against 33.6% for the August diff-only run. A same-day diff-only re-run on 42 defects gives 42.9% where August gave 40.5% on the same defects, so the difference is not drift.
 
-## Depth ablation
+*Pending: diff-only, random and lexical conditions re-run with today's pipeline on all 223 defects, for a controlled comparison at equal budget. Filled in when the runs complete.*
 
-Condition B at hop depths 1, 2 and 3, over 241 defects scored at every depth.
+## 4.7 The search-trigger test
 
-| Condition | Recall | 95% CI |
-|---|---|---|
-| A none | 33.2% | [26.9, 40.1] |
-| B @ depth 1 | 37.3% | [30.9, 43.7] |
-| B @ depth 2 | 34.0% | [27.9, 40.6] |
-| B @ depth 3 | 37.3% | [30.9, 43.8] |
-
-**No trend with depth.** One hop and three hops score identically; two hops
-lands below both. B@3 vs B@1 is +0.0% [−3.4, +3.4].
-
-This closes the obvious objection to the main result — that the graph arm was
-configured at the wrong radius. It was not: no radius helps.
-
-## Summary
-
-Across two model families, seven context conditions, three graph depths, 390
-scored pull requests and 3,000+ reviews at a total cost of **$2.24**:
-
-**No form of retrieved context measurably improves defect localisation — not
-graph retrieval, not lexical retrieval, not dense retrieval, not whole files,
-and not the answer key itself.**
+Same model, same two tools, same repository, same diff; one sentence of framing varies. Across 40 paired tasks a bare tool-equipped model searched in 0 of 40 under the review prompt and in 40 of 40 when told the defect depended on another file, reaching the caller in 20%. The result is scoped to a bare model: harnessed products explore unprompted [arXiv:2607.16740].
