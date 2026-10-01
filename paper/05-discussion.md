@@ -1,59 +1,17 @@
 # Discussion
 
-## Why might context not help?
+**What the diagnostics say about benchmarks.** A benchmark can be carefully built and still be unable to measure context. The first generated benchmark had verified evidence, exact lines and harmless-looking distractors, and the diff alone found the defect 93% of the time; the rebuilt one has stricter verification and the diff alone finds it 97.8% of the time. Detection rate on a mutation benchmark measures whether the mutated line looks odd, which it does. Paired vulnerability datasets show the same pattern, with the function alone scoring near 0.98 [arXiv:2604.08417], and ContextCRBench finds that added code lowers line-level localisation [arXiv:2511.07017]. None of these benchmarks is wrong about what it contains; each is silent about context because the diff already answers the question. The diff-only ceiling is a one-line check that should precede any claim that context helped.
 
-Our data does not settle the mechanism, but it constrains the candidates.
+**What survives the ceiling.** Two things did. The first is *why* the model says a change is wrong: the judge metric requires the message to name a concrete fact about the caller, and arms that never see the caller sit at the floor on every run. On that metric the real caller beats foreign code at equal budget by 8 to 35 points across three model families, and the dependency header alone adds nothing. The second is precision: whether the model also flags harmless lines. Showing the caller lowers precision by about twenty points on two of three models, and stating a bare link between the snippets recovers ten to fourteen of them on all four runs. Context helps the model explain and makes it noisier; structure makes it less noisy. Both effects are invisible to detection rate.
 
-**It is not that retrieval is imperfect.** The oracle condition is handed the
-entities spanning the ground-truth location and performs like no context at all.
-Any explanation resting on "the retriever fetched the wrong thing" is ruled out
-by that arm.
+**Structure, narrowly.** The pre-registered primary on the keyword rubric spans zero, and the rubric is invalid; we report it because it was pre-registered. On the validated judge, a bare true link raises the caller-grounded explanation rate by 7 to 11 points on three model families under one encoding and by nothing under the other on gpt-4o-mini. The comprehension probe rules out a parsing failure under either encoding. This is consistent with the general-graph finding that prompted models under-use serialised structure [arXiv:2511.16767, arXiv:2509.18487] and with the known sensitivity of graph reasoning to encoding [arXiv:2511.10234], and it adds that the effect that does exist is on explanation and precision rather than on detection. The hidden-evidence and noise variants bound it further: a link does nothing when the fact it points to is not visible, and its gain shrinks when unrelated snippets are added. Structure in a prompt is a pointer, and a pointer helps when there is something visible to point at and little else competing for attention.
 
-**It is not that the graph radius was wrong.** One hop and three hops score
-identically.
+**The corrupted arm.** We built it to show that false structure harms. It mostly does not, and on deepseek it helps, because the relation kind and argument survive corruption and the model extracts them regardless of where the arrow points. That is a result about what the model reads out of a block, and a lesson about control design: a control that preserves the informative tokens does not test what the arrow carries. The clean topology comparison is the bare link against the scrambled control, and that is the one we rely on.
 
-**It is not that the budget was too small.** The whole-file arm supplies a
-hundred times the budget — a mean of 102,459 characters — for +0.9 points with
-an interval spanning zero.
+**The twins.** The result that bounds every other is that no arm on either model declines to flag a change the shown caller tolerates. Context improves the explanation of a defect that the model was going to flag anyway; it does not make the model say "safe". Under the plain prompt this is defensible reviewer behaviour, since a caller elsewhere might not be robust, so we re-ran the twins with an instruction that the shown code is every use of the function; Section 4.5 reports the outcome. Whatever that outcome, the discrimination task is the one on which a context method would have to show its value, and the benchmark now contains it.
 
-What remains is that **the diff already contains what these models can use.**
-Defect localisation from a diff appears to be limited by whether the model
-recognises the pattern in front of it, not by what surrounds it. Additional
-context is neither used nor harmful; it is inert.
+**Real defects.** On 223 test-verified defects from real pull requests, every non-retrieving condition in the August runs localised 33 to 36%, including the whole changed files and a fault-location oracle. The repaired graph condition localises 49.3% on the same defects, with a same-day diff-only re-run matching the August baseline. Section 4.6 reports the controlled comparison. If it holds against random and lexical retrieval at the same budget, it is the first positive result in this project on real defects, and it is a result about retrieval reaching the caller, not about structure.
 
-The quieting effect is consistent with this. Every retrieval arm reports fewer
-findings than the baseline while hitting the same number of true defects — up to
-30% fewer on llama. Context appears to make the model more cautious, suppressing
-reports it would otherwise have made, and the reports it suppresses are
-apparently as likely to be right as wrong.
+**What this does not show.** Nothing here speaks to dependencies a static call graph cannot express, to languages other than Python, to models at the frontier, or to tool-using agents, which explore unprompted and for which the search-trigger result does not apply. The two-hop moderator was not evaluated because the generator found three chains. The judge is a model, validated on forty hand-labelled messages with moderate agreement and a conservative bias; its labels are released.
 
-## What this implies for practice
-
-Automated review systems that fetch repository context pay for it in tokens,
-latency, and infrastructure. On this task and these models that cost bought
-nothing measurable. Whole-file context in particular cost 6.3× more per true
-finding, and failed outright on files exceeding the context window.
-
-We would not conclude that context is useless for code review in general — only
-that its benefit for *localising demonstrated defects* is smaller than the
-current sample can detect, and that anyone claiming a benefit should show it
-against a no-context baseline at matched budget.
-
-## What we would do next
-
-**Resolution rather than localisation.** We measure whether a review points at
-the defect, not whether acting on it fixes the defect. Context may matter more
-for writing a correct fix than for spotting a problem. c-CRAB's resolution
-endpoint tests exactly this and requires per-instance containers.
-
-**Stronger models.** Both models here are small and cheap. A frontier model may
-have the capacity to exploit context that these cannot.
-
-**Whole-repository graphs.** Bandwidth forced sparse graphs built from changed
-files plus one import hop. The oracle result argues against this being the
-explanation — perfect local context did not help either — but it should be ruled
-out directly.
-
-**The second review round.** Our schema supports linking a re-review to its
-parent. Whether context pays off once a model has already seen and been
-corrected on a file is a different question, and unasked.
+**What the record shows.** Six claims were withdrawn during this work, each on the project's own evidence, and the sixth, the first benchmark, was the largest. The design that produced the standing results was written against those failures: evidence verified on the syntax tree, distractors and mutations parse-checked, a control that carries nothing, a relevance control from another repository, a pre-registered comparison, a validated judge, and an analysis that resamples repositories. We would rather report that history than the results alone, because the history is what makes the results checkable.

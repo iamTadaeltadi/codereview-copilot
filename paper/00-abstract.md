@@ -1,32 +1,9 @@
-# Smart context or just more context?
+# Can this benchmark measure context? Diagnostics for context-dependent code review, and what they show about dependency structure
 
 ## Abstract
 
-Recent work reports that supplying repository context improves LLM-based code
-review. These comparisons do not hold the amount of context constant: published
-setups fix the number of retrieved snippets while varying granularity from diff
-to whole repository, so gains attributed to better context are inseparable from
-gains caused by more text.
+Systems that give a language model more of the repository during code review change two things at once: which code the model sees and how its relationships are described. Reported gains cannot be attributed to either, and we show a prior problem: on common benchmarks the diff alone already answers the question. We propose three diagnostics for whether a review benchmark can measure context at all. A diff-only ceiling test: a model given nothing but the change finds the defect line in 97.8% of tasks on a mutation benchmark with verified cross-file evidence, as it does near 0.98 on paired vulnerability datasets. An anchor-versus-evidence measurement on 291 test-verified real defects: every comment anchors inside the changed files, and 33 to 50% refer to code the diff does not contain. And discrimination with matched safe twins: the same mutation placed where the shown caller is verifiably robust, so that only the other file separates defect from safe; no arm on either of two models declines to flag the safe twin.
 
-We compare retrieval strategies for code review at a fixed token budget, on
-ground truth restricted to defects that are both classified as functional and
-demonstrated by an executed test that failed before the fix and passed after
-(291 defects, 221 pull requests, 67 repositories). Budget parity is enforced on
-the payload the model receives and verified at 6.0–6.4% spread across arms.
+We then hold the evidence fixed and vary only the dependency metadata between snippets, across three model families, two serialisations, a density-matched scrambled control, a foreign-repository relevance control, a header-only control and a comprehension probe. The real caller raises the rate at which the model explains the defect through the caller by 8 to 35 points over foreign code at equal budget, while the dependency header alone adds nothing. Showing the caller also lowers precision by about twenty points on two models. A bare true link between snippets raises caller-grounded explanation by 7 to 11 points on three model families under one encoding and not the other, and raises precision by 10 to 14 points on all four runs; a pre-registered keyword rubric, found invalid before the full data, spans zero and is reported as such. The link does nothing when the fact it points to is hidden, and its gain shrinks under added noise. On real defects, retrieval repaired to reach the caller localises 49% against 34% for the diff alone.
 
-Across two model families, seven context conditions, three graph depths and
-over 3,000 reviews, **no form of retrieved context measurably improved defect
-localisation.** Graph retrieval did not beat lexical retrieval (+0.9% [−3.1,
-+5.2] and +1.4% [−4.0, +6.8]); neither beat supplying no context. Supplying
-entire changed files — a hundred times the budget — did not help and cost 6.3×
-more per true finding.
-
-Most constraining, an oracle condition supplied with the code entities spanning
-the ground-truth defect location scored within one point of supplying nothing on
-both models. Perfect retrieval does not help: the bottleneck is not context.
-
-We also observe that retrieval makes reviewers **quieter without making them
-more accurate** — up to 30% fewer findings reported for no change in true
-defects found.
-
-We release the harness, the frozen results, and the analysis.
+We release the generator, the twin benchmark, the frozen runs, the judge with its hand-labelled validation, the analysis, and the record of six claims withdrawn during this work.
