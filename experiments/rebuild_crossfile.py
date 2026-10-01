@@ -178,8 +178,11 @@ if __name__ == "__main__" and "--clone" in sys.argv:
     ap.add_argument("--out", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
     ap.add_argument("--per-repo", type=int, default=8); ap.add_argument("--cap", type=int, default=300)
     ap.add_argument("--workdir", default=str(Path(_ROOT) / ".clone-cache"))
+    ap.add_argument("--reverse", action="store_true")
     a = ap.parse_args()
     repos = sorted({t.repo for t in load_crossfile(str(Path(_ROOT) / "data" / "crossfile.jsonl"))})
+    if a.reverse:
+        repos = repos[::-1]
     Path(a.workdir).mkdir(parents=True, exist_ok=True)
     rebuild_from_clones(repos, a.out, a.workdir, per_repo=a.per_repo, cap=a.cap)
     raise SystemExit(0)
