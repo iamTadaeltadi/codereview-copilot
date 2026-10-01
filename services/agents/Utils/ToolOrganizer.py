@@ -114,7 +114,12 @@ def build_random_context_tool(
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
     match_types: bool = True,
+    other_files_only: bool = False,
 ):
+    """Random type-matched nodes; with other_files_only, drawn from files other
+    than the queried node's. The graph condition is the only one that ranks
+    other-file neighbours first, so a comparison against this arm separates
+    "found through the graph" from "from another file"."""
     @tool
     def retrieve_graph(node: str) -> str:
         """
@@ -136,6 +141,9 @@ def build_random_context_tool(
 
         rng = random.Random(f"{seed}:{node}")
         pool = [n for n in graph.nodes if n != node_id]
+        if other_files_only:
+            home = graph.nodes[node_id].get("relative_path")
+            pool = [n for n in pool if graph.nodes[n].get("relative_path") != home] or pool
 
         if match_types:
             reference = retrieve_node_context(
@@ -399,6 +407,7 @@ def build_tools(
                 seed=seed,
                 max_neighbors=max_neighbors,
                 budget_tokens=budget_tokens,
+                other_files_only=prefer_cross_file,
             )
         ]
 

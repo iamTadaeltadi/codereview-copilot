@@ -63,3 +63,36 @@ class ToolOrganizerTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class RandomOtherFilesOnlyTests(unittest.TestCase):
+    """With prefer_cross_file, the random arm draws only from other files, so a
+    comparison against the graph arm separates retrieval through the graph
+    from retrieval from another file."""
+
+    def _graph(self):
+        import networkx as nx
+        g = nx.DiGraph()
+        for i in range(6):
+            g.add_node(f"home{i}", name=f"h{i}", type="function", relative_path="a/home.py", line_range=[i, i + 1], metadata={})
+        for i in range(6):
+            g.add_node(f"other{i}", name=f"o{i}", type="function", relative_path="b/other.py", line_range=[i, i + 1], metadata={})
+        g.add_node("target", name="t", type="function", relative_path="a/home.py", line_range=[50, 60], metadata={})
+        for i in range(6):
+            g.add_edge("target", f"home{i}")
+        return g
+
+    def test_other_files_only_never_returns_the_home_file(self):
+        import json
+        from Utils import ToolOrganizer as T
+        tool = T.build_random_context_tool(self._graph(), "/tmp", seed=1, max_neighbors=4, budget_tokens=2000, other_files_only=True)
+        out = json.loads(tool.invoke({"node": "a/home.py::function::t"}))
+        self.assertTrue(out["neighbors"])
+        self.assertTrue(all(n["relative_path"] == "b/other.py" for n in out["neighbors"]))
+
+    def test_default_random_may_return_the_home_file(self):
+        import json
+        from Utils import ToolOrganizer as T
+        tool = T.build_random_context_tool(self._graph(), "/tmp", seed=1, max_neighbors=4, budget_tokens=2000)
+        out = json.loads(tool.invoke({"node": "a/home.py::function::t"}))
+        self.assertTrue(out["neighbors"])
