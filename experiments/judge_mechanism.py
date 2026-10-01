@@ -74,30 +74,33 @@ def main() -> int:
                 r = json.loads(l); done[(r["task_id"], r["arm"], r.get("encoding"), r.get("model"))] = r.get("mechanism_judge")
 
     client = client_from_env(load_env())
-    spent = 0.0; n_yes = n_judged = 0
+    from concurrent.futures import ThreadPoolExecutor
+
+    def judge_one(r):
+        key = (r["task_id"], r["arm"], r.get("encoding"), r.get("model"))
+        t = tasks.get(r["task_id"])
+        if key in done:
+            return done[key], 0.0
+        if t is None or not r.get("hit") or not r.get("message"):
+            return (False if r.get("hit") else None), 0.0
+        prompt = PROMPT.format(before=_defect_line(t, "-"), after=_defect_line(t, "+"),
+                               why=t.problem_statement, message=r["message"][:600])
+        try:
+            c = client.complete(model=a.model, messages=[{"role": "user", "content": prompt}],
+                                max_tokens=4, temperature=0)
+            return (c.text or "").strip().upper().startswith("YES"), c.usage.cost_usd
+        except LLMError:
+            return None, 0.0
+
+    # Sequential judging of 1,800 rows took most of an hour; eight workers make it minutes.
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        verdicts = list(pool.map(judge_one, rows))
+    spent = sum(c for _, c in verdicts); n_yes = n_judged = 0
     with open(out_path, "w") as h:
-        for r in rows:
-            key = (r["task_id"], r["arm"], r.get("encoding"), r.get("model"))
-            t = tasks.get(r["task_id"])
-            if key in done:
-                r["mechanism_judge"] = done[key]
-            elif t is None or not r.get("hit") or not r.get("message"):
-                r["mechanism_judge"] = False if r.get("hit") else None
-            else:
-                before = t.diff.split("\n")
-                bl = next((l[1:] for l in before if l.startswith("-") and not l.startswith("---") and
-                           t.metadata.get("distractor_lines") is not None), "")
-                prompt = PROMPT.format(before=_defect_line(t, "-"), after=_defect_line(t, "+"),
-                                       why=t.problem_statement, message=r["message"][:600])
-                try:
-                    c = client.complete(model=a.model, messages=[{"role": "user", "content": prompt}],
-                                        max_tokens=4, temperature=0)
-                    spent += c.usage.cost_usd
-                    r["mechanism_judge"] = (c.text or "").strip().upper().startswith("YES")
-                except LLMError as e:
-                    r["mechanism_judge"] = None
-            if r["mechanism_judge"] is not None:
-                n_judged += 1; n_yes += bool(r["mechanism_judge"])
+        for r, (v, _) in zip(rows, verdicts):
+            r["mechanism_judge"] = v
+            if v is not None:
+                n_judged += 1; n_yes += bool(v)
             h.write(json.dumps(r) + "\n")
     print(f"{len(rows)} rows -> {out_path}   judged {n_judged}, YES {n_yes}   ${spent:.4f}")
     return 0
