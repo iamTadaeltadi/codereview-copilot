@@ -1,60 +1,13 @@
 # Introduction
 
-Large language models are increasingly deployed as automated code reviewers, and
-a consistent finding in recent work is that supplying repository context
-improves them. AACR-Bench reports that "context granularity, retrieval methods,
-LLM type, programming language, and architecture paradigm significantly
-influence performance". Systems built on repository-level code graphs report
-gains over context-free baselines.
+A pull request changes one function. Three files away, another function relies on the behaviour that just changed. Nothing in the diff is wrong on its own terms, and a reviewer who reads only the diff cannot see the problem. Systems that give a language model more of the repository exist to close this gap, and the most elaborate of them build a dependency graph, retrieve the neighbourhood of the change, and present it to the model with its structure attached.
 
-These comparisons share a property that makes them difficult to interpret:
-**the amount of context is not held constant.** AACR-Bench fixes the *number* of
-retrieved snippets — "for similarity-based retrieval methods, the number of
-retrieved code contexts was uniformly set to 3" — while its granularity arms
-span diff, file, and repository, differing by an order of magnitude in length.
-A gain attributed to better context is therefore inseparable from a gain caused
-by more text. Evidence from code completion suggests this matters: one
-controlled study finds that doubling the context budget yields up to 4.2 points
-while swapping the retriever moves performance by at most 1.11.
+Two things change at once in that design. The model receives different code than it would from a plain lexical search, and it receives a statement of how the pieces relate. Published comparisons report the combined effect [arXiv:2509.05980, arXiv:2601.19494]. They do not say which part is doing the work, because in an end-to-end comparison the retrieved set and its representation move together. The question this paper asks is the one that remains once retrieval is taken out: given the same code, does telling the model how it is connected help it find the defect?
 
-We set out to separate the two for code review, by comparing retrieval
-strategies at a fixed token budget on ground truth that is machine-verified
-rather than annotated.
+We answer it by holding the evidence fixed. Every arm of the experiment sees the same diff and the same three snippets, the definition, the caller that depends on it, and a decoy, rendered identically. Only a short metadata block differs: absent, scrambled so that it has the same shape and says nothing true, a bare link, a typed relation, a typed relation with its argument, or a relation with a plausible wrong endpoint. Two further arms replace the snippets with code from an unrelated repository or remove them while keeping the metadata section, so that the effect of the snippets and the effect of a dependency section being present can be told apart. The relations are rendered three ways because graph reasoning in language models is known to depend on encoding [arXiv:2511.10234]. A comprehension probe checks, independently of the review task, that the model can read each block back. The primary comparison, bare link against scrambled control, was fixed before any result existed.
 
-**We did not find what we expected to find.** Across two model families, seven
-context conditions, three graph depths, 390 scored pull requests and over 3,000
-reviews, no form of retrieved context measurably improved defect localisation.
-Graph retrieval did not beat lexical retrieval. Neither beat supplying no
-context at all. Supplying the entire contents of every changed file — a hundred
-times the budget — did not help, and cost 6.3 times more per true finding.
+The experiment needs defects whose evidence is known exactly. We generate them: a mutation in one file that is wrong only because of an assumption a different file demonstrably makes, where "demonstrably" is checked on that file's syntax tree, not by pattern matching. The diff carries harmless edits beside the defect, each verified to leave the file parseable, so the reviewer must say which change is wrong. The first version of this generator did neither check correctly, and Section 7 records what that cost.
 
-The result that constrains all the others is the oracle. We included a condition
-that reads the benchmark's own answer key and returns the code entities spanning
-the ground-truth defect location: perfect retrieval, by construction, as a
-ceiling. **It performed within one point of supplying nothing, on both models.**
+Two secondary measurements frame the main one. On 291 test-verified defects from a mined review benchmark [arXiv:2603.23448], every comment anchors on a file the pull request changed, and a third to a half of them refer to code the diff does not contain, so where a comment sits is not where its justification lives. And a bare model with search tools, asked to review a diff, searched in none of forty tasks; told that the defect depended on another file, it searched in all forty. The capacity is there and the trigger is not.
 
-Perfect context does not help. The bottleneck is not retrieval. Either the model
-recognises the defect from the diff or it does not, and what surrounds that diff
-appears not to change the outcome.
-
-This subsumes the question we set out to ask. There is no confound to remove
-between strategies that are all equivalent to supplying nothing — and it
-suggests that gains attributed to context in prior work deserve re-examination
-against a no-context baseline at matched budget.
-
-## Contributions
-
-1. **A budget-controlled comparison of retrieval strategies for code review.**
-   Parity is enforced on the serialised payload the model receives, verified at
-   6.0–6.4% spread across arms, with an accompanying test that fails if it
-   drifts.
-2. **An oracle ceiling**, which we believe has not been reported for this task,
-   and which we argue should be standard: it distinguishes "retrieval is
-   imperfect" from "retrieval is irrelevant".
-3. **A replicated null across two model families**, with effect sizes and
-   confidence intervals rather than significance verdicts, and an explicit
-   statement of the minimum detectable effect.
-4. **Cost per true finding** alongside accuracy, showing whole-file context to
-   be 6.3× more expensive for no measurable benefit.
-5. **A reusable harness and frozen results**, with every reported number
-   traceable to a committed file.
+The contributions are the design, the benchmark and its generator with the verification that makes its ground truth exact, the measurements, and a record of the claims this project made and withdrew along the way. We state what each result does and does not support, and we do not claim that the field's investment in retrieval is misplaced: our own retrievers did not separate on what they retrieved, and a comparison that cannot separate its arms cannot rank them.

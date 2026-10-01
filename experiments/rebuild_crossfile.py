@@ -72,7 +72,7 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__" and "--clone" not in sys.argv:
+if __name__ == "__main__" and "--clone" not in sys.argv and "--trees" not in sys.argv:
     raise SystemExit(main())
 
 
@@ -185,4 +185,100 @@ if __name__ == "__main__" and "--clone" in sys.argv:
         repos = repos[::-1]
     Path(a.workdir).mkdir(parents=True, exist_ok=True)
     rebuild_from_clones(repos, a.out, a.workdir, per_repo=a.per_repo, cap=a.cap)
+    raise SystemExit(0)
+
+
+# --- tree-listing mode -----------------------------------------------------
+# A depth-one clone of a large repository is hundreds of megabytes, and on a
+# slow link that is a quarter of an hour per repository. The commit is read
+# with ls-remote, which costs no API call; one tree listing names every file;
+# and the Python files are fetched individually from raw.githubusercontent,
+# which has no rate limit, in parallel.
+
+import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+
+
+def _ls_remote_head(repo):
+    out = subprocess.run(["git", "ls-remote", f"https://github.com/{repo}.git", "HEAD"],
+                         capture_output=True, text=True, timeout=120).stdout
+    return out.split()[0] if out.strip() else None
+
+
+def _tree(repo, sha):
+    url = f"https://api.github.com/repos/{repo}/git/trees/{sha}?recursive=1"
+    req = urllib.request.Request(url, headers={"User-Agent": "codereview-copilot-experiments",
+                                               "Accept": "application/vnd.github+json"})
+    with urllib.request.urlopen(req, timeout=120) as r:
+        return json.loads(r.read().decode())
+
+
+def _pick_from_tree(tree, cap, seed):
+    files = []
+    for entry in tree.get("tree", []):
+        path = entry.get("path", "")
+        if entry.get("type") != "blob" or not path.endswith(".py"):
+            continue
+        parts = set(path.split("/")[:-1]); name = path.rsplit("/", 1)[-1]
+        if parts & SKIP_DIR or name.startswith("test_") or name in {"setup.py", "conftest.py"}:
+            continue
+        size = entry.get("size") or 0
+        if 800 < size < 200_000:
+            files.append(path)
+    random.Random(seed).shuffle(files)
+    return files[:cap]
+
+
+def rebuild_from_trees(repos, out_path, per_repo=8, cap=300, seed=7, workers=12):
+    from experiments.sparse import fetch_file
+    funnel = {"repos": 0, "listed": 0, "defects": 0, "by_kind": collections.Counter()}
+    done = set()
+    if Path(out_path).is_file():
+        done = {json.loads(l)["repo"] for l in open(out_path) if l.strip()}
+    with open(out_path, "a") as h:
+        for i, repo in enumerate(repos, 1):
+            funnel["repos"] += 1
+            if repo in done:
+                continue
+            try:
+                sha = _ls_remote_head(repo)
+                tree = _tree(repo, sha) if sha else None
+            except Exception as e:
+                print(f"  [{i}/{len(repos)}] {repo:<34} listing failed: {e}", flush=True); continue
+            if not tree:
+                continue
+            funnel["listed"] += 1
+            paths = _pick_from_tree(tree, cap, seed)
+            with ThreadPoolExecutor(max_workers=workers) as pool:
+                texts = list(pool.map(lambda p: fetch_file(repo, sha, p), paths))
+            sources = {p: t for p, t in zip(paths, texts) if t}
+            defects = find_defects(sources, max_per_repo=per_repo)
+            for d in defects:
+                _cache_sources(repo, sha, d.definition_path, d.caller_path, sources)
+                funnel["defects"] += 1; funnel["by_kind"][d.kind] += 1
+                h.write(json.dumps({
+                    "task_id": f"xf::{repo.replace('/', '__')}::{d.defect_id}",
+                    "repo": repo, "commit": sha, "kind": d.kind,
+                    "defect_path": d.definition_path, "defect_line": d.definition_line,
+                    "caller_path": d.caller_path, "caller_line": d.caller_line,
+                    "before": d.before, "after": d.after, "why": d.why,
+                    "evidence": d.evidence, "argument": d.argument,
+                    "distractor_lines": [c.line for c in d.distractors],
+                    "verified": "ast", "diff": build_diff(d),
+                }) + "\n")
+            h.flush()
+            print(f"  [{i}/{len(repos)}] {repo:<34} {len(sources):>3}/{len(paths):<3} files  "
+                  f"{len(defects):>2} defects (total {funnel['defects']})", flush=True)
+    print(f"\nfunnel: {json.dumps({k: (dict(v) if isinstance(v, collections.Counter) else v) for k, v in funnel.items()})}")
+
+
+if __name__ == "__main__" and "--trees" in sys.argv:
+    import argparse as _ap
+    ap = _ap.ArgumentParser(); ap.add_argument("--trees", action="store_true")
+    ap.add_argument("--out", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
+    ap.add_argument("--per-repo", type=int, default=8); ap.add_argument("--cap", type=int, default=300)
+    ap.add_argument("--workers", type=int, default=12)
+    a = ap.parse_args()
+    repos = sorted({t.repo for t in load_crossfile(str(Path(_ROOT) / "data" / "crossfile.jsonl"))})
+    rebuild_from_trees(repos, a.out, per_repo=a.per_repo, cap=a.cap, workers=a.workers)
     raise SystemExit(0)
