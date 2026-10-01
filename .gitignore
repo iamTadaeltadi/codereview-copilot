@@ -48,3 +48,4 @@ runs/
 .mine-cache/
 .clone-cache/
 .clone-cache-b/
+.pool-cache/

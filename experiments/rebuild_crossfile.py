@@ -229,6 +229,44 @@ def _pick_from_tree(tree, cap, seed):
     return files[:cap]
 
 
+POOL_DIR = Path(_ROOT) / ".pool-cache"
+
+
+def _save_pool(repo, sha, sources):
+    """Keep the whole pool: the safe-twin generator needs every caller, not
+    just the one that demonstrated the dependency."""
+    POOL_DIR.mkdir(parents=True, exist_ok=True)
+    (POOL_DIR / f"{repo.replace('/', '__')}@{sha}.json").write_text(json.dumps(sources))
+
+
+def load_pool(repo, sha):
+    f = POOL_DIR / f"{repo.replace('/', '__')}@{sha}.json"
+    return json.loads(f.read_text()) if f.is_file() else None
+
+
+def refetch_pools(out_path, cap=300, seed=7, workers=12):
+    """Re-fetch pools for repositories already in the output whose pool was
+    not kept, at the commit their tasks record, so twins match the tasks."""
+    from experiments.sparse import fetch_file
+    seen = {}
+    for l in open(out_path):
+        if l.strip():
+            r = json.loads(l); seen[r["repo"]] = r["commit"]
+    for i, (repo, sha) in enumerate(sorted(seen.items()), 1):
+        if load_pool(repo, sha) is not None:
+            continue
+        try:
+            tree = _tree(repo, sha)
+        except Exception as e:
+            print(f"  [{i}] {repo:<34} listing failed: {e}", flush=True); continue
+        paths = _pick_from_tree(tree, cap, seed)
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            texts = list(pool.map(lambda p: fetch_file(repo, sha, p), paths))
+        sources = {p: t for p, t in zip(paths, texts) if t}
+        _save_pool(repo, sha, sources)
+        print(f"  [{i}] {repo:<34} pool {len(sources)} files", flush=True)
+
+
 def rebuild_from_trees(repos, out_path, per_repo=8, cap=300, seed=7, workers=12):
     from experiments.sparse import fetch_file
     funnel = {"repos": 0, "listed": 0, "defects": 0, "by_kind": collections.Counter()}
@@ -252,6 +290,7 @@ def rebuild_from_trees(repos, out_path, per_repo=8, cap=300, seed=7, workers=12)
             with ThreadPoolExecutor(max_workers=workers) as pool:
                 texts = list(pool.map(lambda p: fetch_file(repo, sha, p), paths))
             sources = {p: t for p, t in zip(paths, texts) if t}
+            _save_pool(repo, sha, sources)
             defects = find_defects(sources, max_per_repo=per_repo)
             for d in defects:
                 _cache_sources(repo, sha, d.definition_path, d.caller_path, sources)
@@ -277,8 +316,12 @@ if __name__ == "__main__" and "--trees" in sys.argv:
     ap = _ap.ArgumentParser(); ap.add_argument("--trees", action="store_true")
     ap.add_argument("--out", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
     ap.add_argument("--per-repo", type=int, default=8); ap.add_argument("--cap", type=int, default=300)
-    ap.add_argument("--workers", type=int, default=12)
+    ap.add_argument("--workers", type=int, default=12); ap.add_argument("--pools-only", action="store_true")
     a = ap.parse_args()
+    ap2 = _ap.ArgumentParser(); ap2.add_argument("--pools-only", action="store_true")
     repos = sorted({t.repo for t in load_crossfile(str(Path(_ROOT) / "data" / "crossfile.jsonl"))})
-    rebuild_from_trees(repos, a.out, per_repo=a.per_repo, cap=a.cap, workers=a.workers)
+    if "--pools-only" in sys.argv:
+        refetch_pools(a.out, cap=a.cap, workers=a.workers)
+    else:
+        rebuild_from_trees(repos, a.out, per_repo=a.per_repo, cap=a.cap, workers=a.workers)
     raise SystemExit(0)
