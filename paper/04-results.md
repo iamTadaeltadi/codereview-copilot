@@ -8,7 +8,7 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Sixty twins, each the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. Correct on a twin means not flagging the mutated line.
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it; the generator produced 150 (two kinds, 57 of the first 60 being default flips), and the table reports the 60 that had been generated when the run started. The remaining 90 are being run and will replace this table. Correct on a twin means not flagging the mutated line.
 
 | Arm | gpt-4o-mini | deepseek-v3.2 |
 |---|---|---|
@@ -26,10 +26,10 @@ The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the
 
 | Comparison (judge) | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
-| real snippets − foreign snippets | +11.9 [+7.1, +17.2] | +13.7 [+7.4, +20.5] | +35.2 [+26.7, +43.6] | +7.6 [+3.8, +11.6] |
-| real snippets − header only | +13.7 [+9.0, +19.1] | +16.4 [+10.6, +22.7] | +37.0 [+29.9, +44.0] | +8.0 [+5.2, +10.9] |
-| header only − diff only | 0.0 [−2.7, +2.7] | −1.3 [−4.3, +1.8] | −3.0 [−8.3, +2.5] | −0.9 [−3.4, +1.6] |
-| foreign − diff only | +1.8 [−1.0, +4.9] | +1.3 [−2.4, +5.2] | −1.3 [−5.7, +3.4] | −0.4 [−3.1, +2.2] |
+| real snippets − foreign snippets | +11.9 [+7.1, +17.2] | +13.7 [+7.4, +20.5] | +36.0 [+27.2, +44.7] | +7.6 [+3.8, +11.6] |
+| real snippets − header only | +13.7 [+9.0, +19.1] | +16.4 [+10.6, +22.7] | +37.8 [+30.5, +45.1] | +8.0 [+5.2, +10.9] |
+| header only − diff only | 0.0 [−2.7, +2.7] | −1.3 [−4.3, +1.8] | −3.1 [−8.4, +2.6] | −0.9 [−3.4, +1.6] |
+| foreign − diff only | +1.8 [−1.0, +4.9] | +1.3 [−2.4, +5.2] | −1.3 [−5.8, +3.5] | −0.4 [−3.1, +2.2] |
 
 Every real-versus-foreign and real-versus-header interval excludes zero on every model and encoding. Foreign code and the header alone do nothing. The caller is what helps, and it helps the model say why the change is wrong. Arms that never see the caller sit at 2–7% on this metric for gpt-4o-mini and llama and at 14–17% for deepseek, which is the floor set by the judge's strictness.
 
@@ -45,17 +45,17 @@ Arms 2 through 6 receive identical snippets. The pre-registered primary comparis
 
 | 3 topology − 2 control | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
-| judge | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.3 [+4.2, +18.3]** | **+7.6 [+3.3, +12.2]** |
+| judge | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.6 [+4.3, +18.8]** | **+7.6 [+3.3, +12.2]** |
 | McNemar b / c, exact p | 25 / 8, 0.005 | — | — | — |
-| precise | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.6 [+4.0, +14.7]** | **+14.2 [+9.2, +18.9]** |
+| precise | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.8 [+4.1, +15.0]** | **+14.2 [+9.2, +18.9]** |
 
 Stating a bare true link between the snippets raises the rate at which the model explains the defect through the caller by 7 to 11 points on three model families under the tag encoding, and by nothing under the flat encoding on gpt-4o-mini. On precision the gain is 10 to 14 points on all four runs: the link recovers roughly half of what showing the snippets cost. Encoding dependence on the judge metric is real and is reported, not averaged away [arXiv:2511.10234].
 
-The typed and attributed arms add the relation kind and its argument on top of the link. Attributed exceeds the control by 11.1 [+6.6, +15.8] on gpt-4o-mini and 25.2 [+17.6, +32.1] on deepseek on the judge; the argument names the thing the judge looks for, so this comparison measures information supplied as much as structure, and is read as an upper bound.
+The typed and attributed arms add the relation kind and its argument on top of the link. Attributed exceeds the control by 11.1 [+6.6, +15.8] on gpt-4o-mini and +25.8 [+18.1, +32.7] on deepseek on the judge; the argument names the thing the judge looks for, so this comparison measures information supplied as much as structure, and is read as an upper bound.
 
-**Corrupted structure.** Arm 6 keeps the relation kind and argument and moves the target to the decoy. Against the control it is 0.0 [−4.8, +4.9] on gpt tag, +2.7 [−2.1, +7.2] on gpt flat, +3.1 [−1.3, +8.0] on llama and +13.0 [+7.3, +18.6] on deepseek. A wrong pointer is inert on three runs and helps on deepseek, which extracts the kind and argument regardless of where the arrow points. This arm measures a wrong endpoint, not absent structure; the clean comparison for topology is arm 3 against arm 2. Corruption lowers hit rate on gpt-4o-mini under the tag encoding, 88.9% against 95.1% for the control [−10.6, −2.3], and not under flat or on the other models: there the model follows the wrong pointer.
+**Corrupted structure.** Arm 6 keeps the relation kind and argument and moves the target to the decoy. Against the control it is 0.0 [−4.8, +4.9] on gpt tag, +2.7 [−2.1, +7.2] on gpt flat, +3.1 [−1.3, +8.0] on llama and +13.3 [+7.5, +18.9] on deepseek. A wrong pointer is inert on three runs and helps on deepseek, which extracts the kind and argument regardless of where the arrow points. This arm measures a wrong endpoint, not absent structure; the clean comparison for topology is arm 3 against arm 2. Corruption lowers hit rate on gpt-4o-mini under the tag encoding, 88.9% against 95.1% for the control [−10.6, −2.3], and not under flat or on the other models: there the model follows the wrong pointer.
 
-**Comprehension probe.** Asked to read each block back alone, with no snippets, the model names the correct target file for topology in 28 or 29 of 29 probes on every run, for typed in 28 or 29, and for attributed in 25 to 28, and never for the scrambled control (0 of 29). The probe checks the file stem, and the decoy sits in the definition file, so it cannot tell a corrupted pointer from a correct one. The serialisation conveys the structure under both encodings; a null under flat encoding is a null of use, not of parsing.
+**Comprehension probe.** Asked to read each block back alone, with no snippets, the model names the correct target file for topology in 28 or 29 of 29 probes on every run, for typed in 26 to 29, and for attributed in 25 to 28, and never for the scrambled control (0 of 29). The probe checks the file stem, and the decoy sits in the definition file, so it cannot tell a corrupted pointer from a correct one. The serialisation conveys the structure under both encodings; a null under flat encoding is a null of use, not of parsing.
 
 ## 4.4 Moderators
 
@@ -81,11 +81,11 @@ The twins were re-run with one added sentence, identical across arms: the relate
 
 Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 92% of cases with the evidence and in 100% with the attributed relation. The attributed arm is 8.3 points below the control [−17.0, −2.8]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The only arm above 10% is the corrupted one, where the pointer leads away from the caller. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
 
-On the defect side the same instruction changes one thing: showing the caller no longer costs precision. On 188 defects, evidence against diff-only is +2.7 [−4.4, +9.5] on precision where it was −23.5 without the instruction, and the bare link raises precision to 91.5%, +17.6 [+12.6, +22.6] over the control; the attributed arm reaches 96.3%. The judge comparisons keep their direction (real caller over foreign code +15.4 [+7.1, +23.9]; link over control +3.2 [−3.6, +10.2]). Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect and still flags the twin.
+On the defect side the instruction raises precision across the board, and the foreign-code arm shows why. On 188 defects, precision is 71.3% for the diff alone, 73.9% with the real snippets, 89.4% with foreign snippets under the same instruction (+18.1 [+11.6, +24.7] over the diff), 91.5% with the bare link and 96.3% with the attributed relation. The instruction tells the model that the code shown is the whole truth, and the model flags fewer lines whatever that code is; the link adds +17.6 [+12.6, +22.6] over the scrambled control, but a quarter of that is the instruction itself, which the foreign arm receives too though for it the instruction is false. The judge comparisons keep their direction (real caller over foreign code +15.4 [+7.1, +23.9]; link over control +3.2 [−3.6, +10.2]). Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect, and still flags the twin.
 
 ## 4.6 Real defects: c-CRAB
 
-The c-CRAB runs from August stand for the conditions that do not retrieve: on 223 test-verified defects, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
+The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
 
 All four retrieval conditions were re-run on the same day with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across all four.
 
@@ -110,7 +110,7 @@ All four retrieval conditions were re-run on the same day with the same pipeline
 
 On real, test-verified defects, retrieval that reaches the caller through the dependency graph localises thirteen to fifteen points more than random or lexical retrieval at the same budget, which do no better than the diff alone. The August diff-only run on these defects gave 33.8%, so the baseline has not moved. This is the result the withdrawn comparison in August claimed to refute; it refuted nothing, because its graph arm never left the file.
 
-The graph condition is the only one that ranks neighbours in other files ahead of the defect's own file, so a control that draws random nodes from other files only (C′, 218 paired defects) separates "found through the graph" from "from another file". It localises 33.5%, within noise of the diff alone, and the graph condition is +15.1 [+9.6, +21.1] over it. What helps is reaching the code that depends on the change, not code from elsewhere. One caution remains: this is one model and one run per condition, on a benchmark where 98% of defects anchor on changed lines, so what the caller contributes is understanding of how the changed function is used, not a dependency the diff cannot show.
+The graph condition is the only one that ranks neighbours in other files ahead of the defect's own file, so a control that draws random nodes from other files only (C′, 218 paired defects) separates "found through the graph" from "from another file". It localises 33.5%, within noise of the diff alone, and the graph condition is +15.1 [+9.6, +21.1] over it. What helps is reaching the code that depends on the change, not code from elsewhere. One caution remains: this is one model and one run per condition, on a benchmark where 73% of defects anchor on a changed line and all on a changed file, so what the caller contributes is understanding of how the changed function is used, not a dependency the diff cannot show.
 
 ## 4.7 The search-trigger test
 

@@ -4,7 +4,7 @@ failed before the fix and passed after.
 
   confirmed defects                                291
   anchored in a file the pull request changed      291   (100%)
-  anchored on a line the pull request changed      213   ( 98%)
+  anchored on a line the pull request changed      213   ( 73%)
 
   refer to something outside the diff, strict      97   (33%)
   refer to something outside the diff, loose       146   (50%)

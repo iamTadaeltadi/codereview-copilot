@@ -14,6 +14,6 @@ Everything needed to regenerate the benchmark, re-run every arm, and recompute e
 
 **Frozen results.** `results/` holds one directory per run with the raw per-call records and the analysis output. Directories measured on the withdrawn first benchmark carry a `WITHDRAWN.md` stating why, and are kept so the withdrawal can be checked.
 
-**Tests.** 524 unit tests, including one for each fault found in the first benchmark: a distractor that breaks the file is rejected, an unresolved name is not evidence, a handler that also catches the new type is not evidence, a scrambled control contains no true token, a corrupted relation is never a self-loop.
+**Tests.** 548 unit tests, including one for each fault found in the first benchmark: a distractor that breaks the file is rejected, an unresolved name is not evidence, a handler that also catches the new type is not evidence, a scrambled control contains no true token, a corrupted relation is never a self-loop.
 
 **Not included.** Model outputs were obtained through OpenRouter at the prices recorded in each run's records; model versions change, and exact replication of a number is not guaranteed. The 96 regression candidates are unverified and are released as candidates.

@@ -53,6 +53,8 @@ The same relations are rendered three ways, because graph-reasoning accuracy is 
 
 ## 3.6 Metrics
 
+*Judge.* The mechanism judge is a separate model asked, blind to arm and snippets, whether the message names a concrete fact about the caller. The first judge was deepseek-v3.2, which is also one of the three reviewed models; every run is therefore re-judged by a fourth family, gemini-2.5-flash, and both verdicts are released. Validation against 40 hand-labelled messages is in Section 7.
+
 *Hit*: a finding's line equals the defect line. *Precise*: hit, and no finding on a distractor line. *Mechanism*: hit, and the message on the defect line names what the caller depends on. Mechanism is a per-kind keyword rubric; for `exception_type` the message must contain the old exception name and one of *caller*, *catch*, *except*, *handle*. It is mechanical and auditable, and it is crude: a message can satisfy it by accident, and a correct explanation phrased unusually can fail it. The rubric and every scored message are released. A finding on the right line for the wrong reason, which an earlier version counted as a hit, fails mechanism.
 
 ## 3.7 Comprehension probe and hidden-evidence variant
@@ -63,4 +65,4 @@ A second reading of a null is that the relation was already visible in the snipp
 
 ## 3.8 Models, budget and statistics
 
-Two model families, one closed and one open, at temperature 0.1. Prompt length across arms 2 to 6 is within a few characters by construction and is recorded per call. Tasks are paired across arms; the reported interval is a percentile bootstrap that resamples repositories rather than tasks, because several tasks share a repository and a definition file, with the task-resampled interval shown beside it. McNemar's exact test on discordant pairs is reported for each comparison. Duplicate task–arm rows from resumed runs are dropped, first occurrence kept, and the count is reported. The analysis script is part of the artifact.
+Three model families at temperature 0.1: gpt-4o-mini, llama-3.3-70b and deepseek-v3.2. Prompt length across arms 2 to 6 is within a few characters by construction and is recorded per call. Tasks are paired across arms; the reported interval is a percentile bootstrap that resamples repositories rather than tasks, because several tasks share a repository and a definition file, with the task-resampled interval shown beside it. McNemar's exact test on discordant pairs is reported for each comparison. Duplicate task–arm rows from resumed runs are dropped, first occurrence kept, and the count is reported. The analysis script is part of the artifact.
