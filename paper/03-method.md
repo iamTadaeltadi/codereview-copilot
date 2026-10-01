@@ -1,130 +1,66 @@
 # Method
 
-## Research question
+The question is whether telling a model how retrieved code is connected helps it find a defect, once the code itself is already in front of it. Prior comparisons cannot answer this because retrieval and representation change together: a graph-based system retrieves different snippets *and* presents them differently, so a gain cannot be attributed to either. We hold the snippets constant and intervene only on the metadata that describes their relationships.
 
-Published results showing that repository context improves LLM code review do
-not hold the amount of context constant. AACR-Bench fixes the *number* of
-retrieved snippets — "for similarity-based retrieval methods, the number of
-retrieved code contexts was uniformly set to 3" — while its granularity arms
-(diff, file, repository) differ by an order of magnitude in size. The reported
-benefit of richer context is therefore inseparable from the benefit of *more
-text*.
+## 3.1 Task
 
-We ask: **at a fixed token budget, does structural retrieval outperform cheap
-lexical retrieval, or no retrieval at all, for automated code review?**
+A reviewer receives a pull-request diff and must report defects as a list of `(file, line, message)`. Each task contains exactly one defect, introduced by a mutation in one file, that is wrong only because of an assumption a different file makes. The diff also contains two or three harmless edits, so the reviewer must say *which* change is wrong rather than *that* something is.
 
-## Conditions
+## 3.2 Benchmark construction
 
-Seven conditions. Five are budget-matched and directly comparable; two are
-reference points reported separately.
+Tasks are generated from production repositories at a fixed commit. For every public function with a caller in another file, the generator attempts one of five mutations and keeps the task only when the caller's syntax tree demonstrates the dependency the mutation breaks:
 
-| | Condition | Context supplied | Budgeted |
-|---|---|---|---|
-| A | none | the diff only | — |
-| B | graph retrieval | ego-graph neighbourhood at depth *d* | ✓ |
-| C | random | nodes sampled to match B's node-type mix, seeded | ✓ |
-| D | lexical | identifier-overlap ranking | ✓ |
-| G | dense | embedding cosine similarity | ✓ |
-| E | whole file | complete text of every file the diff touches | ✗ |
-| F | oracle | the entities covering the ground-truth locations | ✗ |
+| Kind | Mutation | What the caller must contain |
+|---|---|---|
+| `exception_type` | `raise A` → `raise B` | a handler that catches `A` and not `B`, enclosing the call |
+| `none_sentinel` | `return None` → `return -1` | a comparison of the call's result with `None` |
+| `default_flip` | `p=True` → `p=False` in the signature | a call that omits `p`, positionally and by keyword |
+| `tuple_order` | `return a, b` → `return b, a` | an unpacking assignment of the call's result |
+| `empty_to_none` | `return []` → `return None` | iteration over, or `len` of, the call's result |
 
-All budgeted conditions expose a tool with the **same name** (`retrieve_graph`),
-the **same signature**, and the **same payload shape**, so the model cannot
-identify which condition it is in. The prompt differs across conditions in
-exactly one respect: whether it mentions a retrieval tool. Conditions A and E
-receive a separately written prompt rather than the tool prompt with a sentence
-removed, because a prompt containing a dangling reference to a tool that does
-not exist is a different prompt, not a control.
+Calls are resolved through imports: a bare name imported from the defining module, or `module.name` after a module import. Attribute calls on arbitrary objects are not matched, which excludes most methods and removes name collisions between unrelated functions called `run` or `write`. Each task records the verified caller line and the *argument* of the dependency: the exception type, the parameter name, the unpacked names.
 
-F consumes the benchmark's answer key and therefore cheats by construction. It
-establishes the ceiling: no retrieval strategy can exceed it, and the distance
-between the best honest arm and F is the headroom. It is fenced in code —
-`REFERENCE_CONDITIONS` marks it, and a test asserts that no honest condition can
-observe `oracle_targets` regardless of what is passed to the tool factory.
+Distractors are rewrites that cannot change behaviour, such as `dict()` → `{}` or `== None` → `is None`. Each is applied to a copy of the whole file and rejected unless the file still parses. The diff lists the defect and the distractors in line order with nothing marking which is which.
 
-## Budget parity
+An earlier version of this benchmark is withdrawn. Its distractor rewriter broke docstrings in 145 of 204 tasks, so a model that flagged a syntax error was scored as a false positive, and its evidence was located by a regular expression within eight lines of any same-named call, which was a genuine demonstration of dependency in roughly a third of tasks. Section 7 reports the figures. The present generator was written against those findings, and a test suite pins each of them.
 
-Parity is enforced on the **serialised payload the model receives**, not on the
-list of entries inside it. An earlier implementation budgeted the entry list;
-because each condition wraps its entries differently and the graph arm's
-entries carry additional fields, an identical entry budget still delivered the
-graph arm roughly twice the text of the dense arm — reproducing precisely the
-confound this study exists to remove.
+## 3.3 Evidence set
 
-Entries are dropped from the end until the whole serialised string fits.
-Measured across budgets of 300, 800 and 1500 tokens the spread between
-conditions is 0–4% of budget. Conditions consequently differ in **how many
-entries fit**, not in how much text is sent: at 1500 tokens the graph arm fits
-41 entries where the lexical arm fits 50.
+For every task the evidence set E is fixed and identical across the arms that receive it: a 25-line window around the mutated line in the definition file, a 25-line window around the verified caller line, and a decoy, which is another function from the definition file at least 24 lines from the defect. Snippets are rendered in a canonical order by path and line, with a header naming the file and line range, so that serialisation order cannot act as a treatment [arXiv:2402.07140]. The decoy exists so that a corrupted relation has a plausible wrong endpoint rather than a self-loop.
 
-Every condition also shares one candidate cap. An earlier version allowed the
-graph arm 60 candidates and the others 12, so the budget could never bind for
-the others; they exhausted their candidates first.
+## 3.4 Arms
 
-## Ground truth
+Every arm receives the same diff and the same instructions. Arms 2 to 6 receive the same E and differ only in a metadata block placed after the snippets under a fixed header and a one-sentence explanation of its format.
 
-We use c-CRAB (arXiv:2603.23448, CC BY 4.0), whose instances are pull requests
-with human review comments. Raw comments are **not** a defect list: 61% are
-multi-speaker threads including the author's replies, 17% point at test files,
-and the content ranges from "This is wrong, please remove" to "API question: do
-we want the default to be `weight`?".
+| Arm | Snippets | Metadata block |
+|---|---|---|
+| 1 diff only | none | none |
+| 2 evidence | E | the attributed block with every token scrambled: file stem, line number, relation kind, argument |
+| 3 topology | E | `caller --depends-on--> definition` |
+| 4 typed | E | `caller --catches--> definition` |
+| 5 attributed | E | `caller --catches(TypeError)--> definition` |
+| 6 corrupted | E | the attributed block with the target moved to the decoy |
+| 7 random | three snippets from repositories not in the benchmark | none |
+| 8 header | none | the scrambled block, under the same header |
 
-The c-CRAB release records, for every comment, a type assigned by its pipeline
-(functional, style, documentation, structural) and the result of executing a
-generated test before and after the fix. We retain only comments that are
-**functional and whose test failed before the fix and passed after** — a
-machine-checked demonstration that the defect is real.
+Arm 2 is the control for structure. It matches arms 3 to 6 in token count, vocabulary shape and syntax, and states nothing true. Scrambling the line number matters: the snippet headers name their line ranges, so an intact line number identifies a snippet and the topology is recoverable from it. Arm 6 is the negative control: if the model uses the metadata at all, a false relation should cost something. Arm 7 is the relevance control for the snippets themselves, drawn from `requests`, `click` and `rich` so that it cannot contain the evidence by accident. Arm 8 separates the effect of the snippets from the effect of a dependency section being present.
 
-We further restrict to defects located in files the parser reads (`.py`, `.js`,
-`.java`, `.c`). A defect in a `.rst` page or a `.yaml` configuration cannot be
-reached by any retrieval condition, so scoring it charges every arm with a miss
-it had no means of avoiding.
+The pre-registered primary comparison is arm 3 against arm 2 on the mechanism metric defined below. Arm 6 against arm 2 is the secondary. All other pairs are exploratory and reported together under a Holm adjustment.
 
-**Study population: 291 confirmed defects across 221 pull requests and 67
-repositories.**
+## 3.5 Serialisation
 
-## Unit of analysis
+The same relations are rendered three ways, because graph-reasoning accuracy is known to depend on encoding [arXiv:2511.10234]: a flat arrow line, an XML-style tag `<dependency type="catches" argument="TypeError" source=… target=…/>`, and a prose sentence. A result that appears under one encoding only is reported as a result about that encoding.
 
-The unit is the **defect**, not the task. Each pull request contains several
-defects, and recording one verdict per task discards that structure: a review
-that finds two of three defects becomes a single yes or no. Scoring per task
-raises the minimum detectable effect from roughly 5 points to 10, which would
-report a real 6-point benefit as no difference.
+## 3.6 Metrics
 
-Every ground-truth defect produces exactly one outcome row per condition, hit or
-miss, and every reported finding matching no defect is counted as a false
-positive. A finding is matched to the nearest unconsumed defect in the same file
-within a line tolerance of 5; one finding cannot satisfy two defects.
+*Hit*: a finding's line equals the defect line. *Precise*: hit, and no finding on a distractor line. *Mechanism*: hit, and the message on the defect line names what the caller depends on. Mechanism is a per-kind keyword rubric; for `exception_type` the message must contain the old exception name and one of *caller*, *catch*, *except*, *handle*. It is mechanical and auditable, and it is crude: a message can satisfy it by accident, and a correct explanation phrased unusually can fail it. The rubric and every scored message are released. A finding on the right line for the wrong reason, which an earlier version counted as a hit, fails mechanism.
 
-## Statistics
+## 3.7 Comprehension probe and hidden-evidence variant
 
-Defects within a task are correlated — a review that understands a pull request
-tends to find all of its defects, and one that does not tends to find none —
-so all intervals come from a **cluster bootstrap resampling whole tasks**.
-Paired comparisons use McNemar's test on discordant pairs, since every condition
-reviews the same pull request.
+A null on the primary comparison has two readings: the model does not use the structure, or the serialisation failed to convey it. Before interpreting any result, each arm's block is shown alone and the model is asked which identifier the source depends on. A block the model cannot read back is a failure of encoding, not of structure.
 
-At this sample size the minimum detectable lift at 80% power is approximately 7
-percentage points. **Results are reported as effect sizes with confidence
-intervals, never as bare significance verdicts.** Where an interval spans zero
-we report that the difference is not distinguishable at this sample size, which
-is a different and weaker claim than reporting no difference.
+A second reading of a null is that the relation was already visible in the snippets, so stating it adds nothing. In the hidden-evidence variant the caller window is taken from the lines above the demonstrating line, so the call is visible and the handler or the `None` check is not. Only `exception_type` and `none_sentinel` admit this, because for the other kinds the demonstrating line is the call itself.
 
-Only tasks scored under every condition enter a comparison; a task whose sources
-fail to fetch in one arm is excluded from all.
+## 3.8 Models, budget and statistics
 
-## Implementation
-
-Reviews were generated through OpenRouter. Model selection was empirical: five
-candidates were run against identical tasks and prompts, and
-`anthropic/claude-3.5-haiku`, `google/gemini-2.0-flash-001` and
-`qwen/qwen-2.5-coder-32b-instruct` returned `finish_reason: error` on every
-call. We report `openai/gpt-4o-mini` and `meta-llama/llama-3.3-70b-instruct`,
-two distinct model families.
-
-Truncated replies are never scored. A cut-off response still returns HTTP 200,
-and scoring one naively records a network failure as "the reviewer found
-nothing".
-
-Graphs are constructed with tree-sitter and networkx, adapting RepoGraph
-(arXiv:2410.14684, Apache-2.0; see NOTICE).
+Two model families, one closed and one open, at temperature 0.1. Prompt length across arms 2 to 6 is within a few characters by construction and is recorded per call. Tasks are paired across arms; the reported interval is a percentile bootstrap that resamples repositories rather than tasks, because several tasks share a repository and a definition file, with the task-resampled interval shown beside it. McNemar's exact test on discordant pairs is reported for each comparison. Duplicate task–arm rows from resumed runs are dropped, first occurrence kept, and the count is reported. The analysis script is part of the artifact.
