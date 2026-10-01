@@ -455,10 +455,10 @@ Readings, provisional:
   is framing.
 - Hidden evidence (n=40): topology 0; attributed +20 [+4.7, +36] — supplies
   the hidden fact. Noise k=4: topology +2.6 [−1.7, +6.9].
-- **c-CRAB, real defects**: graph retrieval with the fixed pipeline localises
-  49.3% vs 33.6% for the August diff-only (n=223 defects); a same-day diff-only
-  re-run on 42 defects matches August (42.9 vs 40.5), so this is not drift.
-  Controlled A/C/D re-runs with today's pipeline are in progress.
+- **c-CRAB, real defects, controlled (219 paired, same day/pipeline/budget)**:
+  diff 32.9%, random 34.7%, lexical 35.6%, **graph 48.4%**; graph − random
+  +13.7 [+8.7, +19.2], graph − lexical +12.8 [+7.8, +17.8]. Caveat: only the
+  graph arm ranks cross-file nodes first; a random-cross-file control was not run.
 
 ### What the literature sweep (June–October 2026) changes
 
