@@ -15,3 +15,14 @@ condition                          localised
   graph − lexical        +12.8%  [+7.8%, +17.8%]  excludes zero
   lexical − diff only    +2.7%  [-0.9%, +6.4%]  spans zero
   random − diff only     +1.8%  [-1.4%, +5.0%]  spans zero
+
+=== with the random-other-files control (Cx) ===
+paired defects: 218
+  diff only                     33.0%
+  random, any file              34.9%
+  random, other files only      33.5%
+  lexical                       35.8%
+  graph, repaired               48.6%
+  graph − random other files     +15.1%  [+9.6%, +21.1%]  excludes zero
+  random other files − diff      +0.5%  [-3.2%, +4.1%]  spans zero
+  random other files − random any -1.4%  [-4.6%, +1.4%]  spans zero

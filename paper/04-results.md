@@ -92,7 +92,8 @@ All four retrieval conditions were re-run on the same day with the same pipeline
 | Condition | Localised |
 |---|---|
 | A diff only | 32.9% |
-| C random nodes, same budget | 34.7% |
+| C random nodes, any file, same budget | 34.7% |
+| C′ random nodes, other files only, same budget | 33.5% |
 | D lexical retrieval, same budget | 35.6% |
 | **B graph retrieval, repaired** | **48.4%** |
 | E whole changed files (August, n=205) | 36.1% |
@@ -101,14 +102,15 @@ All four retrieval conditions were re-run on the same day with the same pipeline
 | Comparison | Difference | 95% interval |
 |---|---|---|
 | graph − diff only | +15.5 | [+10.0, +21.0] |
-| graph − random | +13.7 | [+8.7, +19.2] |
+| graph − random, any file | +13.7 | [+8.7, +19.2] |
+| graph − random, other files only | +15.1 | [+9.6, +21.1] |
 | graph − lexical | +12.8 | [+7.8, +17.8] |
 | lexical − diff only | +2.7 | [−0.9, +6.4] |
 | random − diff only | +1.8 | [−1.4, +5.0] |
 
 On real, test-verified defects, retrieval that reaches the caller through the dependency graph localises thirteen to fifteen points more than random or lexical retrieval at the same budget, which do no better than the diff alone. The August diff-only run on these defects gave 33.8%, so the baseline has not moved. This is the result the withdrawn comparison in August claimed to refute; it refuted nothing, because its graph arm never left the file.
 
-Two cautions. The graph condition is the only one that ranks neighbours in other files ahead of the defect's own file, so the comparison bundles "found through the graph" with "from another file"; a random-cross-file control was not run. And this is one model, one run per condition, on a benchmark where 98% of defects anchor on changed lines, so what the caller contributes here is understanding of how the changed function is used, not a dependency the diff cannot show.
+The graph condition is the only one that ranks neighbours in other files ahead of the defect's own file, so a control that draws random nodes from other files only (C′, 218 paired defects) separates "found through the graph" from "from another file". It localises 33.5%, within noise of the diff alone, and the graph condition is +15.1 [+9.6, +21.1] over it. What helps is reaching the code that depends on the change, not code from elsewhere. One caution remains: this is one model and one run per condition, on a benchmark where 98% of defects anchor on changed lines, so what the caller contributes is understanding of how the changed function is used, not a dependency the diff cannot show.
 
 ## 4.7 The search-trigger test
 

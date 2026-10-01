@@ -24,6 +24,6 @@
 
 **The twins may be unfair to a prudent reviewer.** A twin is safe for the shown caller and for every caller in the pool; a reviewer that flags an exception-type change anyway is being careful about callers it was not shown. The authoritative-callers variant addresses this by instruction. Twins exist for two of the five mutation kinds only, and there are sixty of them.
 
-**The real-defect retrieval result is one model and one run per condition.** The graph condition is the only one that ranks cross-file neighbours first, so it bundles retrieval through the graph with retrieval from other files; a control that draws random nodes from other files only was not run, and would separate the two. The four conditions were run on the same day with the same pipeline, and the diff-only rate matches the August run on the same defects.
+**The real-defect retrieval result is one model and one run per condition.** A random-other-files control separates retrieval through the graph from retrieval from other files, and the graph wins by fifteen points; but the five conditions were each run once, on the same day with the same pipeline, and the diff-only rate matches the August run on the same defects. A second model and a second seed would strengthen it.
 
 **Scope of the agent result.** The search-trigger measurement is on a bare model with two tools and no harness. Harnessed products explore unprompted [arXiv:2607.16740]; the result says nothing about them.
