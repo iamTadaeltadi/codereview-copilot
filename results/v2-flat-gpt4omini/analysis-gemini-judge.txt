@@ -1,0 +1,47 @@
+file:                 results/v2-flat-gpt4omini/structure-judged-gemini.jsonl
+model:                openai/gpt-4o-mini
+encoding:             flat
+metric:               mechanism_judge
+arms:                 1-diff, 2-evidence, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
+tasks compared:       226
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metricmean_mechanism_judge  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------------
+1-diff          226       226         0.319      1.51      0.51           0          1188     0.00011
+2-evidence      226       226         0.434      1.95      0.81           0          4270     0.00021
+3-topology      226       226         0.460      1.88      0.67           0          4248     0.00020
+4-typed         226       226         0.473      1.95      0.75           0          4257     0.00020
+5-attributed    226       226         0.531      1.92      0.72           0          4270     0.00020
+6-corrupted     226       226         0.473      2.09      0.83           0          4270     0.00020
+7-random        226       226         0.354      1.54      0.55           0          3387     0.00018
+8-header        226       226         0.350      1.62      0.62           0          1450     0.00012
+
+comparisons (5 in the Holm family)
+
+primary: 3-topology minus 2-evidence  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.027   repo-clustered 95% CI [ -0.023,   0.077]   task-clustered 95% CI [ -0.027,   0.080]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=22 (a right, b wrong)  c=16 (a wrong, b right)  exact p=0.4177  Holm-adjusted p=0.4859
+
+secondary: 6-corrupted minus 2-evidence  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.040   repo-clustered 95% CI [ -0.020,   0.095]   task-clustered 95% CI [ -0.018,   0.097]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=28 (a right, b wrong)  c=19 (a wrong, b right)  exact p=0.2430  Holm-adjusted p=0.4859
+
+extra 1: 5-attributed minus 2-evidence  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.097   repo-clustered 95% CI [  0.057,   0.140]   task-clustered 95% CI [  0.044,   0.150]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=32 (a right, b wrong)  c=10 (a wrong, b right)  exact p=9.41e-04  Holm-adjusted p=0.0047
+
+extra 2: 2-evidence minus 7-random  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.080   repo-clustered 95% CI [  0.004,   0.159]   task-clustered 95% CI [  0.022,   0.142]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=33 (a right, b wrong)  c=15 (a wrong, b right)  exact p=0.0133  Holm-adjusted p=0.0506
+
+extra 3: 2-evidence minus 8-header  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.084   repo-clustered 95% CI [  0.024,   0.146]   task-clustered 95% CI [  0.022,   0.146]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=36 (a right, b wrong)  c=17 (a wrong, b right)  exact p=0.0127  Holm-adjusted p=0.0506

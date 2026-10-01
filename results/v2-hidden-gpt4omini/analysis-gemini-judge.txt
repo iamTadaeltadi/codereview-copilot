@@ -1,0 +1,27 @@
+file:                 results/v2-hidden-gpt4omini/structure-judged-gemini.jsonl
+model:                openai/gpt-4o-mini
+encoding:             tag
+metric:               mechanism_judge
+arms:                 2-evidence, 3-topology, 5-attributed
+tasks compared:       40
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metricmean_mechanism_judge  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------------
+2-evidence       40        40         0.675      2.10      0.95           0          4483     0.00024
+3-topology       40        40         0.800      2.15      1.00           0          4462     0.00022
+5-attributed     40        40         0.900      2.10      0.90           0          4483     0.00020
+
+comparisons (2 in the Holm family)
+
+primary: 3-topology minus 2-evidence  (metric=mechanism_judge, n=40, skipped=0)
+  difference   0.125   repo-clustered 95% CI [ -0.051,   0.273]   task-clustered 95% CI [ -0.025,   0.275]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=8 (a right, b wrong)  c=3 (a wrong, b right)  exact p=0.2266  Holm-adjusted p=0.2266
+
+secondary: 5-attributed minus 2-evidence  (metric=mechanism_judge, n=40, skipped=0)
+  difference   0.225   repo-clustered 95% CI [  0.083,   0.375]   task-clustered 95% CI [  0.050,   0.400]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=11 (a right, b wrong)  c=2 (a wrong, b right)  exact p=0.0225  Holm-adjusted p=0.0449
