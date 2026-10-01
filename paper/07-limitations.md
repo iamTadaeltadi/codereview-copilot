@@ -22,7 +22,7 @@
 
 **The corrupted arm does not test absent structure.** It keeps the relation kind and argument and moves only the endpoint, and one model extracts the surviving tokens regardless of the arrow. It measures a wrong pointer. A control that scrambles kind and argument while keeping a plausible wrong endpoint would be the stronger test and was not run.
 
-**The twins may be unfair to a prudent reviewer.** A twin is safe for the shown caller and for every caller in the pool; a reviewer that flags an exception-type change anyway is being careful about callers it was not shown. The authoritative-callers variant addresses this by instruction. Twins exist for two of the five mutation kinds only, 150 were generated, and 57 of the first 60 are default flips.
+**The twins may be unfair to a prudent reviewer.** A twin is safe for the shown caller and for every caller in the pool; a reviewer that flags an exception-type change anyway is being careful about callers it was not shown. The authoritative-callers variant addresses this by instruction. Twins exist for two of the five mutation kinds only; 150 were generated and 143 run, most of them default flips, from 20 repositories, so the repository-clustered interval rests on few clusters.
 
 **The real-defect retrieval result is one model and one run per condition.** A random-other-files control separates retrieval through the graph from retrieval from other files, and the graph wins by fifteen points; but the five conditions were each run once, on the same day with the same pipeline, and the diff-only rate matches the August run on the same defects. A second model and a second seed would strengthen it.
 
