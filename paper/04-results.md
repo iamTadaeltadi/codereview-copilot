@@ -115,3 +115,18 @@ The graph condition is the only one that ranks neighbours in other files ahead o
 ## 4.7 The search-trigger test
 
 Same model, same two tools, same repository, same diff; one sentence of framing varies. Across 40 paired tasks a bare tool-equipped model searched in 0 of 40 under the review prompt and in 40 of 40 when told the defect depended on another file, reaching the caller in 20%. The result is scoped to a bare model: harnessed products explore unprompted [arXiv:2607.16740].
+
+
+## 4.8 Explanation against precision, and cost per true finding
+
+A reviewer may object that a better explanation is overcorrection in disguise [arXiv:2603.00539]: a model that says more may also flag more. Across the five arms that share the same snippets, the judge rate and the false-flag rate move in opposite directions on three of four runs. The correlation of judge-YES with confirmed false flags per review across arms 2 to 6 is −0.72 on gpt-4o-mini under the tag encoding, −0.94 on deepseek, −0.71 on llama, and +0.11 on gpt-4o-mini under flat. Where the metadata improves the explanation it also reduces the noise; the two are not traded against each other.
+
+Cost per true finding, in thousandths of a dollar per defect found and confirmed false flags per defect found:
+
+| Run | diff only | evidence | topology | attributed | foreign |
+|---|---|---|---|---|---|
+| gpt-4o-mini tag | 0.11 / 0.51 | 0.25 / 0.94 | 0.21 / 0.71 | 0.20 / 0.64 | 0.19 / 0.54 |
+| deepseek-v3.2 tag | 0.18 / 0.28 | 0.47 / 0.56 | 0.35 / 0.41 | 0.25 / 0.31 | 0.31 / 0.41 |
+| llama-3.3-70b tag | 0.12 / 0.70 | 0.24 / 0.60 | 0.21 / 0.27 | 0.22 / 0.43 | 0.19 / 0.70 |
+
+The bare link lowers false flags per true finding by a fifth to a third relative to the scrambled control on every run, at the same token cost. The diff alone is the cheapest condition per true finding on every run; on this benchmark it also finds the line 97.8% of the time, which is the ceiling problem of Section 4.1 restated as a cost.
