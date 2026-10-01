@@ -1,0 +1,17 @@
+c-CRAB, test-verified real defects, gpt-4o-mini, tolerance 5 lines, budget 1500 tokens
+paired defects across A, B, C, D run today: 219
+
+condition                          localised
+  A  diff only (today)                 32.9%
+  B  graph, repaired retrieval         48.4%
+  C  random nodes, same budget         34.7%
+  D  lexical, same budget              35.6%
+  E  whole changed files (Aug)         36.1%   (n=205)
+  F  fault-location oracle (Aug)       34.2%   (n=219)
+  A  diff only (Aug)                   33.8%   (n=219)
+
+  graph − diff only      +15.5%  [+10.0%, +21.0%]  excludes zero
+  graph − random         +13.7%  [+8.7%, +19.2%]  excludes zero
+  graph − lexical        +12.8%  [+7.8%, +17.8%]  excludes zero
+  lexical − diff only    +2.7%  [-0.9%, +6.4%]  spans zero
+  random − diff only     +1.8%  [-1.4%, +5.0%]  spans zero
