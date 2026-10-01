@@ -91,6 +91,20 @@ def is_test_path(path: str) -> bool:
     return bool(TEST_PATH.search(path or ""))
 
 
+_CALLED = re.compile(r"\b([A-Za-z_][A-Za-z0-9_]*)\s*\(")
+
+
+def _called_names(source: str) -> set:
+    """Every identifier immediately followed by `(` in a file, computed once.
+
+    find_defects asked, for every function, whether every other file calls
+    its name, with a regex search over the whole file each time: quadratic in
+    files and linear in functions, which was eleven minutes per repository on
+    a 300-file pool. One pass per file and a set lookup per function instead.
+    """
+    return set(_CALLED.findall(source))
+
+
 def _calls_name(source, name):
     return re.search(rf"\b{re.escape(name)}\s*\(", source) is not None
 
@@ -682,6 +696,7 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
             parsed[path] = (ast.parse(text), text.split("\n"), text)
         except SyntaxError:
             continue
+    called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
 
     found = []
     for path, (tree, lines, text) in parsed.items():
@@ -693,7 +708,7 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
             candidates = [
                 (other, otree, olines)
                 for other, (otree, olines, otext) in parsed.items()
-                if other != path and not is_test_path(other) and _calls_name(otext, fn.name)
+                if other != path and not is_test_path(other) and fn.name in called[other]
             ]
             if not candidates:
                 continue
@@ -813,6 +828,7 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
             parsed[path] = (ast.parse(text), text.split("\n"), text)
         except SyntaxError:
             continue
+    called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
     found = []
     for path, (tree, lines, text) in parsed.items():
         if is_test_path(path):
@@ -823,7 +839,7 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
             candidates = [
                 (other, otree, olines)
                 for other, (otree, olines, otext) in parsed.items()
-                if other != path and not is_test_path(other) and _calls_name(otext, fn.name)
+                if other != path and not is_test_path(other) and fn.name in called[other]
             ]
             if not candidates:
                 continue
@@ -905,6 +921,7 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
             parsed[path] = (ast.parse(text), text.split("\n"), text)
         except SyntaxError:
             continue
+    called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
     found = []
     for path, (tree, lines, text) in parsed.items():
         if is_test_path(path):
@@ -913,7 +930,7 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
             if fn.name.startswith("_") or fn.name in {"__init__", "main"}:
                 continue
             mids = [(o, ot, ol) for o, (ot, ol, otx) in parsed.items()
-                    if o != path and not is_test_path(o) and _calls_name(otx, fn.name)]
+                    if o != path and not is_test_path(o) and fn.name in called[o]]
             if not mids:
                 continue
             for kind in kinds:
@@ -938,7 +955,7 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
                     if g_fn is None or g_name.startswith("_"):
                         continue
                     ends = [(o, ot, ol) for o, (ot, ol, otx) in parsed.items()
-                            if o not in (path, mid_path) and not is_test_path(o) and _calls_name(otx, g_name)]
+                            if o not in (path, mid_path) and not is_test_path(o) and g_name in called[o]]
                     for end_path, end_tree, end_lines in ends:
                         ev = find_evidence(end_tree, end_lines, g_fn, g_name, mid_path, kind, detail)
                         if ev:
