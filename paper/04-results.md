@@ -67,7 +67,19 @@ The typed and attributed arms add the relation kind and its argument on top of t
 
 ## 4.5 The authoritative-callers variant
 
-*Pending: twins and defects re-run with the instruction that the shown related code is every use of the changed function. Filled in when the run completes.*
+The twins were re-run with one added sentence, identical across arms: the related code shown is every use of the changed function, and a change compatible with every use shown is not a defect. Correct still means not flagging the mutated line.
+
+| Arm | correct on twins |
+|---|---|
+| 1 diff only | 5.0% |
+| 2 evidence | 8.3% |
+| 3 topology | 1.7% |
+| 5 attributed | 0.0% |
+| 6 corrupted | 18.3% |
+| 7 random | 10.0% |
+| 8 header | 6.7% |
+
+Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 92% of cases with the evidence and in 100% with the attributed relation. The attributed arm is 8.3 points below the control [−17.0, −2.8]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The only arm above 10% is the corrupted one, where the pointer leads away from the caller. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
 
 ## 4.6 Real defects: c-CRAB
 
