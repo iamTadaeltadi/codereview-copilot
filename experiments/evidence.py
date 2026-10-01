@@ -26,9 +26,10 @@ ARM_TYPED = "4-typed"
 ARM_ATTRIBUTED = "5-attributed"
 ARM_CORRUPTED = "6-corrupted"
 ARM_RANDOM = "7-random"
+ARM_HEADER = "8-header"
 
 ARMS = (ARM_DIFF_ONLY, ARM_EVIDENCE, ARM_TOPOLOGY, ARM_TYPED,
-        ARM_ATTRIBUTED, ARM_CORRUPTED, ARM_RANDOM)
+        ARM_ATTRIBUTED, ARM_CORRUPTED, ARM_RANDOM, ARM_HEADER)
 
 # Arms that receive the identical evidence snippets. The core comparison lives
 # entirely inside this set; anything outside it varies more than structure.
@@ -127,7 +128,7 @@ def sources_for(task, token: str = "", cache_dir: str = SOURCE_CACHE) -> dict:
     return out
 
 
-def evidence_for(task, sources, radius: int = WINDOW) -> Evidence | None:
+def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = False) -> Evidence | None:
     """E for a generated cross-file defect: the definition and its caller.
 
     Known exactly by construction — the generator emitted the task only because
@@ -156,7 +157,19 @@ def evidence_for(task, sources, radius: int = WINDOW) -> Evidence | None:
         return None
 
     d_lo, d_hi, d_text = window(definition_src, defect.line, radius)
-    c_lo, c_hi, c_text = window(caller_src, int(caller_line), radius)
+    if hide_evidence:
+        # The window above the evidence line, excluding it. For a handler or a
+        # None check the call precedes the line that demonstrates the
+        # dependency, so the call stays visible and the relation does not.
+        # Kinds whose evidence line is the call itself cannot be hidden and
+        # return None, so they drop out of the hidden variant.
+        if meta.get("kind") not in ("exception_type", "none_sentinel"):
+            return None
+        c_lo, c_hi, c_text = window(caller_src, int(caller_line) - radius - 1, radius)
+        if c_hi >= int(caller_line):
+            return None
+    else:
+        c_lo, c_hi, c_text = window(caller_src, int(caller_line), radius)
 
     definition = Snippet(defect.path, d_lo, d_hi, d_text, _label(defect.path, defect.line))
     caller = Snippet(caller_path, c_lo, c_hi, c_text, _label(caller_path, int(caller_line)))
@@ -170,7 +183,7 @@ def evidence_for(task, sources, radius: int = WINDOW) -> Evidence | None:
     decoy = _decoy(definition_src, defect.path, defect.line, radius)
     snippets = (definition, caller) + ((decoy,) if decoy else ())
 
-    kind, argument = _relation_for(meta.get("kind", ""), meta.get("evidence", ""))
+    kind, argument = _relation_for(meta.get("kind", ""), meta.get("argument", ""), meta.get("evidence", ""))
     return Evidence(
         snippets=snippets,
         relations=(Relation(caller.label, definition.label, kind, argument),),
@@ -196,28 +209,26 @@ def _label(path: str, line: int) -> str:
     return f"{stem}:{line}"
 
 
-def _relation_for(mutation_kind: str, evidence_line: str):
+def _relation_for(mutation_kind: str, argument: str = "", evidence_line: str = ""):
     """The relation the caller has to the definition, and its argument.
 
-    The argument is isolated in arm 5 alone precisely because it can leak: for
-    an exception mutation it names the very type that changed.
+    The argument comes from the generator, which verified it on the caller's
+    syntax tree: the exception type a handler catches, the parameter a call
+    omits, the names an assignment unpacks into. The first version extracted
+    it with a regex for `except X`, so only exception tasks ever received one
+    and the typed and attributed arms were byte-identical on 171 of 179 tasks.
     """
     kinds = {
         "exception_type": "catches",
         "none_sentinel": "checks-return-of",
-        "empty_to_none": "iterates-return-of",
-        "tuple_order": "unpacks-return-of",
         "default_flip": "calls-without-argument",
-        "normalisation": "compares-return-of",
-        "boundary": "depends-on-bound-of",
-        "slice_bound": "depends-on-length-of",
-        "shared_mutable": "mutates-return-of",
+        "tuple_order": "unpacks-return-of",
+        "empty_to_none": "iterates-return-of",
     }
     kind = kinds.get(mutation_kind, "depends-on")
-    argument = ""
-    match = re.search(r"except\s+(\w+)", evidence_line or "")
-    if match:
-        argument = match.group(1)
+    if not argument:
+        match = re.search(r"except\s+(\w+)", evidence_line or "")
+        argument = match.group(1) if match else ""
     return kind, argument
 
 
@@ -247,25 +258,47 @@ def _to_topology(relations):
 
 
 def _shuffle_labels(relations, seed: str):
-    """Same string, same density, no recoverable information.
+    """Same string, same density, nothing true.
 
-    Node labels and the relation argument are both replaced by deterministic
-    character permutations, so token count, vocabulary and syntax survive while
-    nothing true remains.
+    Every token that could carry information is replaced by a deterministic
+    permutation of itself: the file stem, the line number, the relation kind
+    and the argument. Token count, vocabulary shape and syntax survive.
 
-    The argument must be scrambled too. Leaving it intact would let the control
-    name the very thing the defect turns on — for an exception mutation, the
-    argument *is* the answer — and the control would then carry more
-    information than the topology arm it exists to be compared against.
+    The first version scrambled only the stem. Line numbers were kept, and the
+    snippet headers in the prompt are `# path:start-end`, so a line number
+    inside a window identified its snippet and the topology was recoverable.
+    The relation kind was kept too, so the control stated a true relation
+    between recoverable endpoints — more than the topology arm it was the
+    control for.
     """
     rng = random.Random(hashlib.sha1(seed.encode()).hexdigest())
     labels = sorted({r.source for r in relations} | {r.target for r in relations})
     mapping = dict(zip(labels, [_scramble(l, rng) for l in labels]))
     return tuple(
-        Relation(mapping[r.source], mapping[r.target], r.kind,
+        Relation(mapping[r.source], mapping[r.target],
+                 _scramble_kind(r.kind, rng),
                  _scramble_word(r.argument, rng) if r.argument else "")
         for r in relations
     )
+
+
+def _scramble_number(digits: str, rng) -> str:
+    """A different number with the same digit count."""
+    if not digits.isdigit():
+        return digits
+    chars = list(digits)
+    for _ in range(8):
+        rng.shuffle(chars)
+        out = "".join(chars)
+        if out != digits and not out.startswith("0"):
+            return out
+    n = int(digits)
+    return str(n + 1 if len(str(n + 1)) == len(digits) else max(1, n - 1))
+
+
+def _scramble_kind(kind: str, rng) -> str:
+    """Letters permuted within each hyphenated part; length and hyphens kept."""
+    return "-".join(_scramble_word(part, rng) for part in kind.split("-"))
 
 
 def _scramble_word(word: str, rng) -> str:
@@ -278,7 +311,7 @@ def _scramble(label: str, rng) -> str:
     stem, _, line = label.partition(":")
     chars = list(stem)
     rng.shuffle(chars)
-    return f"{''.join(chars)}:{line}"
+    return f"{''.join(chars)}:{_scramble_number(line, rng)}"
 
 
 def _corrupt(relations, snippets, seed: str):
@@ -302,7 +335,7 @@ def _corrupt(relations, snippets, seed: str):
 
 
 def metadata_block(evidence: Evidence, arm: str, encoding: str = FLAT, seed: str = "") -> str:
-    if arm == ARM_EVIDENCE:
+    if arm in (ARM_EVIDENCE, ARM_HEADER):
         return _serialise(_shuffle_labels(evidence.relations, seed), encoding)
     if arm == ARM_TOPOLOGY:
         return _serialise(_to_topology(evidence.relations), encoding)
@@ -315,32 +348,45 @@ def metadata_block(evidence: Evidence, arm: str, encoding: str = FLAT, seed: str
     return ""
 
 
+FOREIGN_POOL = "data/foreign-snippets.jsonl"
+_FOREIGN = []
+
+
+def _foreign_pool(path: str = FOREIGN_POOL):
+    if not _FOREIGN:
+        import json as _json
+        from pathlib import Path as _Path
+        if _Path(path).is_file():
+            for line in _Path(path).read_text().splitlines():
+                if line.strip():
+                    _FOREIGN.append(_json.loads(line))
+    return _FOREIGN
+
+
 def random_evidence(task, sources, evidence: Evidence, seed: str = "",
                     radius: int = WINDOW) -> Evidence:
-    """Arm 7: the same number of snippets, none of them the ones that matter.
+    """Arm 7: the same number of snippets, from repositories not in the
+    benchmark.
 
-    Arms 2-6 vary what is *said* about the evidence. This one varies the
-    evidence itself, and it is the control the earlier cross-file run showed to
-    be indispensable: random repository code scored higher there than targeted
-    retrieval, so a study that omits it cannot tell relevance from presence.
+    The first version drew from the definition file and the caller file — the
+    two files that hold the evidence — so "random" code frequently contained
+    another call site of the same function. Measured on the retrieval study:
+    random had evidence recall as high as targeted retrieval, because the pool
+    was a dozen files and the budget returned most of it. A relevance control
+    that can contain the evidence is not a control.
 
-    Snippets are drawn from the same files at positions far from the true
-    evidence, so language, style and density match and only the content differs.
+    Snippets now come from requests, click and rich at the same window size,
+    so language, style and density match and the content cannot be relevant.
     """
-    rng = random.Random(hashlib.sha1((seed + "random").encode()).hexdigest())
-    avoid = {(s.path, s.start, s.end) for s in evidence.snippets}
-    pool = []
-    for path, text in sorted(sources.items()):
-        lines = text.split("\n")
-        for index, line in enumerate(lines, 1):
-            if not re.match(r"\s*def\s+\w+", line):
-                continue
-            lo, hi, body = window(text, index, radius)
-            if any(p == path and not (hi < a or lo > b) for p, a, b in avoid):
-                continue
-            pool.append(Snippet(path, lo, hi, body, _label(path, index)))
-
+    pool = _foreign_pool()
     if len(pool) < len(evidence.snippets):
         return evidence
-    rng.shuffle(pool)
-    return Evidence(snippets=tuple(pool[: len(evidence.snippets)]), relations=())
+    rng = random.Random(hashlib.sha1((seed + "foreign").encode()).hexdigest())
+    picked = rng.sample(pool, len(evidence.snippets))
+    return Evidence(
+        snippets=tuple(Snippet(r["path"], r["start_line"], r["end_line"], r["text"], r["label"])
+                       for r in picked),
+        relations=(),
+    )
+
+

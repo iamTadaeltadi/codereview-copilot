@@ -46,3 +46,4 @@ runs/
 .repo-cache/
 .source-cache/
 .mine-cache/
+.clone-cache/
