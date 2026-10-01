@@ -1,25 +1,28 @@
 # Results
 
-Frozen output of the experiment. Every number in the paper traces to a file here.
+Each directory holds the raw per-call records of one run and the analysis
+output computed from them. Nothing here is edited by hand.
 
-```
-gpt-4o-mini/
-  outcomes.jsonl   one row per ground-truth defect per condition: hit or miss,
-                   with the task id the row clusters on
-  reviews.jsonl    one row per review: condition, context size, findings
-                   reported, token usage and cost, parse status
-  analysis.txt     the output of experiments/analyse.py over that run
-  config.json      the model, conditions, budget, tolerance and run matrix
-```
+## Withdrawn (kept for audit; do not cite)
 
-Reproduce with:
+`crossfile/`, `crossfile-fixed/`, `structure/` — measured on the first
+generated benchmark, `data/crossfile.jsonl`. See the `WITHDRAWN.md` in each.
 
-```bash
-python experiments/run.py --limit 400 --conditions A,B,C,D,E,F,G \
-  --model openai/gpt-4o-mini --name replication
-python experiments/analyse.py runs/replication --bootstrap 3000
-```
+## Standing
 
-Raw model replies are not committed: they are large, and every claim in the
-paper is computed from `outcomes.jsonl` and `reviews.jsonl`. They are written
-to `runs/<name>/raw.jsonl` by any run.
+| Directory | What |
+|---|---|
+| `gpt-4o-mini/`, `llama-3.3-70b/`, `depth-ablation/` | c-CRAB real-defect runs. Condition B (graph) in these predates the retrieval fixes and is not reported; A, C, D, E, F, G stand. |
+| `evidence-scope.*` | anchor-vs-evidence classification of 291 c-CRAB defects, strict and loose bounds, reason per decision |
+| `search-trigger/` | the search-trigger test, 40 paired tasks |
+| `audit/` | the retrieval-comparison audit that withdrew "which code does not matter" |
+| `judge-validation-*.json` | 40 hand-labelled messages and the judge's verdicts, used to validate `mechanism_judge` |
+
+## Rebuilt benchmark (`data/crossfile-v2*.jsonl`), runs in `runs/v2*`
+
+Frozen into `results/v2-*/` when complete. Run names: `v2-tag-gpt4omini`,
+`v2-flat-gpt4omini`, `v2-tag-llama`, `v2-tag-deepseek` (base, eight arms);
+`v2-noise4-gpt4omini` (four unrelated snippets added); `v2-hidden-gpt4omini`
+(caller window above the demonstrating line); `v2twins-tag-gpt4omini`
+(matched safe twins). Analyse with `experiments/analyse_structure.py`;
+`experiments/judge_mechanism.py --strict` adds the validated judge verdict.
