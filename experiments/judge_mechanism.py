@@ -47,7 +47,9 @@ The actual reason this change is a defect:
 Review comment on that line:
 {message}
 
-Does the review comment identify the SAME SPECIFIC reason — the concrete thing the calling code does that this change breaks — rather than a generic warning that callers or existing code might be affected?
+Does the review comment name a CONCRETE fact about the calling code — the specific value, order, exception type or parameter the caller relies on — such that the comment could only have been written by someone who looked at the caller?
+
+Answer NO if the comment only says the change "may lead to unexpected behavior", "may break callers", "may affect existing code" or similar, even if it mentions the changed value. Answer NO if it reports a different problem (formatting, syntax, documentation). Answer YES only if it states what the caller specifically expects or does.
 
 Answer with exactly one word: YES or NO."""
 
@@ -56,12 +58,15 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("path")
     ap.add_argument("--model", default="deepseek/deepseek-v3.2")
+    ap.add_argument("--strict", action="store_true", help="(prompt is now strict by default; flag kept for file naming)")
     ap.add_argument("--benchmark", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
     a = ap.parse_args()
 
     tasks = {t.task_id: t for t in load_crossfile(a.benchmark)}
     rows = [json.loads(l) for l in open(a.path) if l.strip()]
     out_path = Path(a.path).with_name("structure-judged.jsonl")
+    if a.strict:
+        out_path = Path(a.path).with_name("structure-judged-strict.jsonl")
     done = {}
     if out_path.is_file():
         for l in open(out_path):

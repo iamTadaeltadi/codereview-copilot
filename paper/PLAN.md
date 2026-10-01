@@ -399,6 +399,28 @@ snippets), two-hop chains, one 2026 model. Built today: twins, noise,
 chains, balanced accuracy, typed-signature default flips, tokenizer-based
 spacing distractors.
 
+
+### Third pre-analysis note — the judge, validated, and another generator bug
+
+Forty judged messages were hand-labelled under a strict criterion: YES only
+if the message names a concrete caller-side fact (the value, order, exception
+type or parameter the caller relies on). The first judge prompt agreed 62%
+(kappa 0.25) and over-called generic hedges. The prompt now excludes "may
+lead to unexpected behaviour" explicitly; agreement 74%, kappa 0.43, and the
+judge under-calls relative to the human (6 vs 15 YES of 35), which is the
+conservative direction. On the first 46 tasks per arm it separates arms that
+see the caller from arms that do not: diff-only 2%, header-only 2%, random
+6%, evidence arms 26–36%. `mechanism_judge` (strict) is therefore reported
+beside `precise` and `correct`; the keyword rubric is reported only as the
+pre-registered primary. Labels and sample are in `results/judge-validation-*`.
+
+The hand-labelling also exposed a generator bug: five of forty messages were
+the model correctly reporting unmatched parentheses, because the tuple-swap
+mutation split `return (host, port)` at its first comma. The swap now uses
+syntax-tree column spans, every generator parse-checks the mutated line, and
+an audit dropped 7 of 79 tasks whose mutated file did not parse, from the
+benchmark and from every run file.
+
 ### What the literature sweep (June–October 2026) changes
 
 - No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487

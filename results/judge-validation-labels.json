@@ -1,0 +1,362 @@
+[
+ {
+  "i": 0,
+  "task_id": "xf::conan-io__conan::conan/internal/api/detect/detect_api.py::default_msvc_runtime::tuple_order::286",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 1,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": false,
+  "note": "generic 'calling code'"
+ },
+ {
+  "i": 2,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": "reports a syntax error \u2014 generator bug, later fixed"
+ },
+ {
+  "i": 3,
+  "task_id": "xf::dmlc__dgl::python/dgl/graphbolt/internal/utils.py::read_edges::tuple_order::168",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": "syntax error"
+ },
+ {
+  "i": 4,
+  "task_id": "xf::ansible__ansible::lib/ansible/utils/color.py::stringc::default_flip::72",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge": true,
+  "human": false,
+  "note": "generic hedge"
+ },
+ {
+  "i": 5,
+  "task_id": "xf::frappe__frappe::frappe/utils/global_search.py::get_doctypes_with_global_search::default_flip::37",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge": true,
+  "human": false,
+  "note": "generic hedge"
+ },
+ {
+  "i": 6,
+  "task_id": "xf::PostHog__posthog::products/tasks/backend/logic/services/code_usage_gate.py::usage_limit_response::none_sentinel::198",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 7,
+  "task_id": "xf::conan-io__conan::conan/api/subapi/cache.py::save::default_flip::309",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge": false,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 8,
+  "task_id": "xf::dmlc__dgl::python/dgl/transforms/functional.py::to_bidirected::default_flip::788",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 9,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 10,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 11,
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/utils/addresses.py::parse_address::tuple_order::214",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": "syntax error"
+ },
+ {
+  "i": 12,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::dotted_name::none_sentinel::68",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 13,
+  "task_id": "xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 14,
+  "task_id": "xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 15,
+  "task_id": "xf::PostHog__posthog::products/tasks/backend/logic/services/code_usage_gate.py::usage_limit_response::none_sentinel::198",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 16,
+  "task_id": "xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": false,
+  "note": "generic"
+ },
+ {
+  "i": 17,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": "syntax error"
+ },
+ {
+  "i": 18,
+  "task_id": "xf::frappe__frappe::frappe/utils/global_search.py::get_doctypes_with_global_search::default_flip::37",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge": false,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 19,
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition_feats::tuple_order::485",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": false,
+  "note": "generic"
+ },
+ {
+  "i": 20,
+  "task_id": "xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 21,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 22,
+  "task_id": "xf::conan-io__conan::conan/api/subapi/cache.py::save::default_flip::309",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": "docstring, not caller"
+ },
+ {
+  "i": 23,
+  "task_id": "xf::ansible__ansible::lib/ansible/plugins/filter/mathstuff.py::human_to_bytes::default_flip::156",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": "wrong line content"
+ },
+ {
+  "i": 24,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "judge": true,
+  "human": false,
+  "note": "about the function's own contract, not a caller"
+ },
+ {
+  "i": 25,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 26,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::dotted_name::none_sentinel::68",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "judge": true,
+  "human": false,
+  "note": "consequence named, caller not"
+ },
+ {
+  "i": 27,
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 28,
+  "task_id": "xf::conan-io__conan::conan/internal/api/detect/detect_api.py::default_msvc_runtime::tuple_order::286",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": false,
+  "note": "generic"
+ },
+ {
+  "i": 29,
+  "task_id": "xf::dask__dask::dask/dataframe/dask_expr/_expr.py::is_filter_pushdown_available::default_flip::3975",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge": false,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 30,
+  "task_id": "xf::frappe__frappe::frappe/installer.py::update_site_config::default_flip::799",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge": false,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 31,
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition::default_flip::286",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge": true,
+  "human": false,
+  "note": "generic"
+ },
+ {
+  "i": 32,
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_missing_parameters::exception_type::318",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 33,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::update_progress_bar::default_flip::648",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 34,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::validate_email_address::default_flip::183",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge": true,
+  "human": false,
+  "note": "consequence without caller"
+ },
+ {
+  "i": 35,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/systemd/installer.py::uninstall_service::tuple_order::128",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge": false,
+  "human": false,
+  "note": "syntax error"
+ },
+ {
+  "i": 36,
+  "task_id": "xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": ""
+ },
+ {
+  "i": 37,
+  "task_id": "xf::conan-io__conan::conan/internal/model/conanconfig.py::loadconanconfig_yml::tuple_order::36",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 38,
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/api/utils.py::resolve_content_files::tuple_order::276",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "judge": true,
+  "human": true,
+  "note": ""
+ },
+ {
+  "i": 39,
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::update_progress_bar::default_flip::648",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge": false,
+  "human": false,
+  "note": ""
+ }
+]
