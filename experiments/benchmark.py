@@ -318,6 +318,8 @@ def load_crossfile(path) -> list[BenchmarkTask]:
                         "caller_path": row["caller_path"],
                         "caller_line": row["caller_line"],
                         "evidence": row["evidence"],
+                        "argument": row.get("argument", ""),
+                        "verified": row.get("verified", "regex"),
                         # Lines the benchmark knows are harmless. Flagging one is a
                         # confirmed false positive, which no annotated benchmark can
                         # tell you: there, an unmatched finding may simply have found

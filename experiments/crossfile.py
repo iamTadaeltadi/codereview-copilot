@@ -50,6 +50,7 @@ class CrossFileDefect:
     why: str
     evidence: str
     distractors: tuple = field(default_factory=tuple)
+    argument: str = ""
 
     @property
     def path(self) -> str:
@@ -387,8 +388,28 @@ DISTRACTORS = (
 )
 
 
+def _still_parses(lines, index, replacement):
+    """Apply one rewrite to a copy of the file and check it still parses.
+
+    The first version of the quote-style rewrite matched the empty string
+    between two of the three quotes in a docstring and produced ''" — a syntax
+    error in 304 hunks across 145 of 204 tasks. A model that flagged it was
+    right, and the scorer counted it as a confirmed false positive. Every
+    distractor is now applied to the whole file and rejected unless the file
+    still parses; a rewrite that changes behaviour cannot be excluded this way,
+    but one that breaks the file can.
+    """
+    trial = list(lines)
+    trial[index] = replacement
+    try:
+        ast.parse("\n".join(trial))
+    except SyntaxError:
+        return False
+    return True
+
+
 def find_distractors(lines, exclude_line, wanted=3, window=60):
-    """Harmless rewrites on other lines near the defect."""
+    """Harmless rewrites on other lines near the defect, each parse-checked."""
     out = []
     lo = max(0, exclude_line - window)
     hi = min(len(lines), exclude_line + window)
@@ -397,11 +418,14 @@ def find_distractors(lines, exclude_line, wanted=3, window=60):
         if lineno == exclude_line:
             continue
         original = lines[index]
-        if not original.strip() or original.strip().startswith("#"):
+        stripped = original.strip()
+        if not stripped or stripped.startswith("#"):
+            continue
+        if '"""' in original or "'''" in original:
             continue
         for rewrite in DISTRACTORS:
             changed = rewrite(original)
-            if changed and changed != original:
+            if changed and changed != original and _still_parses(lines, index, changed):
                 out.append(Change(lineno, original, changed, is_defect=False))
                 break
         if len(out) >= wanted:
@@ -409,9 +433,211 @@ def find_distractors(lines, exclude_line, wanted=3, window=60):
     return tuple(out)
 
 
-def find_defects(sources, max_per_repo: int = 3):
-    """Yield defects where a mutation in one file breaks a demonstrated
-    assumption made in another."""
+# --- resolution and verification -------------------------------------------
+# The first version located "evidence" with a regular expression within eight
+# lines of any call to a function of the same name, in any file. No import was
+# resolved and no structure was checked, so a mutation to `auth` was recorded
+# as demonstrated by `creds = RemoteCredentials(...)`. Measured after the fact:
+# the evidence line actually called the mutated function in 65 of 65
+# default_flip tasks and in 18 of 139 tasks of every other kind.
+#
+# Every kind below is now verified on the caller's syntax tree: the call must
+# resolve to the definition through an import, and the relationship the
+# mutation breaks must be present as a node, not as a pattern of characters.
+# Kinds for which no such check exists are not generated.
+
+VERIFIED_KINDS = (
+    "exception_type",
+    "none_sentinel",
+    "default_flip",
+    "tuple_order",
+    "empty_to_none",
+)
+
+
+def _parents(tree):
+    out = {}
+    for node in ast.walk(tree):
+        for child in ast.iter_child_nodes(node):
+            out[child] = node
+    return out
+
+
+def _enclosing(node, parents, kinds=(ast.FunctionDef, ast.AsyncFunctionDef)):
+    while node in parents:
+        node = parents[node]
+        if isinstance(node, kinds):
+            return node
+    return None
+
+
+def _resolves(tree, name, definition_path):
+    """Does this module import `name`, or the module that defines it?
+
+    Returns the alias under which the module is bound when it is imported as a
+    module, or True for a bare-name import, or None.
+    """
+    stem = definition_path.rsplit("/", 1)[-1].removesuffix(".py")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.ImportFrom):
+            if any(a.name == name for a in node.names):
+                return True
+            if node.module and node.module.split(".")[-1] == stem:
+                if any(a.name == "*" for a in node.names):
+                    return True
+                if any(a.name == stem for a in node.names):
+                    return next(a.asname or a.name for a in node.names if a.name == stem)
+        elif isinstance(node, ast.Import):
+            for a in node.names:
+                if a.name.split(".")[-1] == stem:
+                    return a.asname or a.name.split(".")[-1]
+    return None
+
+
+def _calls(tree, name, bound):
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        f = node.func
+        if bound is True and isinstance(f, ast.Name) and f.id == name:
+            yield node
+        elif isinstance(bound, str) and isinstance(f, ast.Attribute) and f.attr == name \
+                and isinstance(f.value, ast.Name) and f.value.id == bound:
+            yield node
+
+
+def _names_in(node):
+    if isinstance(node, ast.Name):
+        return {node.id}
+    if isinstance(node, ast.Tuple):
+        return {e.id for e in node.elts if isinstance(e, ast.Name)}
+    return set()
+
+
+def _assigned_to(call, parents):
+    """The variable a call's result is bound to, if it is bound to exactly one."""
+    parent = parents.get(call)
+    if isinstance(parent, ast.Assign) and len(parent.targets) == 1 and isinstance(parent.targets[0], ast.Name):
+        return parent.targets[0].id
+    if isinstance(parent, (ast.AnnAssign,)) and isinstance(parent.target, ast.Name):
+        return parent.target.id
+    return None
+
+
+def _verify_exception_type(fn, call, parents, lines, detail):
+    old, new = detail["old"], detail["new"]
+    node = call
+    while node in parents:
+        node = parents[node]
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return None
+        if isinstance(node, ast.Try):
+            for h in node.handlers:
+                caught = _names_in(h.type) if h.type is not None else set()
+                if old in caught and new not in caught:
+                    return h.lineno, old
+            return None
+    return None
+
+
+def _verify_none_sentinel(fn, call, parents, lines, detail):
+    owner = _enclosing(call, parents)
+    if owner is None:
+        return None
+    var = _assigned_to(call, parents)
+    for node in ast.walk(owner):
+        if not isinstance(node, ast.Compare) or len(node.comparators) != 1:
+            continue
+        if not isinstance(node.comparators[0], ast.Constant) or node.comparators[0].value is not None:
+            continue
+        if not isinstance(node.ops[0], (ast.Is, ast.IsNot, ast.Eq, ast.NotEq)):
+            continue
+        left = node.left
+        if left is call or (var and isinstance(left, ast.Name) and left.id == var):
+            return node.lineno, "None"
+    return None
+
+
+def _verify_default_flip(fn, call, parents, lines, detail):
+    param, index = detail["param"], detail["index"]
+    if any(k.arg == param for k in call.keywords):
+        return None
+    if any(k.arg is None for k in call.keywords) or any(isinstance(a, ast.Starred) for a in call.args):
+        return None
+    if len(call.args) > index:
+        return None
+    return call.lineno, param
+
+
+def _verify_tuple_order(fn, call, parents, lines, detail):
+    parent = parents.get(call)
+    if isinstance(parent, ast.Assign) and len(parent.targets) == 1 and isinstance(parent.targets[0], ast.Tuple):
+        names = [e.id for e in parent.targets[0].elts if isinstance(e, ast.Name)]
+        if len(names) >= 2 and len(names) == len(parent.targets[0].elts):
+            return parent.lineno, ",".join(names)
+    return None
+
+
+def _verify_empty_to_none(fn, call, parents, lines, detail):
+    owner = _enclosing(call, parents)
+    if owner is None:
+        return None
+    var = _assigned_to(call, parents)
+    def is_result(node):
+        return node is call or (var and isinstance(node, ast.Name) and node.id == var)
+    for node in ast.walk(owner):
+        if isinstance(node, (ast.For, ast.comprehension)) and is_result(node.iter):
+            return node.lineno if isinstance(node, ast.For) else owner.lineno, "iterates"
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "len" \
+                and node.args and is_result(node.args[0]):
+            return node.lineno, "len"
+    return None
+
+
+VERIFIERS = {
+    "exception_type": _verify_exception_type,
+    "none_sentinel": _verify_none_sentinel,
+    "default_flip": _verify_default_flip,
+    "tuple_order": _verify_tuple_order,
+    "empty_to_none": _verify_empty_to_none,
+}
+
+
+def _detail(kind, fn, before, after):
+    """What the verifier needs to know about the mutation, from the lines."""
+    if kind == "exception_type":
+        m = re.search(r"raise\s+(\w+)", before); n = re.search(r"raise\s+(\w+)", after)
+        return {"old": m.group(1), "new": n.group(1)} if m and n else None
+    if kind == "default_flip":
+        defaults = fn.args.defaults
+        args = fn.args.args[len(fn.args.args) - len(defaults):]
+        for arg, default in zip(args, defaults):
+            if isinstance(default, ast.Constant) and isinstance(default.value, bool):
+                if f"{arg.arg}={default.value}" in before and f"{arg.arg}={not default.value}" in after:
+                    return {"param": arg.arg, "index": fn.args.args.index(arg)}
+        return None
+    return {}
+
+
+def find_evidence(caller_tree, caller_lines, fn, name, definition_path, kind, detail):
+    """The line in the caller that demonstrates the dependency, verified on
+    the syntax tree. Returns (lineno, text, argument) or None."""
+    bound = _resolves(caller_tree, name, definition_path)
+    if bound is None:
+        return None
+    parents = _parents(caller_tree)
+    verify = VERIFIERS[kind]
+    for call in _calls(caller_tree, name, bound):
+        found = verify(fn, call, parents, caller_lines, detail)
+        if found:
+            lineno, argument = found
+            return lineno, caller_lines[lineno - 1], argument
+    return None
+
+
+def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distractors: int = 2):
+    """Yield defects where a mutation in one file breaks an assumption that a
+    different file demonstrably makes, verified on that file's syntax tree."""
     parsed = {}
     for path, text in sources.items():
         if not path.endswith(".py"):
@@ -428,28 +654,31 @@ def find_defects(sources, max_per_repo: int = 3):
         for fn in _functions(tree, lines):
             if fn.name.startswith("_") or fn.name in {"__init__", "main"}:
                 continue
-
-            callers = [
-                (other, otext)
-                for other, (_, _, otext) in parsed.items()
+            candidates = [
+                (other, otree, olines)
+                for other, (otree, olines, otext) in parsed.items()
                 if other != path and not is_test_path(other) and _calls_name(otext, fn.name)
             ]
-            if not callers:
+            if not candidates:
                 continue
-
-            for kind, mutate in MUTATIONS.items():
-                result = mutate(fn, lines)
+            for kind in kinds:
+                result = MUTATIONS[kind](fn, lines)
                 if not result:
                     continue
-                lineno, before, after, why, evidence_pattern = result
-
-                for caller_path, caller_text in callers:
-                    evidence = _find_evidence(caller_text, fn.name, evidence_pattern)
+                lineno, before, after, why, _pattern = result
+                detail = _detail(kind, fn, before, after)
+                if detail is None:
+                    continue
+                for caller_path, caller_tree, caller_lines in candidates:
+                    evidence = find_evidence(caller_tree, caller_lines, fn, fn.name, path, kind, detail)
                     if not evidence:
                         continue
+                    distractors = find_distractors(lines, lineno)
+                    if len(distractors) < min_distractors:
+                        break
                     found.append(
                         CrossFileDefect(
-                            defect_id=f"{path}::{fn.name}::{kind}",
+                            defect_id=f"{path}::{fn.name}::{kind}::{lineno}",
                             kind=kind,
                             definition_path=path,
                             definition_name=fn.name,
@@ -461,7 +690,8 @@ def find_defects(sources, max_per_repo: int = 3):
                             after=after,
                             why=why,
                             evidence=evidence[1].strip(),
-                            distractors=find_distractors(lines, lineno),
+                            distractors=distractors,
+                            argument=evidence[2],
                         )
                     )
                     break
@@ -471,14 +701,12 @@ def find_defects(sources, max_per_repo: int = 3):
 
 
 def _find_evidence(caller_text, name, pattern):
-    """Locate the line in the caller that demonstrates the dependency."""
+    """The regex locator the first benchmark used. Kept only so the old
+    data can be re-examined; find_defects no longer calls it."""
     lines = caller_text.split("\n")
     call_lines = [i for i, l in enumerate(lines) if re.search(rf"\b{re.escape(name)}\s*\(", l)]
-    if not call_lines:
-        return None
     for anchor in call_lines:
-        window = range(max(0, anchor - 3), min(len(lines), anchor + 8))
-        for i in window:
+        for i in range(max(0, anchor - 3), min(len(lines), anchor + 8)):
             if re.search(pattern, lines[i]):
                 return (i + 1, lines[i])
     return None
