@@ -700,6 +700,135 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
     return found
 
 
+# --- safe twins ------------------------------------------------------------
+# Every task above is a defect, and the mutated line looks the same whether or
+# not a caller depends on it: `return None` -> `return -1` is a defect for a
+# caller that checks `is None` and harmless for one that does not. A reviewer
+# that flags every such change scores at ceiling on hit without ever reading a
+# caller. Measured on the rebuilt benchmark: 97% hit for the diff alone, and a
+# blind judge accepted the diff-only mechanism statement 69% of the time,
+# because the mechanism is inferable from the mutation kind.
+#
+# A twin is the same surface mutation where the shown caller is verifiably
+# robust to it. The diff cannot tell the two apart; only the caller can. The
+# task becomes a discrimination, which is the first form of it on which
+# evidence, and therefore structure, can matter.
+
+TWIN_KINDS = ("exception_type", "default_flip")
+
+
+def _robust_exception_type(fn, call, parents, lines, detail):
+    old, new = detail["old"], detail["new"]
+    node = call
+    while node in parents:
+        node = parents[node]
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            return None
+        if isinstance(node, ast.Try):
+            for h in node.handlers:
+                if h.type is None:
+                    return h.lineno, "bare-except"
+                caught = _names_in(h.type)
+                if old in caught and new in caught:
+                    return h.lineno, f"{old},{new}"
+                if caught & {"Exception", "BaseException"}:
+                    return h.lineno, "Exception"
+            return None
+    return None
+
+
+def _robust_default_flip(fn, call, parents, lines, detail):
+    param, index = detail["param"], detail["index"]
+    if any(k.arg == param for k in call.keywords):
+        return call.lineno, param
+    if len(call.args) > index and not any(isinstance(a, ast.Starred) for a in call.args):
+        return call.lineno, param
+    return None
+
+
+ROBUST = {"exception_type": _robust_exception_type, "default_flip": _robust_default_flip}
+
+
+def find_robust_caller(caller_tree, caller_lines, fn, name, definition_path, kind, detail):
+    bound = _resolves(caller_tree, name, definition_path)
+    if bound is None:
+        return None
+    parents = _parents(caller_tree)
+    for call in _calls(caller_tree, name, bound):
+        found = ROBUST[kind](fn, call, parents, caller_lines, detail)
+        if found:
+            lineno, argument = found
+            return lineno, caller_lines[lineno - 1], argument
+    return None
+
+
+def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors: int = 2):
+    """Mutations that look like the defects above but are safe for the shown
+    caller, with no caller in the pool that depends on the old behaviour.
+
+    Absence of a dependent caller is checked against the pool, not the
+    repository; a dependent caller outside the pool would make the twin a
+    defect. That is a stated limitation of every twin."""
+    parsed = {}
+    for path, text in sources.items():
+        if not path.endswith(".py"):
+            continue
+        try:
+            parsed[path] = (ast.parse(text), text.split("\n"), text)
+        except SyntaxError:
+            continue
+    found = []
+    for path, (tree, lines, text) in parsed.items():
+        if is_test_path(path):
+            continue
+        for fn in _functions(tree, lines):
+            if fn.name.startswith("_") or fn.name in {"__init__", "main"}:
+                continue
+            candidates = [
+                (other, otree, olines)
+                for other, (otree, olines, otext) in parsed.items()
+                if other != path and not is_test_path(other) and _calls_name(otext, fn.name)
+            ]
+            if not candidates:
+                continue
+            for kind in kinds:
+                result = MUTATIONS[kind](fn, lines)
+                if not result:
+                    continue
+                lineno, before, after, why, _ = result
+                detail = _detail(kind, fn, before, after)
+                if detail is None:
+                    continue
+                if any(find_evidence(ct, cl, fn, fn.name, path, kind, detail) for _, ct, cl in candidates):
+                    continue
+                for caller_path, caller_tree, caller_lines in candidates:
+                    robust = find_robust_caller(caller_tree, caller_lines, fn, fn.name, path, kind, detail)
+                    if not robust:
+                        continue
+                    distractors = find_distractors(lines, lineno)
+                    if len(distractors) < min_distractors:
+                        break
+                    found.append(CrossFileDefect(
+                        defect_id=f"{path}::{fn.name}::{kind}::{lineno}::safe",
+                        kind=kind, definition_path=path, definition_name=fn.name,
+                        definition_line=lineno, caller_path=caller_path, caller_name=fn.name,
+                        caller_line=robust[0], before=before, after=after,
+                        why=f"safe for this caller: it {_robust_reason(kind, robust[2])}",
+                        evidence=robust[1].strip(), distractors=distractors, argument=robust[2],
+                    ))
+                    break
+                if len(found) >= max_per_repo:
+                    return found
+    return found
+
+
+def _robust_reason(kind, argument):
+    if kind == "exception_type":
+        return {"bare-except": "catches every exception", "Exception": "catches Exception"}.get(
+            argument, f"catches both {argument.replace(',', ' and ')}")
+    return f"passes {argument} explicitly, so the default is never used"
+
+
 def _find_evidence(caller_text, name, pattern):
     """The regex locator the first benchmark used. Kept only so the old
     data can be re-examined; find_defects no longer calls it."""

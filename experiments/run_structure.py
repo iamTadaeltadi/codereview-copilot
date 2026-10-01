@@ -173,6 +173,9 @@ def main() -> int:
             reported = [ReportedFinding(f.finding_id, f.path, f.line, f.message) for f in findings]
             sc = score_review(task, arm, reported, tolerance=0)
             on_defect = [f.message for f in findings if f.line == task.defects[0].line]
+            is_defect = bool(task.metadata.get("is_defect", True))
+            correct = sc.hit if is_defect else not sc.hit
+            correct_precise = sc.precise if is_defect else (not sc.hit and sc.flagged_distractors == 0)
             mech = mechanism_correct(task.metadata.get("kind", ""), task.metadata.get("argument", ""),
                                      on_defect) if sc.hit else (False if findings else None)
             spent += c.usage.cost_usd
@@ -185,6 +188,7 @@ def main() -> int:
                     "flagged_distractors": sc.flagged_distractors,
                     "findings": len(findings), "parse_failed": failed,
                     "mechanism": mech, "message": " | ".join(on_defect)[:600],
+                    "is_defect": is_defect, "correct": correct, "correct_precise": correct_precise,
                     "finish_reason": getattr(c, "finish_reason", None),
                     "hide_evidence": a.hide_evidence, "benchmark": os.path.basename(a.benchmark),
                     "usage": c.usage.as_dict(),

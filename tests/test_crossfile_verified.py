@@ -160,3 +160,39 @@ class EndToEndTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class SafeTwinTests(unittest.TestCase):
+    """A twin is the same mutation where the shown caller is robust to it and
+    no caller in the pool depends on the old behaviour."""
+
+    def _twins(self, caller):
+        from experiments.crossfile import find_twins
+        return find_twins({"pkg/m.py": DEF, "pkg/c.py": caller}, min_distractors=0)
+
+    def test_a_caller_that_catches_both_types_makes_a_safe_twin(self):
+        t = self._twins("from pkg.m import to_text\ndef g(x):\n    try:\n        to_text(x)\n    except (TypeError, ValueError):\n        pass\n")
+        self.assertEqual([(d.kind, d.argument) for d in t], [("exception_type", "TypeError,ValueError")])
+        self.assertTrue(t[0].defect_id.endswith("::safe"))
+        self.assertIn("safe for this caller", t[0].why)
+
+    def test_a_caller_that_passes_the_keyword_makes_a_safe_twin(self):
+        t = self._twins("from pkg.m import lookup\ndef g(k):\n    return lookup(k, strict=True)\n")
+        self.assertEqual([(d.kind, d.argument) for d in t], [("default_flip", "strict")])
+
+    def test_no_twin_when_any_pool_caller_depends_on_the_old_behaviour(self):
+        caller = ("from pkg.m import lookup\ndef g(k):\n    return lookup(k, strict=True)\n"
+                  "def h(k):\n    return lookup(k)\n")
+        self.assertEqual(self._twins(caller), [])
+
+    def test_no_twin_when_the_caller_catches_only_the_old_type(self):
+        t = self._twins("from pkg.m import to_text\ndef g(x):\n    try:\n        to_text(x)\n    except TypeError:\n        pass\n")
+        self.assertEqual(t, [])
+
+    def test_twins_and_defects_share_the_surface_mutation(self):
+        from experiments.crossfile import find_defects
+        d = find_defects({"pkg/m.py": DEF, "pkg/c.py": "from pkg.m import lookup\ndef g(k):\n    return lookup(k)\n"}, min_distractors=0)
+        t = self._twins("from pkg.m import lookup\ndef g(k):\n    return lookup(k, strict=False)\n")
+        dd = next(x for x in d if x.kind == "default_flip")
+        self.assertEqual((dd.before, dd.after), (t[0].before, t[0].after))

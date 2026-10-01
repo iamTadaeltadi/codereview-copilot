@@ -319,6 +319,7 @@ def load_crossfile(path) -> list[BenchmarkTask]:
                         "caller_line": row["caller_line"],
                         "evidence": row["evidence"],
                         "argument": row.get("argument", ""),
+                        "is_defect": bool(row.get("is_defect", True)),
                         "verified": row.get("verified", "regex"),
                         # Lines the benchmark knows are harmless. Flagging one is a
                         # confirmed false positive, which no annotated benchmark can
