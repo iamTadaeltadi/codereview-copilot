@@ -1,0 +1,33 @@
+file:                 results/v2-noise4-gpt4omini/structure-judged-strict.jsonl
+model:                openai/gpt-4o-mini
+encoding:             tag
+metric:               precise
+arms:                 2-evidence, 3-topology, 5-attributed, 6-corrupted
+tasks compared:       232
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metric  mean_precise  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------
+2-evidence      232       232         0.539      1.87      0.71           0          7185     0.00033
+3-topology      232       232         0.560      1.94      0.74           0          7153     0.00028
+5-attributed    232       232         0.638      1.79      0.59           0          7185     0.00022
+6-corrupted     232       232         0.448      2.15      0.89           0          7183     0.00023
+
+comparisons (3 in the Holm family)
+
+primary: 3-topology minus 2-evidence  (metric=precise, n=232, skipped=0)
+  difference   0.022   repo-clustered 95% CI [ -0.030,   0.073]   task-clustered 95% CI [ -0.026,   0.069]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=20 (a right, b wrong)  c=15 (a wrong, b right)  exact p=0.4996  Holm-adjusted p=0.4996
+
+secondary: 6-corrupted minus 2-evidence  (metric=precise, n=232, skipped=0)
+  difference  -0.091   repo-clustered 95% CI [ -0.143,  -0.036]   task-clustered 95% CI [ -0.147,  -0.034]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=12 (a right, b wrong)  c=33 (a wrong, b right)  exact p=0.0025  Holm-adjusted p=0.0066
+
+extra 1: 5-attributed minus 2-evidence  (metric=precise, n=232, skipped=0)
+  difference   0.099   repo-clustered 95% CI [  0.033,   0.166]   task-clustered 95% CI [  0.039,   0.159]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=38 (a right, b wrong)  c=15 (a wrong, b right)  exact p=0.0022  Holm-adjusted p=0.0066

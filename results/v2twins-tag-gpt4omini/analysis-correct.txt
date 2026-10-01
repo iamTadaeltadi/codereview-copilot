@@ -1,0 +1,57 @@
+file:                 results/v2twins-tag-gpt4omini/structure-judged-strict.jsonl
+model:                openai/gpt-4o-mini
+encoding:             tag
+metric:               correct
+arms:                 1-diff, 2-evidence, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
+tasks compared:       60
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------
+1-diff           60        60         0.017      1.60      0.55           0          1237     0.00012
+2-evidence       60        60         0.017      1.83      0.62           0          4365     0.00024
+3-topology       60        60         0.000      1.80      0.52           0          4332     0.00022
+4-typed          60        60         0.000      2.08      0.73           0          4343     0.00021
+5-attributed     60        60         0.000      1.62      0.37           0          4365     0.00020
+6-corrupted      60        60         0.133      2.00      0.67           0          4365     0.00020
+7-random         60        60         0.000      1.65      0.65           0          3531     0.00020
+8-header         60        60         0.067      1.57      0.50           0          1546     0.00013
+
+arm            n_defect n_twin  on defects  on twins  balanced
+1-diff                0     60         nan     0.017       nan
+2-evidence            0     60         nan     0.017       nan
+3-topology            0     60         nan     0.000       nan
+4-typed               0     60         nan     0.000       nan
+5-attributed          0     60         nan     0.000       nan
+6-corrupted           0     60         nan     0.133       nan
+7-random              0     60         nan     0.000       nan
+8-header              0     60         nan     0.067       nan
+
+comparisons (5 in the Holm family)
+
+primary: 2-evidence minus 1-diff  (metric=correct, n=60, skipped=0)
+  difference   0.000   repo-clustered 95% CI [  0.000,   0.000]   task-clustered 95% CI [  0.000,   0.000]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=0 (a right, b wrong)  c=0 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+
+secondary: 3-topology minus 2-evidence  (metric=correct, n=60, skipped=0)
+  difference  -0.017   repo-clustered 95% CI [ -0.060,   0.000]   task-clustered 95% CI [ -0.050,   0.000]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=0 (a right, b wrong)  c=1 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+
+extra 1: 5-attributed minus 2-evidence  (metric=correct, n=60, skipped=0)
+  difference  -0.017   repo-clustered 95% CI [ -0.060,   0.000]   task-clustered 95% CI [ -0.050,   0.000]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=0 (a right, b wrong)  c=1 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+
+extra 2: 7-random minus 1-diff  (metric=correct, n=60, skipped=0)
+  difference  -0.017   repo-clustered 95% CI [ -0.060,   0.000]   task-clustered 95% CI [ -0.050,   0.000]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=0 (a right, b wrong)  c=1 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+
+extra 3: 8-header minus 1-diff  (metric=correct, n=60, skipped=0)
+  difference   0.050   repo-clustered 95% CI [  0.000,   0.118]   task-clustered 95% CI [  0.000,   0.117]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=3 (a right, b wrong)  c=0 (a wrong, b right)  exact p=0.2500  Holm-adjusted p=1.0000
