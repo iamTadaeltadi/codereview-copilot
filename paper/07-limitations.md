@@ -1,75 +1,21 @@
 # Limitations and threats to validity
 
-## The graph is sparse, not repository-wide
+**The defects are generated, and the generator conditions on what it later evaluates.** A task exists only when the caller's syntax tree demonstrates the dependency the mutation breaks. That makes the evidence exact, which is what the design needs, and it also means every defect is one for which a two-file evidence set exists by construction. Real cross-file defects frequently arrive through channels a static call graph does not represent: dynamic dispatch, event listeners, dependency injection, framework lifecycle hooks, reflection, schema mismatches, configuration. Nothing here speaks to those. The claim is conditional on the dependency being statically expressible, and the 96 mined regression candidates we release are the external check we have not yet run.
 
-Graphs were built from the files each diff touches plus one import hop, not
-from whole repositories. This was forced by bandwidth: measured on the machine
-used for this study, five 60-second downloads returned between 232KB and 1.3MB
-and every one timed out, and a 153MB repository stalled at 5.1MB.
+**Five mutation kinds, and the diff may still give the defect away.** Four kinds from the first version were dropped because no structural verifier exists for them. Of the five that remain, each changes one line in a way a careful reader of the diff alone may find odd: a boolean default flipped in a one-line signature change, a `None` replaced by `-1`. The distractors are harmless by construction and parse-checked, but they are cosmetic, and a semantic hunk among cosmetic ones is conspicuous. We report the diff-only hit rate for this reason. The mechanism metric exists because hit rate is not where the evidence should matter.
 
-**This is the most serious threat to the central claim.** Condition B retrieves
-from a neighbourhood rather than from everything, so our result speaks to
-retrieval over changed files and their immediate imports. One import hop is
-retained deliberately, because cross-file structure is the only thing a graph
-offers over a text search and a graph of the diff alone would have no cross-file
-edges left to compare. The implementation supports whole-repository graphs
-(`--full-repo`), and replicating on a faster connection is the obvious next
-step.
+**The mechanism metric is a keyword rubric.** It asks whether the message on the defect line contains the name of what the caller depends on and a word that refers to the caller. A correct explanation phrased without those words fails it; an incorrect one that happens to contain them passes. We chose it over a model judge because a model-assigned label would inherit the weakness this paper criticises elsewhere, and because every decision it makes can be checked by reading the message. The rubric and all scored messages are released. A human-coded sample would strengthen it and has not been done.
 
-## Ground truth is partly model-generated
+**Python only.** The generator, the import resolution and the verifiers are written against Python's `ast`. The project's graph builder parses four languages; the benchmark exercises one.
 
-The comment classifications and the executable tests come from GPT-5.2 inside
-the c-CRAB pipeline. This is not purely human ground truth.
+**Two models, neither frontier.** The models are chosen for cost. A model that reasons over structure differently could change the primary result, and the known dependence of graph reasoning on encoding [arXiv:2511.10234] means the three serialisations here do not exhaust the space.
 
-It is materially stronger than a purely model-labelled benchmark: every retained
-label is backed by a test that was **executed** and observed to fail before the
-fix and pass after. That is a machine-checked fact rather than a model's
-opinion, and it is a higher bar than AACR-Bench, where 1,114 of 1,505 ground
-truth comments are model-generated and the authors concede that "constructing a
-fully comprehensive Ground Truth remains a formidable challenge".
+**The evidence window is twenty-five lines.** The relation the metadata states is, for three of the five kinds, visible within the caller window by construction, since the demonstrating line is the call. The hidden-evidence variant removes it for the two kinds where that is possible. For the other three, a null on the primary comparison cannot distinguish "structure is not used" from "structure restates what is visible".
 
-Residual risk: the classifier may systematically mislabel some defect classes,
-and the generated tests may verify something adjacent to what the reviewer meant.
+**The pools are samples.** Each repository contributes up to three hundred production files chosen at random, not the whole repository, so a caller that exists in the repository may be absent from the pool and a function that is called in many places may be represented by one. Yield per repository varies from one to eight for this reason.
 
-## Localisation, not resolution
+**Statistical power.** Pairing across arms and the McNemar test give the design its power; the repository-clustered interval is wider than the task-clustered one because tasks within a repository share files. The exploratory family is Holm-adjusted. A null with an interval of several points in either direction is a bound, not a demonstration of equivalence.
 
-We measure whether a review points at the file and line of a demonstrated
-defect. We do not measure whether acting on the review fixes it. c-CRAB's own
-endpoint is resolution, which requires per-instance containers; only 30 of the
-339 images are published, covering 45 defects, at which size the minimum
-detectable effect is roughly 25 points. Localisation is the weaker endpoint and
-we report it as such.
+**The history of this study.** Six claims were made and withdrawn during this work, each on the project's own evidence: that benchmarks cannot contain cross-file defects; that a fault-location oracle was an evidence oracle; that random context beat graph retrieval; that retrieval relevance was undetectable; that the retrievers were comparable in what they retrieved; and, last, that the first generated benchmark measured what it claimed. The last is the largest. Its distractors did not parse in 145 of 204 tasks, its evidence demonstrated the dependency in roughly a third of tasks, and its diff-only arm found the defect line 93% of the time. Every number from it is withdrawn and the files are kept with a notice. The results in this paper come from the second benchmark, generated after those faults were found, with a test for each.
 
-## Single language in practice
-
-The parser reads four languages, but c-CRAB's instances are Python-only, so the
-cross-language claim is not tested here. Extending to AACR-Bench's ten languages
-would cover four of them without new extraction rules.
-
-## Statistical power
-
-The minimum detectable lift at 80% power is approximately 7 percentage points.
-A real benefit smaller than that would be reported as not distinguishable. This
-cuts both ways and is why no null result here is stated as "no difference".
-
-## Matching tolerance
-
-A finding matches a defect within 5 lines in the same file. Too tight
-under-counts reviews that identify the right problem at a neighbouring line; too
-loose credits a review for finding something else nearby. The tolerance is a
-parameter and results at other values should be reported.
-
-## Author of the system under test
-
-The graph retrieval implementation is our own. A negative result must therefore
-be attributable to graph retrieval as a technique rather than to a private
-deviation. The retriever's ego-graph semantics are verified against networkx's
-own shortest-path computation: the depth-*k* neighbourhood is exactly the set of
-nodes within *k* undirected hops, and each reported depth is the true
-shortest-path length.
-
-## Single gateway
-
-Both model families are reached through OpenRouter, which routes to backends we
-cannot observe. Model strings and generation settings are recorded with each
-run.
+**Scope of the agent result.** The search-trigger measurement is on a bare model with two tools and no harness. Harnessed products explore unprompted [arXiv:2607.16740]; the result says nothing about them.
