@@ -421,6 +421,45 @@ syntax-tree column spans, every generator parse-checks the mutated line, and
 an audit dropped 7 of 79 tasks whose mutated file did not parse, from the
 benchmark and from every run file.
 
+
+### First read of the rebuilt benchmark — 1 October 2026, replication partial
+
+226–230 paired defects per run. Judge = validated strict judge, misses count as false.
+
+| Comparison | gpt tag | gpt flat | deepseek tag | llama tag |
+|---|---|---|---|---|
+| **pre-registered primary**, keyword rubric, 3 vs 2 | −0.9 [−5.3, +3.2] | — | — | pending |
+| strict judge, 3-topology vs 2-control | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.3 [+4.2, +18.3]** | pending |
+| strict judge, 6-corrupted vs 2-control | 0.0 [−4.8, +4.9] | +2.7 [−2.1, +7.2] | **+13.0 [+7.3, +18.6]** | pending |
+| strict judge, 2-evidence vs 7-random (foreign) | **+11.9** | **+13.7** | **+35.2** | pending |
+| strict judge, 2-evidence vs 8-header | **+13.7** | **+16.4** | **+37.0** | pending |
+| precise, 3-topology vs 2-control | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.6 [+4.0, +14.7]** | pending |
+| precise, 2-evidence vs 1-diff | **−23.5** | −18.5 | −19.1 | pending |
+| hit, 1-diff | 97.8% | — | — | — |
+
+Readings, provisional:
+- **Context helps on explanation, with the relevance control done right.** The
+  real caller beats foreign code at equal budget by 12–35 points on the judge;
+  the header alone adds nothing. This is the first positive context result in
+  the project that survives its controls.
+- **Bare topology helps on precision in all three runs (~+10)**, and on the
+  judge under the tag encoding for both models but not under flat. Encoding
+  dependence is real and is reported as such.
+- **Showing the snippets makes the model noisier**: precise falls ~20 points
+  from diff-only; topology repairs about half. Consistent with SWE-PRBench.
+- **Corrupted endpoint is not a null-information control**: kind and argument
+  survive corruption, and deepseek extracts them (+13). 3 vs 2 is the clean
+  topology comparison; 6 vs 2 measures a wrong pointer, not absent structure.
+- **Twins: no arm on either model says "safe"** (0–8% correct). An
+  authoritative-callers instruction variant is running to test whether this
+  is framing.
+- Hidden evidence (n=40): topology 0; attributed +20 [+4.7, +36] — supplies
+  the hidden fact. Noise k=4: topology +2.6 [−1.7, +6.9].
+- **c-CRAB, real defects**: graph retrieval with the fixed pipeline localises
+  49.3% vs 33.6% for the August diff-only (n=223 defects); a same-day diff-only
+  re-run on 42 defects matches August (42.9 vs 40.5), so this is not drift.
+  Controlled A/C/D re-runs with today's pipeline are in progress.
+
 ### What the literature sweep (June–October 2026) changes
 
 - No scoop of the held-constant design. Cite arXiv 2511.16767 and 2509.18487

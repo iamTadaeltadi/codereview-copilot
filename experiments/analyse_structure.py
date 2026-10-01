@@ -374,6 +374,14 @@ def _describe_cell(c: dict, label: str) -> List[str]:
     return lines
 
 
+def _fill_missing(data, metric):
+    for arms in data.values():
+        for row in arms.values():
+            if row.get(metric) is None:
+                row[metric] = False
+    return data
+
+
 def report(
     path,
     metric: str = "precise",
@@ -382,8 +390,11 @@ def report(
     extra_pairs: Sequence[Tuple[str, str]] = (),
     trials: int = DEFAULT_TRIALS,
     seed: int = DEFAULT_SEED,
+    missing_as_false: bool = False,
 ) -> str:
     data = load(path)
+    if missing_as_false:
+        _fill_missing(data, metric)
     lines: List[str] = []
     models = sorted({str(r.get("model")) for t in data.values() for r in t.values()})
     encodings = sorted({str(r.get("encoding")) for t in data.values() for r in t.values()})
@@ -441,7 +452,11 @@ def report(
 def _parse_args(argv: Optional[Sequence[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("path", help="runs/<name>/structure.jsonl")
-    parser.add_argument("--metric", choices=METRICS, default="precise")
+    parser.add_argument("--missing-as-false", action="store_true",
+                        help="treat a null metric as False: a miss cannot state the mechanism, so a judge "
+                             "verdict that exists only for hits must count misses as failures or arms are "
+                             "compared on different task subsets")
+    parser.add_argument("--metric", default="precise", help="any boolean column, e.g. precise, hit, mechanism, mechanism_judge, correct, correct_precise")
     parser.add_argument("--primary", nargs=2, metavar=("ARM_A", "ARM_B"), default=list(DEFAULT_PRIMARY))
     parser.add_argument("--secondary", nargs=2, metavar=("ARM_A", "ARM_B"), default=list(DEFAULT_SECONDARY))
     parser.add_argument("--pair", nargs=2, action="append", metavar=("ARM_A", "ARM_B"), default=[],
@@ -461,6 +476,7 @@ def main(argv: Optional[Sequence[str]] = None) -> str:
         extra_pairs=[tuple(p) for p in args.pair],
         trials=args.trials,
         seed=args.seed,
+        missing_as_false=args.missing_as_false,
     )
     sys.stdout.write(text)
     return text

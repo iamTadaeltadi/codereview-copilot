@@ -1,0 +1,13 @@
+outcome keys: ['condition', 'defect_id', 'hit', 'line_distance', 'matched_finding_id', 'task_id']
+c-CRAB tasks with old A..G and new B: 184
+condition                rate
+  old A                   37.0%
+  old B                   38.6%
+  old C                   37.0%
+  old D                   37.5%
+  old E                   37.0%
+  old F                   37.5%
+  old G                   38.0%
+  NEW B (fixed)         53.8%
+
+NEW B minus old A: +16.8% [+10.3%, +23.4%]
