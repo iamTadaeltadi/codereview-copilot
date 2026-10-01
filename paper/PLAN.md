@@ -428,13 +428,13 @@ benchmark and from every run file.
 
 | Comparison | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
-| **pre-registered primary**, keyword rubric, 3 vs 2 | −0.9 [−5.3, +3.2] | — | — | pending |
-| strict judge, 3-topology vs 2-control | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.3 [+4.2, +18.3]** | pending |
-| strict judge, 6-corrupted vs 2-control | 0.0 [−4.8, +4.9] | +2.7 [−2.1, +7.2] | **+13.0 [+7.3, +18.6]** | pending |
-| strict judge, 2-evidence vs 7-random (foreign) | **+11.9** | **+13.7** | **+35.2** | pending |
-| strict judge, 2-evidence vs 8-header | **+13.7** | **+16.4** | **+37.0** | pending |
-| precise, 3-topology vs 2-control | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.6 [+4.0, +14.7]** | pending |
-| precise, 2-evidence vs 1-diff | **−23.5** | −18.5 | −19.1 | pending |
+| **pre-registered primary**, keyword rubric, 3 vs 2 | −0.9 [−5.3, +3.2] | — | — | −2.7 [−6.7, +0.9] |
+| strict judge, 3-topology vs 2-control | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.3 [+4.2, +18.3]** | **+7.6 [+3.3, +12.2]** |
+| strict judge, 6-corrupted vs 2-control | 0.0 [−4.8, +4.9] | +2.7 [−2.1, +7.2] | **+13.0 [+7.3, +18.6]** | +3.1 [−1.3, +8.0] |
+| strict judge, 2-evidence vs 7-random (foreign) | **+11.9** | **+13.7** | **+35.2** | **+7.6 [+3.8, +11.6]** |
+| strict judge, 2-evidence vs 8-header | **+13.7** | **+16.4** | **+37.0** | **+8.0 [+5.2, +10.9]** |
+| precise, 3-topology vs 2-control | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.6 [+4.0, +14.7]** | **+14.2 [+9.2, +18.9]** |
+| precise, 2-evidence vs 1-diff | **−23.5** | −18.5 | −19.1 | (llama: control ≈ diff) |
 | hit, 1-diff | 97.8% | — | — | — |
 
 Readings, provisional:
