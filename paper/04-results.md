@@ -8,15 +8,17 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it; the generator produced 150 (two kinds, 57 of the first 60 being default flips), and the table reports the 60 that had been generated when the run started. The remaining 90 are being run and will replace this table. Correct on a twin means not flagging the mutated line.
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line. Correct on a twin means not flagging the mutated line.
 
-| Arm | gpt-4o-mini | deepseek-v3.2 |
+| Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=129) |
 |---|---|---|
-| 1 diff only | 1.7% | 8.3% |
-| 2 evidence | 1.7% | 3.3% |
-| 3 topology | 0.0% | 0.0% |
-| 5 attributed | 0.0% | 1.7% |
-| 7 random | 0.0% | 1.7% |
+| 1 diff only | 4.2% | 15.5% |
+| 2 evidence | 1.4% | 20.2% |
+| 3 topology | 0.7% | 11.6% |
+| 5 attributed | 0.7% | 17.1% |
+| 6 corrupted | 10.5% | 18.6% |
+| 7 random | 1.4% | 10.9% |
+| 8 header | 5.6% | 15.5% |
 
 No arm on either model declines to flag a change that the shown caller tolerates. Shown the robust caller, the model flags the change anyway. Balanced accuracy over defects and twins is therefore at chance for every arm, and no form of context moves it. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
 
