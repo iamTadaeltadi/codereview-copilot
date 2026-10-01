@@ -3,55 +3,55 @@ model:                deepseek/deepseek-v3.2
 encoding:             tag
 metric:               correct
 arms:                 1-diff, 2-evidence, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
-tasks compared:       129
+tasks compared:       134
 duplicates dropped:   0  (first occurrence kept)
-incomplete dropped:   3  (tasks missing from at least one arm)
+incomplete dropped:   6  (tasks missing from at least one arm)
 bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
 
 arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
 -----------------------------------------------------------------------------------------------------
-1-diff          129       129         0.155      1.21      0.28           8          1225     0.00019
-2-evidence      129       129         0.202      1.84      0.47          16          4336     0.00047
-3-topology      129       129         0.116      1.76      0.42          10          4303     0.00039
-4-typed         129       129         0.140      1.67      0.45          14          4314     0.00032
-5-attributed    129       129         0.171      1.60      0.37          13          4336     0.00024
-6-corrupted     129       129         0.186      1.74      0.38          11          4336     0.00026
-7-random        129       129         0.109      1.36      0.36           5          3461     0.00030
-8-header        129       129         0.155      1.43      0.43           9          1533     0.00021
+1-diff          134       134         0.172      1.19      0.28           9          1222     0.00019
+2-evidence      134       134         0.209      1.88      0.51          17          4322     0.00047
+3-topology      134       134         0.127      1.78      0.43          11          4289     0.00039
+4-typed         134       134         0.149      1.69      0.48          14          4300     0.00034
+5-attributed    134       134         0.179      1.62      0.40          13          4322     0.00024
+6-corrupted     134       134         0.194      1.75      0.39          12          4322     0.00026
+7-random        134       134         0.134      1.33      0.36           7          3451     0.00030
+8-header        134       134         0.172      1.41      0.41           9          1530     0.00021
 
 arm            n_defect n_twin  on defects  on twins  balanced
-1-diff                0    129         nan     0.155       nan
-2-evidence            0    129         nan     0.202       nan
-3-topology            0    129         nan     0.116       nan
-4-typed               0    129         nan     0.140       nan
-5-attributed          0    129         nan     0.171       nan
-6-corrupted           0    129         nan     0.186       nan
-7-random              0    129         nan     0.109       nan
-8-header              0    129         nan     0.155       nan
+1-diff                0    134         nan     0.172       nan
+2-evidence            0    134         nan     0.209       nan
+3-topology            0    134         nan     0.127       nan
+4-typed               0    134         nan     0.149       nan
+5-attributed          0    134         nan     0.179       nan
+6-corrupted           0    134         nan     0.194       nan
+7-random              0    134         nan     0.134       nan
+8-header              0    134         nan     0.172       nan
 
 comparisons (5 in the Holm family)
 
-primary: 2-evidence minus 1-diff  (metric=correct, n=129, skipped=0)
-  difference   0.047   repo-clustered 95% CI [ -0.056,   0.156]   task-clustered 95% CI [ -0.031,   0.132]
+primary: 2-evidence minus 1-diff  (metric=correct, n=134, skipped=0)
+  difference   0.037   repo-clustered 95% CI [ -0.061,   0.144]   task-clustered 95% CI [ -0.045,   0.119]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=18 (a right, b wrong)  c=12 (a wrong, b right)  exact p=0.3616  Holm-adjusted p=1.0000
+  McNemar b=19 (a right, b wrong)  c=14 (a wrong, b right)  exact p=0.4869  Holm-adjusted p=1.0000
 
-secondary: 3-topology minus 2-evidence  (metric=correct, n=129, skipped=0)
-  difference  -0.085   repo-clustered 95% CI [ -0.187,   0.008]   task-clustered 95% CI [ -0.171,   0.000]
+secondary: 3-topology minus 2-evidence  (metric=correct, n=134, skipped=0)
+  difference  -0.082   repo-clustered 95% CI [ -0.179,   0.007]   task-clustered 95% CI [ -0.164,   0.000]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
   McNemar b=11 (a right, b wrong)  c=22 (a wrong, b right)  exact p=0.0801  Holm-adjusted p=0.4007
 
-extra 1: 5-attributed minus 2-evidence  (metric=correct, n=129, skipped=0)
-  difference  -0.031   repo-clustered 95% CI [ -0.124,   0.064]   task-clustered 95% CI [ -0.124,   0.062]
+extra 1: 5-attributed minus 2-evidence  (metric=correct, n=134, skipped=0)
+  difference  -0.030   repo-clustered 95% CI [ -0.119,   0.059]   task-clustered 95% CI [ -0.119,   0.060]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=16 (a right, b wrong)  c=20 (a wrong, b right)  exact p=0.6177  Holm-adjusted p=1.0000
+  McNemar b=17 (a right, b wrong)  c=21 (a wrong, b right)  exact p=0.6271  Holm-adjusted p=1.0000
 
-extra 2: 7-random minus 1-diff  (metric=correct, n=129, skipped=0)
-  difference  -0.047   repo-clustered 95% CI [ -0.102,   0.016]   task-clustered 95% CI [ -0.116,   0.016]
+extra 2: 7-random minus 1-diff  (metric=correct, n=134, skipped=0)
+  difference  -0.037   repo-clustered 95% CI [ -0.094,   0.022]   task-clustered 95% CI [ -0.104,   0.030]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
-  McNemar b=7 (a right, b wrong)  c=13 (a wrong, b right)  exact p=0.2632  Holm-adjusted p=1.0000
+  McNemar b=8 (a right, b wrong)  c=13 (a wrong, b right)  exact p=0.3833  Holm-adjusted p=1.0000
 
-extra 3: 8-header minus 1-diff  (metric=correct, n=129, skipped=0)
-  difference   0.000   repo-clustered 95% CI [ -0.064,   0.068]   task-clustered 95% CI [ -0.078,   0.078]
+extra 3: 8-header minus 1-diff  (metric=correct, n=134, skipped=0)
+  difference   0.000   repo-clustered 95% CI [ -0.062,   0.065]   task-clustered 95% CI [ -0.075,   0.075]
   repo-clustered: interval spans zero; task-clustered: interval spans zero
   McNemar b=12 (a right, b wrong)  c=12 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000

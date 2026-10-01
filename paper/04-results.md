@@ -10,17 +10,17 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 **Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line. Correct on a twin means not flagging the mutated line.
 
-| Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=129) |
+| Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=134) |
 |---|---|---|
-| 1 diff only | 4.2% | 15.5% |
-| 2 evidence | 1.4% | 20.2% |
-| 3 topology | 0.7% | 11.6% |
-| 5 attributed | 0.7% | 17.1% |
-| 6 corrupted | 10.5% | 18.6% |
-| 7 random | 1.4% | 10.9% |
-| 8 header | 5.6% | 15.5% |
+| 1 diff only | 4.2% | 17.2% |
+| 2 evidence | 1.4% | 20.9% |
+| 3 topology | 0.7% | 12.7% |
+| 5 attributed | 0.7% | 17.9% |
+| 6 corrupted | 10.5% | 19.4% |
+| 7 random | 1.4% | 13.4% |
+| 8 header | 5.6% | 17.2% |
 
-No arm on either model declines to flag a change that the shown caller tolerates. Shown the robust caller, the model flags the change anyway. Balanced accuracy over defects and twins is therefore at chance for every arm, and no form of context moves it. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
+No arm on either model clears more than a fifth of the twins, and on gpt-4o-mini none clears more than one in sixteen. Shown the robust caller, the model flags the change anyway; on deepseek the caller lifts the clear rate from 15.5% to 20.2%, which is within its interval. Balanced accuracy over defects and twins is therefore near chance for every arm, and no form of context moves it far. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
 
 ## 4.2 Does the caller help? The relevance control done properly
 
