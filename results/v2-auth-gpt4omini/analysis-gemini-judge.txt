@@ -1,0 +1,29 @@
+file:                 results/v2-auth-gpt4omini/structure-judged-gemini.jsonl
+model:                openai/gpt-4o-mini
+encoding:             tag
+metric:               mechanism_judge
+arms:                 1-diff, 2-evidence, 3-topology, 5-attributed, 7-random
+tasks compared:       226
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metricmean_mechanism_judge  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------------
+1-diff          226       226         0.327      1.50      0.48           0          1188     0.00011
+2-evidence      226       226         0.465      1.30      0.28           0          4512     0.00023
+3-topology      226       226         0.527      1.12      0.09           0          4480     0.00019
+5-attributed    226       226         0.673      1.04      0.03           0          4512     0.00017
+7-random        226       226         0.398      1.08      0.12           0          3585     0.00018
+
+comparisons (2 in the Holm family)
+
+primary: 3-topology minus 2-evidence  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.062   repo-clustered 95% CI [  0.005,   0.119]   task-clustered 95% CI [  0.009,   0.119]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=28 (a right, b wrong)  c=14 (a wrong, b right)  exact p=0.0436  Holm-adjusted p=0.0436
+
+secondary: 5-attributed minus 2-evidence  (metric=mechanism_judge, n=226, skipped=0)
+  difference   0.208   repo-clustered 95% CI [  0.140,   0.278]   task-clustered 95% CI [  0.146,   0.274]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=56 (a right, b wrong)  c=9 (a wrong, b right)  exact p=2.05e-09  Holm-adjusted p=4.10e-09

@@ -70,21 +70,22 @@ The typed and attributed arms add the relation kind and its argument on top of t
 
 ## 4.5 The authoritative-callers variant
 
-The twins were re-run with one added sentence, identical across arms: the related code shown is every use of the changed function, and a change compatible with every use shown is not a defect. Correct still means not flagging the mutated line.
+The twins were re-run with one added sentence, identical across arms: the related code shown is every use of the changed function, and a change compatible with every use shown is not a defect. Correct still means not flagging the mutated line. All 143 twins with a decoy:
 
 | Arm | correct on twins |
 |---|---|
-| 1 diff only | 5.0% |
-| 2 evidence | 8.3% |
-| 3 topology | 1.7% |
+| 1 diff only | 4.9% |
+| 2 evidence | 9.1% |
+| 3 topology | 1.4% |
+| 4 typed | 0.0% |
 | 5 attributed | 0.0% |
-| 6 corrupted | 18.3% |
-| 7 random | 10.0% |
-| 8 header | 6.7% |
+| 6 corrupted | 20.3% |
+| 7 random | 14.0% |
+| 8 header | 5.6% |
 
-Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 92% of cases with the evidence and in 100% with the attributed relation. The attributed arm is 8.3 points below the control [−17.0, −2.8]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The only arm above 10% is the corrupted one, where the pointer leads away from the caller. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
+Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 91% of cases with the evidence and in 100% with the typed or attributed relation. The attributed arm is 9.1 points below the control [−16.1, −3.5]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The two arms above 10% are the ones whose context points away from the caller: corrupted and foreign. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
 
-On the defect side the instruction raises precision across the board, and the foreign-code arm shows why. On 188 defects, precision is 71.3% for the diff alone, 73.9% with the real snippets, 89.4% with foreign snippets under the same instruction (+18.1 [+11.6, +24.7] over the diff), 91.5% with the bare link and 96.3% with the attributed relation. The instruction tells the model that the code shown is the whole truth, and the model flags fewer lines whatever that code is; the link adds +17.6 [+12.6, +22.6] over the scrambled control, but a quarter of that is the instruction itself, which the foreign arm receives too though for it the instruction is false. The judge comparisons keep their direction (real caller over foreign code +15.4 [+7.1, +23.9]; link over control +3.2 [−3.6, +10.2]). Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect, and still flags the twin.
+On the defect side the instruction raises precision across the board, and the foreign-code arm shows why. On all 226 defects, precision is 71.2% for the diff alone, 73.0% with the real snippets, 85.8% with foreign snippets under the same instruction (+14.6 [+7.9, +21.2] over the diff), 91.6% with the bare link and 96.5% with the attributed relation. The instruction tells the model that the code shown is the whole truth, and the model flags fewer lines whatever that code is; the link adds +18.6 [+14.3, +22.8] over the scrambled control, and the foreign arm shows that most of a 15-point rise is available from the instruction alone, which that arm receives though for it the instruction is false. Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect, and still flags the twin.
 
 ## 4.6 Real defects: c-CRAB
 
