@@ -24,14 +24,16 @@ No arm on either model declines to flag a change that the shown caller tolerates
 
 The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the same number of snippets at the same budget; only arm 2's snippets are the real definition, caller and decoy. The header-only arm (arm 8) receives the dependency section with no snippets. The metric is the validated judge: does the message on the defect line name a concrete fact about the caller.
 
-| Comparison (judge) | gpt tag | gpt flat | deepseek tag | llama tag |
+Two judges are reported: J1 is deepseek-v3.2, which is also a reviewed model, and J2 is gemini-2.5-flash, a fourth family. Both agree with the 40 hand labels at kappa 0.43; J1 under-calls, J2 is calibrated to the human rate. Where they disagree on a verdict the table shows both.
+
+| Comparison, judge J1 / J2 | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
-| real snippets − foreign snippets | +11.9 [+7.1, +17.2] | +13.7 [+7.4, +20.5] | +36.0 [+27.2, +44.7] | +7.6 [+3.8, +11.6] |
+| real snippets − foreign | +11.9 [+7.1, +17.2] / +8.0 [+2.3, +13.5] | +13.7 [+7.4, +20.5] / +8.0 [+0.4, +15.9] | +36.0 [+27.2, +44.7] / +11.6 [+4.0, +19.3] | +7.6 [+3.8, +11.6] / +9.8 [+4.0, +15.9] |
 | real snippets − header only | +13.7 [+9.0, +19.1] | +16.4 [+10.6, +22.7] | +37.8 [+30.5, +45.1] | +8.0 [+5.2, +10.9] |
 | header only − diff only | 0.0 [−2.7, +2.7] | −1.3 [−4.3, +1.8] | −3.1 [−8.4, +2.6] | −0.9 [−3.4, +1.6] |
 | foreign − diff only | +1.8 [−1.0, +4.9] | +1.3 [−2.4, +5.2] | −1.3 [−5.8, +3.5] | −0.4 [−3.1, +2.2] |
 
-Every real-versus-foreign and real-versus-header interval excludes zero on every model and encoding. Foreign code and the header alone do nothing. The caller is what helps, and it helps the model say why the change is wrong. Arms that never see the caller sit at 2–7% on this metric for gpt-4o-mini and llama and at 14–17% for deepseek, which is the floor set by the judge's strictness.
+Every real-versus-foreign interval excludes zero on every model and encoding under both judges, and every real-versus-header interval under J1. Foreign code and the header alone do nothing. The caller is what helps, and it helps the model say why the change is wrong. Arms that never see the caller sit at 2–7% on this metric for gpt-4o-mini and llama and at 14–17% for deepseek, which is the floor set by the judge's strictness.
 
 The same snippets lower precision on two of three models. Precise means the defect line was found and no harmless line was flagged. Showing the real snippets costs 18.6 to 23.5 points of precision against the diff alone on gpt-4o-mini under both encodings and 19.1 on deepseek, while foreign snippets cost nothing on gpt-4o-mini (−0.4 and +0.9) and 8.7 [−13.9, −3.5] on deepseek. On llama the real snippets cost nothing (+2.2 [−4.6, +8.9]). Where it occurs, relevant code makes the model flag more of the diff than irrelevant code does.
 
@@ -45,23 +47,24 @@ Arms 2 through 6 receive identical snippets. The pre-registered primary comparis
 
 | 3 topology − 2 control | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
-| judge | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.6 [+4.3, +18.8]** | **+7.6 [+3.3, +12.2]** |
-| McNemar b / c, exact p | 25 / 8, 0.005 | — | — | — |
-| precise | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.8 [+4.1, +15.0]** | **+14.2 [+9.2, +18.9]** |
+| judge J1 (deepseek) | **+7.5 [+3.0, +12.2]** | −0.9 [−5.0, +3.1] | **+11.6 [+4.3, +18.8]** | **+7.6 [+3.3, +12.2]** |
+| judge J2 (gemini) | **+10.2 [+5.6, +15.2]** | +2.7 [−2.3, +7.7] | **+9.8 [+3.2, +16.2]** | +4.0 [−0.5, +8.3] |
+| McNemar b / c, exact p (J1) | 25 / 8, 0.005 | — | — | — |
+| precise (no judge) | **+9.7 [+4.5, +15.5]** | **+10.2 [+4.8, +15.9]** | **+9.8 [+4.1, +15.0]** | **+14.2 [+9.2, +18.9]** |
 
-Stating a bare true link between the snippets raises the rate at which the model explains the defect through the caller by 7 to 11 points on three model families under the tag encoding, and by nothing under the flat encoding on gpt-4o-mini. On precision the gain is 10 to 14 points on all four runs: the link recovers roughly half of what showing the snippets cost. Encoding dependence on the judge metric is real and is reported, not averaged away [arXiv:2511.10234].
+Stating a bare true link between the snippets raises the rate at which the model explains the defect through the caller by 7 to 12 points on gpt-4o-mini and deepseek under the tag encoding, with both judges' intervals excluding zero; on llama the two judges disagree (+7.6 excluding zero, +4.0 spanning it); under the flat encoding the effect is absent on both judges. On precision, which needs no judge, the gain is 10 to 14 points on all four runs: the link recovers roughly half of what showing the snippets cost. Encoding dependence on the judge metric is real and is reported, not averaged away [arXiv:2511.10234].
 
-The typed and attributed arms add the relation kind and its argument on top of the link. Attributed exceeds the control by 11.1 [+6.6, +15.8] on gpt-4o-mini and +25.8 [+18.1, +32.7] on deepseek on the judge; the argument names the thing the judge looks for, so this comparison measures information supplied as much as structure, and is read as an upper bound.
+The typed and attributed arms add the relation kind and its argument on top of the link. Attributed exceeds the control on every run under both judges, by 11.1 [+6.6, +15.8] (J1) and 21.2 [+16.2, +26.5] (J2) on gpt-4o-mini tag and by 25.8 [+18.1, +32.7] and 17.3 [+9.4, +24.7] on deepseek; the argument names the thing the judge looks for, so this comparison measures information supplied as much as structure, and is read as an upper bound.
 
-**Corrupted structure.** Arm 6 keeps the relation kind and argument and moves the target to the decoy. Against the control it is 0.0 [−4.8, +4.9] on gpt tag, +2.7 [−2.1, +7.2] on gpt flat, +3.1 [−1.3, +8.0] on llama and +13.3 [+7.5, +18.9] on deepseek. A wrong pointer is inert on three runs and helps on deepseek, which extracts the kind and argument regardless of where the arrow points. This arm measures a wrong endpoint, not absent structure; the clean comparison for topology is arm 3 against arm 2. Corruption lowers hit rate on gpt-4o-mini under the tag encoding, 88.9% against 95.1% for the control [−10.6, −2.3], and not under flat or on the other models: there the model follows the wrong pointer.
+**Corrupted structure.** Arm 6 keeps the relation kind and argument and moves the target to the decoy. Against the control it is 0.0 [−4.8, +4.9] on gpt tag, +2.7 [−2.1, +7.2] on gpt flat, +3.1 [−1.3, +8.0] on llama and +13.3 [+7.5, +18.9] on deepseek under J1; under J2, +4.0, +4.0, +1.8 and +10.7 [+4.8, +16.5]. A wrong pointer is inert on three runs and helps on deepseek, which extracts the kind and argument regardless of where the arrow points. This arm measures a wrong endpoint, not absent structure; the clean comparison for topology is arm 3 against arm 2. Corruption lowers hit rate on gpt-4o-mini under the tag encoding, 88.9% against 95.1% for the control [−10.6, −2.3], and not under flat or on the other models: there the model follows the wrong pointer.
 
 **Comprehension probe.** Asked to read each block back alone, with no snippets, the model names the correct target file for topology in 28 or 29 of 29 probes on every run, for typed in 26 to 29, and for attributed in 25 to 28, and never for the scrambled control (0 of 29). The probe checks the file stem, and the decoy sits in the definition file, so it cannot tell a corrupted pointer from a correct one. The serialisation conveys the structure under both encodings; a null under flat encoding is a null of use, not of parsing.
 
 ## 4.4 Moderators
 
-**Hidden evidence** (40 tasks of the two kinds that admit it). With the demonstrating line removed from the caller window, topology against control is 0.0 [−12.5, +15.8] and attributed is +20.0 [+4.7, +36.1]. A bare link does nothing when the fact it points to is not visible; the attributed relation supplies the fact.
+**Hidden evidence** (40 tasks of the two kinds that admit it). With the demonstrating line removed from the caller window, topology against control is 0.0 [−12.5, +15.8] under J1 and +12.5 [−5.1, +27.3] under J2; attributed is +20.0 [+4.7, +36.1] and +22.5 [+8.3, +37.5]. A bare link does nothing when the fact it points to is not visible; the attributed relation supplies the fact.
 
-**Noise** (four foreign snippets added, 232 tasks). Topology against control is +2.6 [−1.7, +6.9] on the judge and the attributed arm +5.2 [0.0, +10.7]. The structural gain shrinks under clutter rather than growing; the hypothesis that a map organises noisy evidence is not supported here.
+**Noise** (four foreign snippets added, 229 tasks). Topology against control is +2.6 [−1.7, +6.9] under J1 and +4.8 [−0.8, +10.5] under J2; the attributed arm +5.2 [0.0, +10.7] and +19.7 [+14.2, +25.6]. The structural gain shrinks under clutter rather than growing; the hypothesis that a map organises noisy evidence is not supported here.
 
 **Two-hop chains.** The generator found three pass-through chains in 41 repositories at 300 to 500 files each. That is too few to run, and the hop moderator is reported as not evaluated.
 
