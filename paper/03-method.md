@@ -45,7 +45,7 @@ Every arm receives the same diff and the same instructions. Arms 2 to 6 receive 
 
 Arm 2 is the control for structure. It matches arms 3 to 6 in token count, vocabulary shape and syntax, and states nothing true. Scrambling the line number matters: the snippet headers name their line ranges, so an intact line number identifies a snippet and the topology is recoverable from it. Arm 6 is the negative control: if the model uses the metadata at all, a false relation should cost something. Arm 7 is the relevance control for the snippets themselves, drawn from `requests`, `click` and `rich` so that it cannot contain the evidence by accident. Arm 8 separates the effect of the snippets from the effect of a dependency section being present.
 
-The primary comparison, arm 3 against arm 2 on the mechanism metric defined below, was recorded in the repository (commit 307bf32, 1 October 2026, 09:36) before the runs on the rebuilt benchmark started; there is no external registry entry, and the first benchmark, with its own pre-registration, had been withdrawn by then. Arm 6 against arm 2 is the secondary. All other pairs are exploratory and reported together under a Holm adjustment.
+The primary comparison, arm 3 against arm 2 on the mechanism metric defined below, was recorded in the repository (commit d3f9309, 1 October 2026, 09:36) before the runs on the rebuilt benchmark started; there is no external registry entry, and the first benchmark, with its own pre-registration, had been withdrawn by then. Arm 6 against arm 2 is the secondary. All other pairs are exploratory and reported together under a Holm adjustment.
 
 ## 3.5 Serialisation
 
