@@ -70,7 +70,7 @@ def convert(md, section_number):
             flush(); text = line[3:].strip()
             if text == "Abstract":
                 out.append("<h2 class='abstract'>Abstract</h2>"); continue
-            text = re.sub(r"^\d+(\.\d+)?\s*", "", text)
+            text = re.sub(r"^\d+(\.\d+)?\.?\s*", "", text)
             out.append(f"<h2>{section_number[0]} {inline(text)}</h2>")
             for anchor, figs in FIGS.items():
                 if anchor.split(" ", 1)[1] in line:
