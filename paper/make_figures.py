@@ -51,7 +51,6 @@ for col, (run, title) in enumerate(RUNS):
         if row == 0: ax.set_title(title, fontsize=9.5)
         if col == 0: ax.set_ylabel(name, fontsize=9)
         if row == 2: ax.set_xlabel("% of tasks")
-fig.suptitle("Figure 1. Per-arm rates on the rebuilt benchmark (225–230 paired defects per run). Arms 2–6 see identical snippets.", fontsize=10, y=1.0)
 fig.tight_layout(); fig.savefig(OUT / "fig1-arms.pdf"); fig.savefig(OUT / "fig1-arms.png", dpi=180); plt.close(fig)
 
 # Figure 2: the primary comparison with intervals, two judges + precision, four runs
@@ -68,7 +67,6 @@ for run, title in RUNS:
     ticks.append(x - 2); labels.append(title); x += 1
 ax.axhline(0, color="#999", lw=0.8); ax.set_xticks(ticks); ax.set_xticklabels(labels, fontsize=8.5)
 ax.set_ylabel("bare link − scrambled control (points)"); ax.legend(frameon=False, fontsize=8)
-ax.set_title("Figure 2. Topology against the density-matched control: 95% repository-clustered intervals.", fontsize=9.5)
 fig.tight_layout(); fig.savefig(OUT / "fig2-primary.pdf"); fig.savefig(OUT / "fig2-primary.png", dpi=180); plt.close(fig)
 
 # Figure 3: c-CRAB real defects, controlled comparison
@@ -79,11 +77,10 @@ for lab, key in (("diff only", "A  diff only (today)"), ("random, any file", "C 
     m = re.search(re.escape(key) + r"\s+([0-9.]+)%", t)
     if m: rates[lab] = float(m.group(1))
 order = ["diff only", "random, any file", "random, other files only", "lexical", "graph, repaired"]
-fig, ax = plt.subplots(figsize=(6.2, 3.0))
+fig, ax = plt.subplots(figsize=(7.4, 3.2))
 ax.bar(range(len(order)), [rates[o] for o in order], color=["#8A939D", "#8A939D", "#8A939D", "#8A939D", "#0E6B63"])
 for i, o in enumerate(order): ax.text(i, rates[o] + 1, f"{rates[o]:.1f}", ha="center", fontsize=8.5)
 ax.set_xticks(range(len(order))); ax.set_xticklabels(order, fontsize=8, rotation=12); ax.set_ylim(0, 60); ax.set_ylabel("% of real defects localised")
-ax.set_title("Figure 3. c-CRAB, 218 test-verified defects, one day, one pipeline, 1,500-token budget (gpt-4o-mini).", fontsize=9)
 fig.tight_layout(); fig.savefig(OUT / "fig3-ccrab.pdf"); fig.savefig(OUT / "fig3-ccrab.png", dpi=180); plt.close(fig)
 
 # Figure 4: twins
@@ -93,9 +90,8 @@ arms = ["1-diff", "2-evidence", "3-topology", "5-attributed", "6-corrupted", "7-
 w = 0.26
 for i, (run, lab) in enumerate(runs):
     v = arms_from_analysis(ROOT / "results" / run / "analysis-correct.txt")
-    ax.bar([j + (i - 1) * w for j in range(len(arms))], [v.get(a, 0) * 100 for a in arms], width=w, label=lab)
+    ax.bar([j + (i - 1) * w for j in range(len(arms))], [v.get(a, 0) * 100 for a in arms], width=w, label=lab, color=["#0E6B63", "#5EC2B6", "#A4381F"][i])
 ax.set_xticks(range(len(arms))); ax.set_xticklabels([LABEL[a] for a in arms], fontsize=7.5, rotation=15)
 ax.set_ylabel("% of safe twins left unflagged"); ax.set_ylim(0, 50); ax.legend(frameon=False, fontsize=7.5)
-ax.set_title("Figure 4. Safe twins: how often the model declines to flag a change the shown caller tolerates.", fontsize=9)
 fig.tight_layout(); fig.savefig(OUT / "fig4-twins.pdf"); fig.savefig(OUT / "fig4-twins.png", dpi=180); plt.close(fig)
 print("figures written:", sorted(p.name for p in OUT.iterdir()))
