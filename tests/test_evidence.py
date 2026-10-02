@@ -157,3 +157,10 @@ class NoiseTests(unittest.TestCase):
         self.assertEqual(with_noise(evidence(), 0, "t").snippets, evidence().snippets)
         a = with_noise(evidence(), 2, "s"); b = with_noise(evidence(), 2, "s")
         self.assertEqual([x.label for x in a.snippets], [x.label for x in b.snippets])
+
+@unittest.skipUnless(_AVAILABLE, "experiment package not importable")
+class SnippetsOnlyArmTests(unittest.TestCase):
+    def test_arm_2b_has_no_block_and_is_registered(self):
+        from experiments.evidence import ARM_SNIPPETS, ARMS, metadata_block
+        self.assertIn(ARM_SNIPPETS, ARMS)
+        self.assertEqual(metadata_block(evidence(), ARM_SNIPPETS, FLAT, "s"), "")

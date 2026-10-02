@@ -1,0 +1,1442 @@
+[
+ {
+  "id": 1,
+  "run": "v2-tag-llama",
+  "task_id": "xf::pandas-dev__pandas::pandas/core/arrays/base.py::factorize::tuple_order::1881",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 2,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::array_cast::exception_type::2016",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 3,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/helpers/entity_platform.py::async_get_platforms::empty_to_none::1414",
+  "arm": "5-attributed",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 4,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::frappe__frappe::frappe/installer.py::update_site_config::default_flip::799",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": true
+ },
+ {
+  "id": 5,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::array_append_sql::default_flip::1415",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 6,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::networkx__networkx::networkx/relabel.py::relabel_nodes::default_flip::9",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 7,
+  "run": "v2-tag-llama",
+  "task_id": "xf::reflex-dev__reflex::packages/reflex-base/src/reflex_base/utils/serializers.py::serialize::default_flip::180",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 8,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "4-typed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 9,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::microsoft__autogen::python/packages/autogen-studio/autogenstudio/mcp/callbacks.py::create_elicitation_callback::tuple_order::186",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 10,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::reflex-dev__reflex::packages/reflex-base/src/reflex_base/utils/types.py::get_attribute_access_type::none_sentinel::795",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 11,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/uri.py::is_local_uri::default_flip::28",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 12,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/utils.py::extract_self_if_method_call::none_sentinel::560",
+  "arm": "8-header",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 13,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::numba__numba::numba/core/decorators.py::jit::default_flip::27",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 14,
+  "run": "v2-tag-llama",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::get_state_key_from_unique_id::none_sentinel::126",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 15,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_type_str::exception_type::350",
+  "arm": "8-header",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 16,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "7-random",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 17,
+  "run": "v2-tag-llama",
+  "task_id": "xf::numba__numba::numba/core/ir.py::get_definition::default_flip::1553",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 18,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::networkx__networkx::networkx/algorithms/assortativity/mixing.py::degree_mixing_matrix::default_flip::151",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 19,
+  "run": "v2-tag-llama",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "2-evidence",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 20,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 21,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "2-evidence",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 22,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::async_get_node_from_device_id::exception_type::293",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 23,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::greedy_match::default_flip::558",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 24,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::netbox-community__netbox::netbox/dcim/utils.py::resolve_module_placeholder::exception_type::92",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 25,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::netbox-community__netbox::netbox/dcim/utils.py::resolve_module_placeholder::exception_type::92",
+  "arm": "8-header",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 26,
+  "run": "v2-tag-llama",
+  "task_id": "xf::getsentry__sentry::src/sentry/constants.py::parse_log_level::none_sentinel::276",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 27,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::OpenMined__PySyft::packages/syft-bg/src/syft_bg/email_approve/pubsub_setup.py::setup_pubsub::tuple_order::119",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 28,
+  "run": "v2-tag-llama",
+  "task_id": "xf::netbox-community__netbox::netbox/dcim/utils.py::resolve_module_placeholder::exception_type::92",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 29,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "7-random",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 30,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/components/esphome/wav_parser.py::stream_wav::exception_type::104",
+  "arm": "1-diff",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 31,
+  "run": "v2-tag-llama",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/colorbar.py::make_axes_gridspec::tuple_order::1585",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 32,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::get_value_state_schema::none_sentinel::590",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 33,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/http_util.py::send_http_response_on_exception::empty_to_none::985",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 34,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::longest_match::tuple_order::277",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 35,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::PostHog__posthog::products/tasks/backend/logic/services/code_usage_gate.py::usage_limit_response::none_sentinel::198",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 36,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::xorbitsai__inference::xinference/core/rpc_context.py::pop_rpc_metadata::tuple_order::141",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 37,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 38,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "4-typed",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 39,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::pytorch__vision::torchvision/transforms/v2/_utils.py::query_size::tuple_order::218",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 40,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::netbox-community__netbox::netbox/dcim/utils.py::resolve_module_placeholder::exception_type::92",
+  "arm": "1-diff",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 41,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::xorbitsai__inference::xinference/core/utils.py::parse_replica_model_uid::tuple_order::363",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 42,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "4-typed",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 43,
+  "run": "v2-tag-llama",
+  "task_id": "xf::netbox-community__netbox::netbox/utilities/views.py::register_model_view::default_flip::356",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 44,
+  "run": "v2-tag-llama",
+  "task_id": "xf::microsoft__autogen::python/samples/gitty/src/gitty/_github.py::get_related_issues::empty_to_none::28",
+  "arm": "5-attributed",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 45,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::python__mypy::mypy/constant_fold.py::constant_fold_expr::none_sentinel::76",
+  "arm": "8-header",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 46,
+  "run": "v2-tag-llama",
+  "task_id": "xf::deepset-ai__haystack::haystack/core/pipeline/utils.py::parse_connect_string::tuple_order::75",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 47,
+  "run": "v2-tag-llama",
+  "task_id": "xf::netbox-community__netbox::netbox/netbox/settings_utils.py::parse_job_timeout::none_sentinel::101",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 48,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::microsoft__autogen::python/packages/autogen-ext/src/autogen_ext/code_executors/_common.py::get_file_name_from_content::none_sentinel::111",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 49,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::array_cast::exception_type::2016",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 50,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::array_cast::exception_type::2016",
+  "arm": "1-diff",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 51,
+  "run": "v2-tag-llama",
+  "task_id": "xf::conan-io__conan::conan/api/subapi/cache.py::save::default_flip::309",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 52,
+  "run": "v2-tag-llama",
+  "task_id": "xf::pandas-dev__pandas::pandas/core/arrays/categorical.py::factorize_from_iterable::tuple_order::3382",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 53,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::voxel51__fiftyone::fiftyone/utils/coco.py::parse_coco_categories::tuple_order::1495",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 54,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "4-typed",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 55,
+  "run": "v2-tag-llama",
+  "task_id": "xf::home-assistant__core::homeassistant/helpers/entity_platform.py::async_get_platforms::empty_to_none::1414",
+  "arm": "4-typed",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 56,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::dmlc__dgl::python/dgl/graphbolt/internal_utils.py::extract_archive::default_flip::316",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 57,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::sympy__sympy::sympy/polys/compatibility.py::dmp_div::tuple_order::657",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 58,
+  "run": "v2-tag-llama",
+  "task_id": "xf::OpenMined__PySyft::packages/syft-enclave/src/syft_enclaves/evidence/__init__.py::select_provider::none_sentinel::79",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 59,
+  "run": "v2-tag-llama",
+  "task_id": "xf::frappe__frappe::frappe/database/database.py::count::default_flip::1332",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 60,
+  "run": "v2-tag-llama",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/__init__.py::rc_params_from_file::default_flip::956",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 61,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::marimo-team__marimo::marimo/_utils/parse_dataclass.py::parse_raw::default_flip::218",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 62,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::xorbitsai__inference::xinference/model/audio/core.py::match_audio::exception_type::238",
+  "arm": "1-diff",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 63,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::python__mypy::mypy/join.py::match_generic_callables::tuple_order::799",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 64,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "4-typed",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 65,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "7-random",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 66,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::dotted_name::none_sentinel::68",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 67,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "4-typed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 68,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/http_util.py::send_http_response_on_exception::empty_to_none::985",
+  "arm": "6-corrupted",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 69,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/helpers/entity_platform.py::async_get_platforms::empty_to_none::1414",
+  "arm": "8-header",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 70,
+  "run": "v2-tag-llama",
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::self_attr_name::none_sentinel::84",
+  "arm": "7-random",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 71,
+  "run": "v2-tag-llama",
+  "task_id": "xf::microsoft__autogen::python/packages/autogen-ext/src/autogen_ext/models/_utils/parse_r1_content.py::parse_r1_content::tuple_order::33",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 72,
+  "run": "v2-tag-llama",
+  "task_id": "xf::home-assistant__core::homeassistant/components/esphome/wav_parser.py::stream_wav::exception_type::104",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 73,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::get_state_key_from_unique_id::none_sentinel::126",
+  "arm": "7-random",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 74,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::cast_array_to_feature::exception_type::2158",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 75,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 76,
+  "run": "v2-tag-llama",
+  "task_id": "xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 77,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/bezier.py::get_intersection::tuple_order::146",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 78,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/mqtt/entity.py::update_device::none_sentinel::1801",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 79,
+  "run": "v2-tag-llama",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/bezier.py::get_cos_sin::tuple_order::525",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "judge_J1": null
+ },
+ {
+  "id": 80,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::localstack__localstack::localstack-core/localstack/utils/crypto.py::generate_ssl_cert::default_flip::44",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 81,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 82,
+  "run": "v2-tag-llama",
+  "task_id": "xf::modin-project__modin::modin/pandas/dataframe.py::prod::default_flip::1644",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 83,
+  "run": "v2-tag-llama",
+  "task_id": "xf::conan-io__conan::conan/internal/model/conanconfig.py::loadconanconfig_yml::tuple_order::36",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 84,
+  "run": "v2-tag-llama",
+  "task_id": "xf::xorbitsai__inference::xinference/model/audio/core.py::match_audio::exception_type::238",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 85,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::longest_match::tuple_order::277",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 86,
+  "run": "v2-tag-llama",
+  "task_id": "xf::networkx__networkx::networkx/algorithms/assortativity/mixing.py::degree_mixing_matrix::default_flip::151",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 87,
+  "run": "v2-tag-llama",
+  "task_id": "xf::getsentry__sentry::src/sentry/seer/autofix/pr_iteration/check_suites.py::confirm_green_check_suite::none_sentinel::738",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 88,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_type_str::exception_type::350",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 89,
+  "run": "v2-tag-llama",
+  "task_id": "xf::dask__dask::dask/array/reductions.py::max::default_flip::130",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 90,
+  "run": "v2-tag-llama",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "6-corrupted",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 91,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/http_util.py::send_http_response_on_exception::empty_to_none::985",
+  "arm": "1-diff",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 92,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::huggingface__diffusers::src/diffusers/models/transformers/transformer_bria.py::get_1d_rotary_pos_embed::default_flip::59",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 93,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/esphome/wav_parser.py::stream_wav::exception_type::104",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 94,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/bezier.py::split_bezier_intersecting_with_closedpath::tuple_order::433",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 95,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "2-evidence",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 96,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::async_get_node_from_device_id::exception_type::293",
+  "arm": "7-random",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 97,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 98,
+  "run": "v2-tag-llama",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/bezier.py::get_intersection::tuple_order::146",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 99,
+  "run": "v2-tag-llama",
+  "task_id": "xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 100,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/utils/py_utils.py::first_non_null_value::tuple_order::319",
+  "arm": "4-typed",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 101,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::xorbitsai__inference::xinference/core/rpc_context.py::pop_rpc_metadata::tuple_order::141",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 102,
+  "run": "v2-tag-llama",
+  "task_id": "xf::pytorch__vision::torchvision/datasets/utils.py::list_dir::default_flip::140",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 103,
+  "run": "v2-tag-llama",
+  "task_id": "xf::home-assistant__core::homeassistant/components/mqtt/entity.py::update_device::none_sentinel::1801",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 104,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::reflex-dev__reflex::packages/reflex-base/src/reflex_base/utils/types.py::get_attribute_access_type::none_sentinel::795",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 105,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::frappe__frappe::frappe/utils/__init__.py::validate_email_address::default_flip::183",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 106,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 107,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::python__mypy::mypy/constant_fold.py::constant_fold_expr::none_sentinel::76",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 108,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/config.py::handle_num_replicas_auto::tuple_order::655",
+  "arm": "2-evidence",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 109,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "1-diff",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 110,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::xorbitsai__inference::xinference/model/audio/core.py::match_audio::exception_type::238",
+  "arm": "7-random",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 111,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/uri.py::get_databricks_profile_uri_from_artifact_uri::none_sentinel::226",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 112,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::huggingface__datasets::src/datasets/utils/py_utils.py::first_non_null_value::tuple_order::319",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 113,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/esphome/wav_parser.py::stream_wav::exception_type::104",
+  "arm": "6-corrupted",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 114,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::microsoft__autogen::python/packages/autogen-ext/src/autogen_ext/code_executors/_common.py::get_file_name_from_content::none_sentinel::111",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 115,
+  "run": "v2-tag-llama",
+  "task_id": "xf::python__mypy::mypy/applytype.py::apply_generic_arguments::default_flip::93",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 116,
+  "run": "v2-tag-llama",
+  "task_id": "xf::pandas-dev__pandas::pandas/core/arrays/masked.py::factorize::tuple_order::1517",
+  "arm": "7-random",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 117,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::microsoft__autogen::python/samples/gitty/src/gitty/_github.py::get_related_issues::empty_to_none::28",
+  "arm": "6-corrupted",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 118,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "7-random",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 119,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/zwave_js/helpers.py::async_get_node_from_device_id::exception_type::293",
+  "arm": "4-typed",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 120,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::pandas-dev__pandas::pandas/core/arrays/base.py::factorize::default_flip::1816",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 121,
+  "run": "v2-tag-llama",
+  "task_id": "xf::voxel51__fiftyone::fiftyone/utils/fiw.py::download_fiw_dataset::default_flip::286",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 122,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "8-header",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 123,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::voxel51__fiftyone::fiftyone/utils/fiw.py::download_fiw_dataset::tuple_order::314",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 124,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition_feats::tuple_order::485",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 125,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::reflex-dev__reflex::reflex/utils/misc.py::get_module_path::none_sentinel::69",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 126,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_missing_parameters::exception_type::318",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 127,
+  "run": "v2-tag-llama",
+  "task_id": "xf::modin-project__modin::modin/pandas/base.py::copy::default_flip::1303",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 128,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::numba__numba::numba/core/compiler.py::run_frontend::default_flip::300",
+  "arm": "3-topology",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 129,
+  "run": "v2-tag-llama",
+  "task_id": "xf::hpcaitech__ColossalAI::colossalai/autochunk/utils.py::get_node_shape::none_sentinel::119",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 130,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/config/manager.py::ensure_type::none_sentinel::131",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 131,
+  "run": "v2-tag-llama",
+  "task_id": "xf::matplotlib__matplotlib::lib/matplotlib/bezier.py::get_intersection::tuple_order::146",
+  "arm": "6-corrupted",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 132,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::python__mypy::mypy/applytype.py::apply_generic_arguments::default_flip::93",
+  "arm": "7-random",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 133,
+  "run": "v2-tag-llama",
+  "task_id": "xf::bridgecrewio__checkov::checkov/common/util/data_structures_utils.py::find_in_dict::none_sentinel::93",
+  "arm": "7-random",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 134,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::cast_array_to_feature::exception_type::2158",
+  "arm": "4-typed",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 135,
+  "run": "v2-tag-llama",
+  "task_id": "xf::modin-project__modin::modin/pandas/groupby.py::prod::default_flip::1056",
+  "arm": "1-diff",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 136,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::pytorch__vision::torchvision/datasets/utils.py::verify_str_arg::exception_type::413",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 137,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::microsoft__autogen::python/samples/gitty/src/gitty/_github.py::get_related_issues::empty_to_none::28",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 138,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/http_util.py::send_http_response_on_exception::empty_to_none::985",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 139,
+  "run": "v2-tag-llama",
+  "task_id": "xf::scikit-learn__scikit-learn::sklearn/utils/validation.py::check_array::default_flip::737",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 140,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "6-corrupted",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 141,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_mutually_exclusive::exception_type::64",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 142,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::sympy__sympy::sympy/polys/densearith.py::dup_pdiv::tuple_order::1236",
+  "arm": "1-diff",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 143,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::python__mypy::mypy/lookup.py::lookup_fully_qualified::none_sentinel::49",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 144,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/utils.py::extract_self_if_method_call::none_sentinel::560",
+  "arm": "3-topology",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 145,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::netbox-community__netbox::netbox/utilities/views.py::get_action_url::default_flip::327",
+  "arm": "5-attributed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 146,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::OpenMined__PySyft::packages/syft-restrict/src/syft_restrict/astutil.py::self_attr_name::none_sentinel::84",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 147,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_missing_parameters::exception_type::318",
+  "arm": "7-random",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 148,
+  "run": "v2-tag-llama",
+  "task_id": "xf::frappe__frappe::frappe/website/utils.py::can_cache::default_flip::50",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 149,
+  "run": "v2-tag-llama",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/__init__.py::get_installed_version::none_sentinel::37",
+  "arm": "1-diff",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 150,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ray-project__ray::python/ray/serve/_private/http_util.py::send_http_response_on_exception::empty_to_none::985",
+  "arm": "2-evidence",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 151,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::getsentry__sentry::src/sentry/seer/autofix/pr_iteration/check_suites.py::resolve_green_check_suite::none_sentinel::631",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 152,
+  "run": "v2-tag-llama",
+  "task_id": "xf::microsoft__autogen::python/packages/autogen-ext/src/autogen_ext/code_executors/_common.py::get_file_name_from_content::none_sentinel::111",
+  "arm": "4-typed",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 153,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ray-project__ray::python/ray/_private/services.py::canonicalize_bootstrap_address::none_sentinel::708",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 154,
+  "run": "v2-tag-llama",
+  "task_id": "xf::dask__dask::dask/array/reductions.py::prod::default_flip::87",
+  "arm": "8-header",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 155,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::dask__dask::dask/array/ma.py::count::default_flip::185",
+  "arm": "2-evidence",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 156,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::longest_match::tuple_order::277",
+  "arm": "8-header",
+  "kind": "tuple_order",
+  "judge_J1": false
+ },
+ {
+  "id": 157,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ray-project__ray::python/ray/_private/utils.py::format_error_message::default_flip::107",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge_J1": true
+ },
+ {
+  "id": 158,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "3-topology",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 159,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::home-assistant__core::homeassistant/components/esphome/wav_parser.py::stream_wav::exception_type::104",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 160,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::pytorch__vision::torchvision/datasets/utils.py::verify_str_arg::exception_type::413",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 161,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::localstack__localstack::localstack-core/localstack/utils/collections.py::select_from_typed_dict::default_flip::433",
+  "arm": "6-corrupted",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 162,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::xorbitsai__inference::xinference/model/audio/engine_family.py::check_engine_by_model_name_and_engine_with_virtual_env::none_sentinel::127",
+  "arm": "6-corrupted",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 163,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::cast_array_to_feature::exception_type::2158",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 164,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::array_cast::exception_type::2016",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 165,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::cast_array_to_feature::exception_type::2158",
+  "arm": "3-topology",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 166,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::modin-project__modin::modin/pandas/utils.py::broadcast_item::tuple_order::366",
+  "arm": "5-attributed",
+  "kind": "tuple_order",
+  "judge_J1": true
+ },
+ {
+  "id": 167,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "2-evidence",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 168,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/parsing/splitter.py::split_args::empty_to_none::177",
+  "arm": "8-header",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 169,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "5-attributed",
+  "kind": "empty_to_none",
+  "judge_J1": true
+ },
+ {
+  "id": 170,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::python__mypy::mypy/constant_fold.py::constant_fold_expr::none_sentinel::76",
+  "arm": "5-attributed",
+  "kind": "none_sentinel",
+  "judge_J1": true
+ },
+ {
+  "id": 171,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_missing_parameters::exception_type::318",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 172,
+  "run": "v2-tag-llama",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_type_str::exception_type::350",
+  "arm": "8-header",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 173,
+  "run": "v2-tag-llama",
+  "task_id": "xf::huggingface__datasets::src/datasets/table.py::cast_array_to_feature::exception_type::2158",
+  "arm": "2-evidence",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 174,
+  "run": "v2-tag-llama",
+  "task_id": "xf::dmlc__dgl::python/dgl/distributed/partition.py::load_partition::default_flip::286",
+  "arm": "4-typed",
+  "kind": "default_flip",
+  "judge_J1": false
+ },
+ {
+  "id": 175,
+  "run": "v2-tag-llama",
+  "task_id": "xf::sqlfluff__sqlfluff::src/sqlfluff/core/linter/discovery.py::paths_from_path::empty_to_none::270",
+  "arm": "1-diff",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 176,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/uri.py::get_databricks_profile_uri_from_artifact_uri::none_sentinel::226",
+  "arm": "2-evidence",
+  "kind": "none_sentinel",
+  "judge_J1": false
+ },
+ {
+  "id": 177,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::mlflow__mlflow::mlflow/utils/file_utils.py::parallelized_download_file_using_http_uri::empty_to_none::586",
+  "arm": "6-corrupted",
+  "kind": "empty_to_none",
+  "judge_J1": false
+ },
+ {
+  "id": 178,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::ansible__ansible::lib/ansible/module_utils/common/validation.py::check_type_str::exception_type::350",
+  "arm": "5-attributed",
+  "kind": "exception_type",
+  "judge_J1": true
+ },
+ {
+  "id": 179,
+  "run": "v2-tag-gpt4omini",
+  "task_id": "xf::xorbitsai__inference::xinference/model/audio/core.py::match_audio::exception_type::238",
+  "arm": "4-typed",
+  "kind": "exception_type",
+  "judge_J1": false
+ },
+ {
+  "id": 180,
+  "run": "v2-tag-deepseek",
+  "task_id": "xf::voxel51__fiftyone::fiftyone/utils/coco.py::parse_coco_categories::tuple_order::1495",
+  "arm": "3-topology",
+  "kind": "tuple_order",
+  "judge_J1": true
+ }
+]
