@@ -467,7 +467,7 @@ Applied without cost: partial-input-baseline and contrast-set framing (Gururanga
 2018, Poliak 2018, Feng 2019, Gardner 2020, Kaushik 2020 now cited), overclaims
 cut ("common benchmarks", "accusation", five-point correlations), c-CRAB model
 named and the three retrieval repairs dated, pre-registration tied to commit
-307bf32, judge disclosure, twins' public-API limitation, abstract shortened to
+d3f9309, judge disclosure, twins' public-API limitation, abstract shortened to
 the independent judge's range, figure order, mechanical fixes.
 
 Pushed back on: the precision gain for the bare link is 3 vs 2 with a block in
@@ -931,7 +931,7 @@ labelled set may be a real defect the annotation missed. Three categories:
 
 ---
 
-## 10. Rules
+## 9. Rules
 
 1. Nothing is "fixed" without a test.
 2. Nothing merges without CI green.
