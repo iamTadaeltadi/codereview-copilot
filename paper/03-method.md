@@ -1,6 +1,6 @@
 # Method
 
-The question is whether telling a model how retrieved code is connected helps it find a defect, once the code itself is already in front of it. Prior comparisons cannot answer this because retrieval and representation change together: a graph-based system retrieves different snippets *and* presents them differently, so a gain cannot be attributed to either. We hold the snippets constant and intervene only on the metadata that describes their relationships.
+The question is whether telling a model how retrieved code is connected helps it review a change, once the code itself is already in front of it; Section 4.1 shows that finding the defect line is not where the difference can appear. Prior comparisons cannot answer this because retrieval and representation change together: a graph-based system retrieves different snippets *and* presents them differently, so a gain cannot be attributed to either. We hold the snippets constant and intervene only on the metadata that describes their relationships.
 
 ## 3.1 Task
 

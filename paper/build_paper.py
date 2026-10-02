@@ -14,10 +14,10 @@ ORDER = ["00-abstract.md", "01-intro.md", "02-related.md", "03-method.md", "04-r
 AUTHOR = "Tadael Shewarega Gebre"; AFFIL = "Independent researcher, Addis Ababa"
 EMAIL = "tadaelshewaregagebre30@gmail.com"
 FIGS = {  # anchor substring in a heading -> (file, caption)
-    "4.3 Does stating the structure": [("fig1-arms.png", "Figure 1. Per-arm rates on the rebuilt benchmark, four runs, three metrics (J1 is deepseek-v3.2, which is also the reviewed model in the third column; see 3.6). Arms 2–6 see identical snippets; only the metadata block differs."),
-                                       ("fig2-primary.png", "Figure 2. The primary comparison, bare link against the scrambled control, with 95% repository-clustered intervals for two judges and for precision.")],
+    "4.3 Does stating the structure": [("fig1-arms.png", "Figure 2. Per-arm rates on the rebuilt benchmark, four runs, three metrics (J1 is deepseek-v3.2, which is also the reviewed model in the third column; see 3.6). Arms 2–6 see identical snippets; only the metadata block differs."),
+                                       ("fig2-primary.png", "Figure 3. The primary comparison, bare link against the scrambled control, with 95% repository-clustered intervals for two judges and for precision.")],
     "4.6 Real defects": [("fig3-ccrab.png", "Figure 4. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
-    "4.1 The three diagnostics": [("fig4-twins.png", "Figure 3. Safe twins: the share the model leaves unflagged, by arm, on two models and under the authoritative-callers instruction.")],
+    "4.1 The three diagnostics": [("fig4-twins.png", "Figure 1. Safe twins: the share the model leaves unflagged, by arm, on two models and under the authoritative-callers instruction.")],
 }
 
 refs = {}

@@ -8,7 +8,7 @@ All numbers come from the analysis files under `results/`, produced by `experime
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; 143 have a decoy and are run, and the deepseek run completed 134 of them before credit ran out. Correct on a twin means not flagging the mutated line (Figure 3).
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; 143 have a decoy and are run, and the deepseek run completed 134 of them before credit ran out. Correct on a twin means not flagging the mutated line (Figure 1).
 
 | Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=134) |
 |---|---|---|
@@ -25,7 +25,7 @@ No arm on either model clears more than about a fifth of the twins (at most 21%)
 
 ## 4.2 Does the caller help? A relevance control, and partly a sanity check
 
-The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the same number of snippets at the same budget; only arm 2's snippets are the real definition, caller and decoy. The header-only arm (arm 8) receives the dependency section with no snippets. The metric is the validated judge: does the message on the defect line name a concrete fact about the caller.
+The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the same number of snippets at the same budget; only arm 2's snippets are the real definition, caller and decoy. The header-only arm (arm 8) receives the dependency section with no snippets. The metric is the validated judge: does the message on the defect line name a concrete fact about the caller (Figure 2).
 
 Two judges are reported: J1 is deepseek-v3.2, which is also a reviewed model, and J2 is gemini-2.5-flash, a fourth family. Both agree with the 40 hand labels at kappa 0.43; J1 under-calls, J2 is calibrated to the human rate. Where they disagree on a verdict the table shows both.
 
@@ -46,7 +46,7 @@ Arms 2 through 6 receive identical snippets. The pre-registered primary comparis
 
 **On the pre-registered keyword rubric, the primary spans zero** on both runs where it was computed: −0.9 [−5.3, +3.2] on gpt-4o-mini and −2.7 [−6.7, +0.9] on llama. The rubric was found, before the full data existed, to pass boilerplate: a diff-only reviewer writing "may lead to unexpected behavior if the caller expects a None return value" satisfies it, and 50% of diff-only messages do. It is reported as pre-registered and not interpreted further.
 
-**On the validated judges**, with a miss counted as a failure so that arms are compared on the same tasks (Figures 1 and 2):
+**On the validated judges**, with a miss counted as a failure so that arms are compared on the same tasks (Figures 2 and 3):
 
 | 3 topology − 2 control | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
