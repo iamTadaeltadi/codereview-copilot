@@ -8,7 +8,7 @@
 
 **Python only.** The generator, the import resolution and the verifiers are written against Python's `ast`. The project's graph builder parses four languages; the benchmark exercises one.
 
-**Three model families, chosen for cost.** gpt-4o-mini and llama-3.3-70b are 2024 models; deepseek-v3.2 is a 2026 open model at a fraction of frontier pricing. A frontier closed model has not been run. The known dependence of graph reasoning on encoding [arXiv:2511.10234] means the two serialisations here do not exhaust the space, and the one encoding-dependent result is reported as such.
+**Three model families, chosen for cost.** gpt-4o-mini and llama-3.3-70b are 2024 models; deepseek-v3.2 is a recent open model at a fraction of frontier pricing. A frontier closed model has not been run. The known dependence of graph reasoning on encoding [arXiv:2511.10234] means the two serialisations here do not exhaust the space, and the one encoding-dependent result is reported as such.
 
 **The evidence window is twenty-five lines.** The relation the metadata states is, for three of the five kinds, visible within the caller window by construction, since the demonstrating line is the call. The hidden-evidence variant removes it for the two kinds where that is possible. For the other three, a null on the primary comparison cannot distinguish "structure is not used" from "structure restates what is visible".
 

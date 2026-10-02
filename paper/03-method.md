@@ -53,7 +53,7 @@ The same relations are rendered two ways, because graph-reasoning accuracy is kn
 
 ## 3.6 Metrics
 
-*Judge.* The mechanism judge is a separate model asked, blind to arm and snippets, whether the message names a concrete fact about the caller. The first judge was deepseek-v3.2, which is also one of the three reviewed models; every run is therefore re-judged by a fourth family, gemini-2.5-flash, and both verdicts are released. Validation against 40 hand-labelled messages is in Section 6.
+*Judge.* The mechanism judge is a separate model asked, blind to arm and snippets, whether the message names a concrete fact about the caller. The first judge was deepseek-v3.2, which is also one of the three reviewed models; every run is therefore re-judged by a fourth family, gemini-2.5-flash, which is not a reviewed model in the structure runs, and both verdicts are released. Validation against 40 hand-labelled messages is in Section 6.
 
 *Hit*: a finding's line equals the defect line. *Precise*: hit, and no finding on a distractor line. *Mechanism*: hit, and the message on the defect line names what the caller depends on. Mechanism is a per-kind keyword rubric; for `exception_type` the message must contain the old exception name and one of *caller*, *catch*, *except*, *handle*. It is mechanical and auditable, and it is crude: a message can satisfy it by accident, and a correct explanation phrased unusually can fail it. The rubric and every scored message are released. A finding on the right line for the wrong reason, which an earlier version counted as a hit, fails mechanism.
 
