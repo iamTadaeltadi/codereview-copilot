@@ -16,8 +16,8 @@ EMAIL = "tadaelshewaregagebre30@gmail.com"
 FIGS = {  # anchor substring in a heading -> (file, caption)
     "4.3 Does stating the structure": [("fig1-arms.png", "Figure 1. Per-arm rates on the rebuilt benchmark, four runs, three metrics (J1 is deepseek-v3.2, which is also the reviewed model in the third column; see 3.6). Arms 2–6 see identical snippets; only the metadata block differs."),
                                        ("fig2-primary.png", "Figure 2. The primary comparison, bare link against the scrambled control, with 95% repository-clustered intervals for two judges and for precision.")],
-    "4.6 Real defects": [("fig3-ccrab.png", "Figure 3. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
-    "4.5 The authoritative": [("fig4-twins.png", "Figure 4. Safe twins: the share the model leaves unflagged, by arm, on two models and under the authoritative-callers instruction.")],
+    "4.6 Real defects": [("fig3-ccrab.png", "Figure 4. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
+    "4.1 The three diagnostics": [("fig4-twins.png", "Figure 3. Safe twins: the share the model leaves unflagged, by arm, on two models and under the authoritative-callers instruction.")],
 }
 
 refs = {}
@@ -41,9 +41,13 @@ def cite(m):
 def inline(s):
     s = html.escape(s, quote=False)
     s = re.sub(r"\[((?:(?:arXiv|ref):[\w.]+)(?:,\s*(?:arXiv|ref):[\w.]+)*)\]", cite, s)
-    s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
+    codes = []
+    def keep(m):
+        codes.append(m.group(1)); return f"\x00{len(codes)-1}\x00"
+    s = re.sub(r"`([^`]+)`", keep, s)
     s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
     s = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)", r"<em>\1</em>", s)
+    s = re.sub(r"\x00(\d+)\x00", lambda m: f"<code>{codes[int(m.group(1))]}</code>", s)
     return s
 
 def table(lines):
@@ -116,7 +120,7 @@ def ref_html(k, n):
     if not r:
         return f"<li id='ref{n}'>[{n}] arXiv:{k}. <a href='https://arxiv.org/abs/{k}'>https://arxiv.org/abs/{k}</a></li>"
     authors = r.get("authors") or []
-    a = ", ".join(authors[:6]) + (" et al." if len(authors) > 6 else "")
+    a = ", ".join(authors[:6]) + (" et al" if len(authors) > 6 else "")
     venue = f" {r['venue']}." if r.get("venue") else ""
     link = r.get("url") or ("https://arxiv.org/abs/" + k)
     tag = f"arXiv:{r['arxiv_id']}" if r.get("arxiv_id") else link.replace("https://", "")

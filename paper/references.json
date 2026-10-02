@@ -1,574 +1,667 @@
 [
-  {
-    "key": "arXiv240207140",
-    "arxiv_id": "2402.07140",
-    "title": "Can Graph Descriptive Order Affect Solving Graph Problems with LLMs?",
-    "authors": [
-      "Yuyao Ge",
-      "Shenghua Liu",
-      "Baolong Bi",
-      "Yiwei Wang",
-      "Lingrui Mei",
-      "Wenjie Feng",
-      "Lizhe Chen",
-      "Xueqi Cheng"
-    ],
-    "year": 2024,
-    "venue": "ACL 2025",
-    "url": "https://arxiv.org/abs/2402.07140"
-  },
-  {
-    "key": "arXiv241014684",
-    "arxiv_id": "2410.14684",
-    "title": "RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph",
-    "authors": [
-      "Siru Ouyang",
-      "Wenhao Yu",
-      "Kaixin Ma",
-      "Zilin Xiao",
-      "Zhihan Zhang",
-      "Mengzhao Jia",
-      "Jiawei Han",
-      "Hongming Zhang",
-      "Dong Yu"
-    ],
-    "year": 2024,
-    "venue": "ICLR 2025",
-    "url": "https://arxiv.org/abs/2410.14684"
-  },
-  {
-    "key": "arXiv250114427",
-    "arxiv_id": "2501.14427",
-    "title": "GraphSOS: Graph Sampling and Order Selection to Help LLMs Understand Graphs Better",
-    "authors": [
-      "Xu Chu",
-      "Hanlin Xue",
-      "Zhijie Tan",
-      "Bingce Wang",
-      "Tong Mo",
-      "Weiping Li"
-    ],
-    "year": 2025,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2501.14427"
-  },
-  {
-    "key": "arXiv250901494",
-    "arxiv_id": "2509.01494",
-    "title": "SWR-Bench: Assessing LLM Performance in Real-World Code Review Comment Generation",
-    "authors": [
-      "Zhengran Zeng",
-      "Ruikai Shi",
-      "Keke Han",
-      "Yixin Li",
-      "Kaicheng Sun",
-      "Yidong Wang",
-      "Zhuohao Yu",
-      "Rui Xie",
-      "Wei Ye",
-      "Shikun Zhang"
-    ],
-    "year": 2025,
-    "venue": "FSE 2026",
-    "url": "https://arxiv.org/abs/2509.01494"
-  },
-  {
-    "key": "arXiv250905980",
-    "arxiv_id": "2509.05980",
-    "title": "GRACE: Graph-Guided Repository-Aware Code Completion through Hierarchical Code Fusion",
-    "authors": [
-      "Xingliang Wang",
-      "Baoyi Wang",
-      "Chen Zhi",
-      "Junxiao Han",
-      "Xinkui Zhao",
-      "Jianwei Yin",
-      "Shuiguang Deng"
-    ],
-    "year": 2025,
-    "venue": "ICSE 2026",
-    "url": "https://arxiv.org/abs/2509.05980"
-  },
-  {
-    "key": "arXiv250918487",
-    "arxiv_id": "2509.18487",
-    "title": "Actions Speak Louder than Prompts: A Large-Scale Study of LLMs for Graph Inference",
-    "authors": [
-      "Ben Finkelshtein",
-      "Silviu Cucerzan",
-      "Sujay Kumar Jauhar",
-      "Ryen White"
-    ],
-    "year": 2025,
-    "venue": "ICLR 2026",
-    "url": "https://arxiv.org/abs/2509.18487"
-  },
-  {
-    "key": "arXiv251005381",
-    "arxiv_id": "2510.05381",
-    "title": "Context Length Alone Hurts LLM Performance Despite Perfect Retrieval",
-    "authors": [
-      "Yufeng Du",
-      "Minyang Tian",
-      "Srikanth Ronanki",
-      "Subendhu Rongali",
-      "Sravan Bodapati",
-      "Aram Galstyan",
-      "Azton Wells",
-      "Roy Schwartz",
-      "Eliu A Huerta",
-      "Hao Peng"
-    ],
-    "year": 2025,
-    "venue": "Findings of EMNLP 2025",
-    "url": "https://arxiv.org/abs/2510.05381"
-  },
-  {
-    "key": "arXiv251107017",
-    "arxiv_id": "2511.07017",
-    "title": "Benchmarking LLMs for Fine-Grained Code Review with Enriched Context in Practice",
-    "authors": [
-      "Ruida Hu",
-      "Xinchen Wang",
-      "Xin-Cheng Wen",
-      "Zhao Zhang",
-      "Bo Jiang",
-      "Pengfei Gao",
-      "Chao Peng",
-      "Cuiyun Gao"
-    ],
-    "year": 2025,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2511.07017"
-  },
-  {
-    "key": "arXiv251110234",
-    "arxiv_id": "2511.10234",
-    "title": "Lost in Serialization: Invariance and Generalization of LLM Graph Reasoners",
-    "authors": [
-      "Daniel Herbst",
-      "Lea Karbevska",
-      "Divyanshu Kumar",
-      "Akanksha Ahuja",
-      "Fatemeh Gholamzadeh Nasrabadi",
-      "Fabrizio Frasca"
-    ],
-    "year": 2025,
-    "venue": "ICML 2026 Workshop on Graph Foundation Models",
-    "url": "https://arxiv.org/abs/2511.10234"
-  },
-  {
-    "key": "arXiv251116767",
-    "arxiv_id": "2511.16767",
-    "title": "When Structure Doesn't Help: LLMs Do Not Read Text-Attributed Graphs as Effectively as We Expected",
-    "authors": [
-      "Haotian Xu",
-      "Yuning You",
-      "Tengfei Ma"
-    ],
-    "year": 2025,
-    "venue": "LoG 2025",
-    "url": "https://arxiv.org/abs/2511.16767"
-  },
-  {
-    "key": "arXiv260119494",
-    "arxiv_id": "2601.19494",
-    "title": "AACR-Bench: Evaluating Automatic Code Review with Holistic Repository-Level Context",
-    "authors": [
-      "Lei Zhang",
-      "Yongda Yu",
-      "Minghui Yu",
-      "Xinxin Guo",
-      "Zhengqi Zhuang",
-      "Guoping Rong",
-      "Dong Shao",
-      "Haifeng Shen",
-      "Hongyu Kuang",
-      "Zhengfeng Li",
-      "Boge Wang",
-      "Guoan Zhang",
-      "Bangyu Xiang",
-      "Xiaobin Xu"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2601.19494"
-  },
-  {
-    "key": "arXiv260122655",
-    "arxiv_id": "2601.22655",
-    "title": "Do Fine-Tuned LLMs Understand Vulnerabilities? An Investigation into the Semantic Trap",
-    "authors": [
-      "Feiyang Huang",
-      "Yuqiang Sun",
-      "Fan Zhang",
-      "Ziqi Yang",
-      "Han Liu",
-      "Yang Liu"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2601.22655"
-  },
-  {
-    "key": "arXiv260123254",
-    "arxiv_id": "2601.23254",
-    "title": "Better Call Grep: Evaluating and Improving Grep-Like Lexical Retrieval for Repository-Level Code Completion",
-    "authors": [
-      "Baoyi Wang",
-      "Xingliang Wang",
-      "Guochang Li",
-      "Chen Zhi",
-      "Junxiao Han",
-      "Xinkui Zhao",
-      "Nan Wang",
-      "Shuiguang Deng",
-      "Jianwei Yin"
-    ],
-    "year": 2026,
-    "venue": "ISSTA 2026",
-    "url": "https://arxiv.org/abs/2601.23254"
-  },
-  {
-    "key": "arXiv260216741",
-    "arxiv_id": "2602.16741",
-    "title": "Can Adversarial Code Comments Fool AI Security Reviewers -- Large-Scale Empirical Study of Comment-Based Attacks and Defenses Against LLM Code Analysis",
-    "authors": [
-      "Scott Thornton"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2602.16741"
-  },
-  {
-    "key": "arXiv260220048",
-    "arxiv_id": "2602.20048",
-    "title": "CodeCompass: Navigating the Navigation Paradox in Agentic Code Intelligence",
-    "authors": [
-      "Tarakanath Paipuru"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2602.20048"
-  },
-  {
-    "key": "arXiv260300539",
-    "arxiv_id": "2603.00539",
-    "title": "Are LLMs Reliable Code Reviewers? Systematic Overcorrection in Requirement Conformance Judgement",
-    "authors": [
-      "Haolin Jin",
-      "Huaming Chen"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2603.00539"
-  },
-  {
-    "key": "arXiv260311078",
-    "arxiv_id": "2603.11078",
-    "title": "CR-Bench: Evaluating the Real-World Utility of AI Code Review Agents",
-    "authors": [
-      "Kristen Pereira",
-      "Neelabh Sinha",
-      "Rajat Ghosh",
-      "Debojyoti Dutta"
-    ],
-    "year": 2026,
-    "venue": "ICLR 2026 workshop",
-    "url": "https://arxiv.org/abs/2603.11078"
-  },
-  {
-    "key": "arXiv260318740",
-    "arxiv_id": "2603.18740",
-    "title": "Measuring and Exploiting Contextual Bias in LLM-Assisted Security Code Review",
-    "authors": [
-      "Georgios Alexopoulos",
-      "Nikolaos Alexopoulos",
-      "Diomidis Spinellis",
-      "Dimitris Mitropoulos"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2603.18740"
-  },
-  {
-    "key": "arXiv260323448",
-    "arxiv_id": "2603.23448",
-    "title": "Code Review Agent Benchmark",
-    "authors": [
-      "Yuntong Zhang",
-      "Zhiyuan Pan",
-      "Imam Nur Bani Yusuf",
-      "Haifeng Ruan",
-      "Ridwan Shariffdeen",
-      "Abhik Roychoudhury"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2603.23448"
-  },
-  {
-    "key": "arXiv260326130",
-    "arxiv_id": "2603.26130",
-    "title": "SWE-PRBench: Benchmarking AI Code Review Quality Against Pull Request Feedback",
-    "authors": [
-      "Deepak Kumar"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2603.26130"
-  },
-  {
-    "key": "arXiv260402665",
-    "arxiv_id": "2604.02665",
-    "title": "AgentSZZ: Teaching the LLM Agent to Play Detective with Bug-Inducing Commits",
-    "authors": [
-      "Yunbo Lyu",
-      "Jieke Shi",
-      "Hong Jin Kang",
-      "Ratnadira Widyasari",
-      "Junda He",
-      "Yuqing Niu",
-      "Chengran Yang",
-      "Junkai Chen",
-      "Zhou Yang",
-      "Julia Lawall",
-      "David Lo"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2604.02665"
-  },
-  {
-    "key": "arXiv260408417",
-    "arxiv_id": "2604.08417",
-    "title": "Vulnerability Detection with Interprocedural Context in Multiple Languages: Assessing Effectiveness and Cost of Modern LLMs",
-    "authors": [
-      "Kevin Lira",
-      "Baldoino Fonseca",
-      "Davy Baía",
-      "Márcio Ribeiro",
-      "Wesley K. G. Assunção"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2604.08417"
-  },
-  {
-    "key": "arXiv260416790",
-    "arxiv_id": "2604.16790",
-    "title": "Bias in the Loop: Auditing LLM-as-a-Judge for Software Engineering",
-    "authors": [
-      "Zixiao Zhao",
-      "Amirreza Esmaeili",
-      "Fatemeh Fard"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2604.16790"
-  },
-  {
-    "key": "arXiv260514478",
-    "arxiv_id": "2605.14478",
-    "title": "When Retrieval Hurts Code Completion: A Diagnostic Study of Stale Repository Context",
-    "authors": [
-      "Haojun Weng",
-      "Qianqian Yang",
-      "Hao Fu",
-      "Haobin Pan",
-      "Xinwei Lv"
-    ],
-    "year": 2026,
-    "venue": "Information and Software Technology, 2026",
-    "url": "https://arxiv.org/abs/2605.14478"
-  },
-  {
-    "key": "arXiv260516352",
-    "arxiv_id": "2605.16352",
-    "title": "LARGER: Lexically Anchored Repository Graph Exploration and Retrieval",
-    "authors": [
-      "Yuntong Hu",
-      "Tongli Su",
-      "Liang Zhao",
-      "Bowen Zhu",
-      "Hasibul Haque"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2605.16352"
-  },
-  {
-    "key": "arXiv260521537",
-    "arxiv_id": "2605.21537",
-    "title": "Articulate but Wrong: Self-Review Failures in LLM-Based Code Modernization",
-    "authors": [
-      "Gokul Chandra Purnachandra Reddy",
-      "Aditya Lolla",
-      "Harsha Sanku"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2605.21537"
-  },
-  {
-    "key": "arXiv260615633",
-    "arxiv_id": "2606.15633",
-    "title": "Formalizing and Mitigating Structural Distortion in LLM Attention for Graph Reasoning",
-    "authors": [
-      "Donald Loveland",
-      "Puja Trivedi",
-      "Ari Weinstein",
-      "Edward W Huang",
-      "Danai Koutra"
-    ],
-    "year": 2026,
-    "venue": "KDD 2026",
-    "url": "https://arxiv.org/abs/2606.15633"
-  },
-  {
-    "key": "arXiv260625356",
-    "arxiv_id": "2606.25356",
-    "title": "Representation Matters: An Empirical Study of Program Representations for LLM Vulnerability Reasoning",
-    "authors": [
-      "Andrew Stoltman",
-      "Johnathan Tang",
-      "Haipeng Cai"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2606.25356"
-  },
-  {
-    "key": "arXiv260716740",
-    "arxiv_id": "2607.16740",
-    "title": "Agentic Code Review in the Terminal: A Trajectory-Level Analysis of Behavior, Cost, and Human-Alignment",
-    "authors": [
-      "Wachiraphan Charoenwet",
-      "Kla Tantithamthavorn",
-      "Patanamon Thongtanunam",
-      "Hong Yi Lin",
-      "Minwoo Jeong",
-      "Ming Wu"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2607.16740"
-  },
-  {
-    "key": "arXiv260724882",
-    "arxiv_id": "2607.24882",
-    "title": "Agent Retrieval Bench: Evaluating Repository Context Retrieval for Coding Agents",
-    "authors": [
-      "Bowen Qin",
-      "Yi Xie"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2607.24882"
-  },
-  {
-    "key": "arXiv260725996",
-    "arxiv_id": "2607.25996",
-    "title": "RepoReasoner: Evaluating Repository-Level Code Reasoning Ability of Long-Context Language Models",
-    "authors": [
-      "Yanlin Wang",
-      "Suiquan Wang",
-      "Yanli Wang",
-      "Bowen Zhang",
-      "Daya Guo",
-      "Jiachi Chen",
-      "Zibin Zheng"
-    ],
-    "year": 2026,
-    "venue": "FSE 2026",
-    "url": "https://arxiv.org/abs/2607.25996"
-  },
-  {
-    "key": "arXiv260801927",
-    "arxiv_id": "2608.01927",
-    "title": "Effective and Efficient Context Retrieval via Partial Dependency Graph for Repository-Level Code Generation",
-    "authors": [
-      "Zhongxin Liu",
-      "Zhonghao Jiang",
-      "Zhifan Ye",
-      "Haoye Wang",
-      "Jiakun Liu",
-      "Xiaoxue Ren"
-    ],
-    "year": 2026,
-    "venue": "ASE 2026",
-    "url": "https://arxiv.org/abs/2608.01927"
-  },
-  {
-    "key": "arXiv260809290",
-    "arxiv_id": "2608.09290",
-    "title": "OpenCodeReview: Determinism over Non-Determinism for Cost-Effective Agent-Based Code Review",
-    "authors": [
-      "Zhengfeng Li",
-      "Lei Zhang",
-      "Xianwei Wu",
-      "Zhengqi Zhuang",
-      "Yingjie Xu",
-      "Boge Wang",
-      "Shaofei Zhu",
-      "Chuan Wang",
-      "Peng Zhao",
-      "Xinyu Zheng",
-      "Guoping Rong"
-    ],
-    "year": 2026,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2608.09290"
-  },
-  {
-    "key": "arXiv260827442",
-    "arxiv_id": "2608.27442",
-    "title": "From Static to Dynamic: Benchmarking Real-World Code Review with MCR-Bench",
-    "authors": [
-      "Dewu Zheng",
-      "Yanlin Wang",
-      "Xiwen Wang",
-      "Kefeng Duan",
-      "Hongyu Zhang",
-      "Xilin Liu",
-      "Yuchi Ma",
-      "Zibin Zheng"
-    ],
-    "year": 2026,
-    "venue": "ISSTA 2026",
-    "url": "https://arxiv.org/abs/2608.27442"
-  },
-  {
-    "key": "codefuse2025crbench",
-    "arxiv_id": "2509.14856",
-    "title": "CodeFuse-CR-Bench: A Comprehensiveness-aware Benchmark for End-to-End Code Review Evaluation in Python Projects",
-    "authors": [
-      "Hanyang Guo",
-      "Xunjin Zheng",
-      "Zihan Liao",
-      "Hang Yu",
-      "Peng DI",
-      "Ziyin Zhang",
-      "Hong-Ning Dai"
-    ],
-    "year": 2025,
-    "venue": "",
-    "url": "https://arxiv.org/abs/2509.14856"
-  },
-  {
-    "key": "song2026regression",
-    "arxiv_id": null,
-    "title": "Characterizing Regression Bug-Inducing Changes and Improving LLM-Based Regression Bug Detection",
-    "authors": [
-      "Xuezhi Song",
-      "Yijian Wu",
-      "Bihuan Chen",
-      "Zhengjie Lu",
-      "Shuning Liu",
-      "Xin Peng"
-    ],
-    "year": 2026,
-    "venue": "ICSE 2026 (Research Track)",
-    "url": "https://github.com/FudanSELab/LLM4Reg"
-  }
+ {
+  "key": "arXiv240207140",
+  "arxiv_id": "2402.07140",
+  "title": "Can Graph Descriptive Order Affect Solving Graph Problems with LLMs?",
+  "authors": [
+   "Yuyao Ge",
+   "Shenghua Liu",
+   "Baolong Bi",
+   "Yiwei Wang",
+   "Lingrui Mei",
+   "Wenjie Feng",
+   "Lizhe Chen",
+   "Xueqi Cheng"
+  ],
+  "year": 2024,
+  "venue": "ACL 2025",
+  "url": "https://arxiv.org/abs/2402.07140"
+ },
+ {
+  "key": "arXiv241014684",
+  "arxiv_id": "2410.14684",
+  "title": "RepoGraph: Enhancing AI Software Engineering with Repository-level Code Graph",
+  "authors": [
+   "Siru Ouyang",
+   "Wenhao Yu",
+   "Kaixin Ma",
+   "Zilin Xiao",
+   "Zhihan Zhang",
+   "Mengzhao Jia",
+   "Jiawei Han",
+   "Hongming Zhang",
+   "Dong Yu"
+  ],
+  "year": 2024,
+  "venue": "ICLR 2025",
+  "url": "https://arxiv.org/abs/2410.14684"
+ },
+ {
+  "key": "arXiv250114427",
+  "arxiv_id": "2501.14427",
+  "title": "GraphSOS: Graph Sampling and Order Selection to Help LLMs Understand Graphs Better",
+  "authors": [
+   "Xu Chu",
+   "Hanlin Xue",
+   "Zhijie Tan",
+   "Bingce Wang",
+   "Tong Mo",
+   "Weiping Li"
+  ],
+  "year": 2025,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2501.14427"
+ },
+ {
+  "key": "arXiv250901494",
+  "arxiv_id": "2509.01494",
+  "title": "SWR-Bench: Assessing LLM Performance in Real-World Code Review Comment Generation",
+  "authors": [
+   "Zhengran Zeng",
+   "Ruikai Shi",
+   "Keke Han",
+   "Yixin Li",
+   "Kaicheng Sun",
+   "Yidong Wang",
+   "Zhuohao Yu",
+   "Rui Xie",
+   "Wei Ye",
+   "Shikun Zhang"
+  ],
+  "year": 2025,
+  "venue": "FSE 2026",
+  "url": "https://arxiv.org/abs/2509.01494"
+ },
+ {
+  "key": "arXiv250905980",
+  "arxiv_id": "2509.05980",
+  "title": "GRACE: Graph-Guided Repository-Aware Code Completion through Hierarchical Code Fusion",
+  "authors": [
+   "Xingliang Wang",
+   "Baoyi Wang",
+   "Chen Zhi",
+   "Junxiao Han",
+   "Xinkui Zhao",
+   "Jianwei Yin",
+   "Shuiguang Deng"
+  ],
+  "year": 2025,
+  "venue": "ICSE 2026",
+  "url": "https://arxiv.org/abs/2509.05980"
+ },
+ {
+  "key": "arXiv250918487",
+  "arxiv_id": "2509.18487",
+  "title": "Actions Speak Louder than Prompts: A Large-Scale Study of LLMs for Graph Inference",
+  "authors": [
+   "Ben Finkelshtein",
+   "Silviu Cucerzan",
+   "Sujay Kumar Jauhar",
+   "Ryen White"
+  ],
+  "year": 2025,
+  "venue": "ICLR 2026",
+  "url": "https://arxiv.org/abs/2509.18487"
+ },
+ {
+  "key": "arXiv251005381",
+  "arxiv_id": "2510.05381",
+  "title": "Context Length Alone Hurts LLM Performance Despite Perfect Retrieval",
+  "authors": [
+   "Yufeng Du",
+   "Minyang Tian",
+   "Srikanth Ronanki",
+   "Subendhu Rongali",
+   "Sravan Bodapati",
+   "Aram Galstyan",
+   "Azton Wells",
+   "Roy Schwartz",
+   "Eliu A Huerta",
+   "Hao Peng"
+  ],
+  "year": 2025,
+  "venue": "Findings of EMNLP 2025",
+  "url": "https://arxiv.org/abs/2510.05381"
+ },
+ {
+  "key": "arXiv251107017",
+  "arxiv_id": "2511.07017",
+  "title": "Benchmarking LLMs for Fine-Grained Code Review with Enriched Context in Practice",
+  "authors": [
+   "Ruida Hu",
+   "Xinchen Wang",
+   "Xin-Cheng Wen",
+   "Zhao Zhang",
+   "Bo Jiang",
+   "Pengfei Gao",
+   "Chao Peng",
+   "Cuiyun Gao"
+  ],
+  "year": 2025,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2511.07017"
+ },
+ {
+  "key": "arXiv251110234",
+  "arxiv_id": "2511.10234",
+  "title": "Lost in Serialization: Invariance and Generalization of LLM Graph Reasoners",
+  "authors": [
+   "Daniel Herbst",
+   "Lea Karbevska",
+   "Divyanshu Kumar",
+   "Akanksha Ahuja",
+   "Fatemeh Gholamzadeh Nasrabadi",
+   "Fabrizio Frasca"
+  ],
+  "year": 2025,
+  "venue": "ICML 2026 Workshop on Graph Foundation Models",
+  "url": "https://arxiv.org/abs/2511.10234"
+ },
+ {
+  "key": "arXiv251116767",
+  "arxiv_id": "2511.16767",
+  "title": "When Structure Doesn't Help: LLMs Do Not Read Text-Attributed Graphs as Effectively as We Expected",
+  "authors": [
+   "Haotian Xu",
+   "Yuning You",
+   "Tengfei Ma"
+  ],
+  "year": 2025,
+  "venue": "LoG 2025",
+  "url": "https://arxiv.org/abs/2511.16767"
+ },
+ {
+  "key": "arXiv260119494",
+  "arxiv_id": "2601.19494",
+  "title": "AACR-Bench: Evaluating Automatic Code Review with Holistic Repository-Level Context",
+  "authors": [
+   "Lei Zhang",
+   "Yongda Yu",
+   "Minghui Yu",
+   "Xinxin Guo",
+   "Zhengqi Zhuang",
+   "Guoping Rong",
+   "Dong Shao",
+   "Haifeng Shen",
+   "Hongyu Kuang",
+   "Zhengfeng Li",
+   "Boge Wang",
+   "Guoan Zhang",
+   "Bangyu Xiang",
+   "Xiaobin Xu"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2601.19494"
+ },
+ {
+  "key": "arXiv260122655",
+  "arxiv_id": "2601.22655",
+  "title": "Do Fine-Tuned LLMs Understand Vulnerabilities? An Investigation into the Semantic Trap",
+  "authors": [
+   "Feiyang Huang",
+   "Yuqiang Sun",
+   "Fan Zhang",
+   "Ziqi Yang",
+   "Han Liu",
+   "Yang Liu"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2601.22655"
+ },
+ {
+  "key": "arXiv260123254",
+  "arxiv_id": "2601.23254",
+  "title": "Better Call Grep: Evaluating and Improving Grep-Like Lexical Retrieval for Repository-Level Code Completion",
+  "authors": [
+   "Baoyi Wang",
+   "Xingliang Wang",
+   "Guochang Li",
+   "Chen Zhi",
+   "Junxiao Han",
+   "Xinkui Zhao",
+   "Nan Wang",
+   "Shuiguang Deng",
+   "Jianwei Yin"
+  ],
+  "year": 2026,
+  "venue": "ISSTA 2026",
+  "url": "https://arxiv.org/abs/2601.23254"
+ },
+ {
+  "key": "arXiv260216741",
+  "arxiv_id": "2602.16741",
+  "title": "Can Adversarial Code Comments Fool AI Security Reviewers -- Large-Scale Empirical Study of Comment-Based Attacks and Defenses Against LLM Code Analysis",
+  "authors": [
+   "Scott Thornton"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2602.16741"
+ },
+ {
+  "key": "arXiv260220048",
+  "arxiv_id": "2602.20048",
+  "title": "CodeCompass: Navigating the Navigation Paradox in Agentic Code Intelligence",
+  "authors": [
+   "Tarakanath Paipuru"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2602.20048"
+ },
+ {
+  "key": "arXiv260300539",
+  "arxiv_id": "2603.00539",
+  "title": "Are LLMs Reliable Code Reviewers? Systematic Overcorrection in Requirement Conformance Judgement",
+  "authors": [
+   "Haolin Jin",
+   "Huaming Chen"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2603.00539"
+ },
+ {
+  "key": "arXiv260311078",
+  "arxiv_id": "2603.11078",
+  "title": "CR-Bench: Evaluating the Real-World Utility of AI Code Review Agents",
+  "authors": [
+   "Kristen Pereira",
+   "Neelabh Sinha",
+   "Rajat Ghosh",
+   "Debojyoti Dutta"
+  ],
+  "year": 2026,
+  "venue": "ICLR 2026 workshop",
+  "url": "https://arxiv.org/abs/2603.11078"
+ },
+ {
+  "key": "arXiv260318740",
+  "arxiv_id": "2603.18740",
+  "title": "Measuring and Exploiting Contextual Bias in LLM-Assisted Security Code Review",
+  "authors": [
+   "Georgios Alexopoulos",
+   "Nikolaos Alexopoulos",
+   "Diomidis Spinellis",
+   "Dimitris Mitropoulos"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2603.18740"
+ },
+ {
+  "key": "arXiv260323448",
+  "arxiv_id": "2603.23448",
+  "title": "Code Review Agent Benchmark",
+  "authors": [
+   "Yuntong Zhang",
+   "Zhiyuan Pan",
+   "Imam Nur Bani Yusuf",
+   "Haifeng Ruan",
+   "Ridwan Shariffdeen",
+   "Abhik Roychoudhury"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2603.23448"
+ },
+ {
+  "key": "arXiv260326130",
+  "arxiv_id": "2603.26130",
+  "title": "SWE-PRBench: Benchmarking AI Code Review Quality Against Pull Request Feedback",
+  "authors": [
+   "Deepak Kumar"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2603.26130"
+ },
+ {
+  "key": "arXiv260402665",
+  "arxiv_id": "2604.02665",
+  "title": "AgentSZZ: Teaching the LLM Agent to Play Detective with Bug-Inducing Commits",
+  "authors": [
+   "Yunbo Lyu",
+   "Jieke Shi",
+   "Hong Jin Kang",
+   "Ratnadira Widyasari",
+   "Junda He",
+   "Yuqing Niu",
+   "Chengran Yang",
+   "Junkai Chen",
+   "Zhou Yang",
+   "Julia Lawall",
+   "David Lo"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2604.02665"
+ },
+ {
+  "key": "arXiv260408417",
+  "arxiv_id": "2604.08417",
+  "title": "Vulnerability Detection with Interprocedural Context in Multiple Languages: Assessing Effectiveness and Cost of Modern LLMs",
+  "authors": [
+   "Kevin Lira",
+   "Baldoino Fonseca",
+   "Davy Ba\u00eda",
+   "M\u00e1rcio Ribeiro",
+   "Wesley K. G. Assun\u00e7\u00e3o"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2604.08417"
+ },
+ {
+  "key": "arXiv260416790",
+  "arxiv_id": "2604.16790",
+  "title": "Bias in the Loop: Auditing LLM-as-a-Judge for Software Engineering",
+  "authors": [
+   "Zixiao Zhao",
+   "Amirreza Esmaeili",
+   "Fatemeh Fard"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2604.16790"
+ },
+ {
+  "key": "arXiv260514478",
+  "arxiv_id": "2605.14478",
+  "title": "When Retrieval Hurts Code Completion: A Diagnostic Study of Stale Repository Context",
+  "authors": [
+   "Haojun Weng",
+   "Qianqian Yang",
+   "Hao Fu",
+   "Haobin Pan",
+   "Xinwei Lv"
+  ],
+  "year": 2026,
+  "venue": "Information and Software Technology, 2026",
+  "url": "https://arxiv.org/abs/2605.14478"
+ },
+ {
+  "key": "arXiv260516352",
+  "arxiv_id": "2605.16352",
+  "title": "LARGER: Lexically Anchored Repository Graph Exploration and Retrieval",
+  "authors": [
+   "Yuntong Hu",
+   "Tongli Su",
+   "Liang Zhao",
+   "Bowen Zhu",
+   "Hasibul Haque"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2605.16352"
+ },
+ {
+  "key": "arXiv260521537",
+  "arxiv_id": "2605.21537",
+  "title": "Articulate but Wrong: Self-Review Failures in LLM-Based Code Modernization",
+  "authors": [
+   "Gokul Chandra Purnachandra Reddy",
+   "Aditya Lolla",
+   "Harsha Sanku"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2605.21537"
+ },
+ {
+  "key": "arXiv260615633",
+  "arxiv_id": "2606.15633",
+  "title": "Formalizing and Mitigating Structural Distortion in LLM Attention for Graph Reasoning",
+  "authors": [
+   "Donald Loveland",
+   "Puja Trivedi",
+   "Ari Weinstein",
+   "Edward W Huang",
+   "Danai Koutra"
+  ],
+  "year": 2026,
+  "venue": "KDD 2026",
+  "url": "https://arxiv.org/abs/2606.15633"
+ },
+ {
+  "key": "arXiv260625356",
+  "arxiv_id": "2606.25356",
+  "title": "Representation Matters: An Empirical Study of Program Representations for LLM Vulnerability Reasoning",
+  "authors": [
+   "Andrew Stoltman",
+   "Johnathan Tang",
+   "Haipeng Cai"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2606.25356"
+ },
+ {
+  "key": "arXiv260716740",
+  "arxiv_id": "2607.16740",
+  "title": "Agentic Code Review in the Terminal: A Trajectory-Level Analysis of Behavior, Cost, and Human-Alignment",
+  "authors": [
+   "Wachiraphan Charoenwet",
+   "Kla Tantithamthavorn",
+   "Patanamon Thongtanunam",
+   "Hong Yi Lin",
+   "Minwoo Jeong",
+   "Ming Wu"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2607.16740"
+ },
+ {
+  "key": "arXiv260724882",
+  "arxiv_id": "2607.24882",
+  "title": "Agent Retrieval Bench: Evaluating Repository Context Retrieval for Coding Agents",
+  "authors": [
+   "Bowen Qin",
+   "Yi Xie"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2607.24882"
+ },
+ {
+  "key": "arXiv260725996",
+  "arxiv_id": "2607.25996",
+  "title": "RepoReasoner: Evaluating Repository-Level Code Reasoning Ability of Long-Context Language Models",
+  "authors": [
+   "Yanlin Wang",
+   "Suiquan Wang",
+   "Yanli Wang",
+   "Bowen Zhang",
+   "Daya Guo",
+   "Jiachi Chen",
+   "Zibin Zheng"
+  ],
+  "year": 2026,
+  "venue": "FSE 2026",
+  "url": "https://arxiv.org/abs/2607.25996"
+ },
+ {
+  "key": "arXiv260801927",
+  "arxiv_id": "2608.01927",
+  "title": "Effective and Efficient Context Retrieval via Partial Dependency Graph for Repository-Level Code Generation",
+  "authors": [
+   "Zhongxin Liu",
+   "Zhonghao Jiang",
+   "Zhifan Ye",
+   "Haoye Wang",
+   "Jiakun Liu",
+   "Xiaoxue Ren"
+  ],
+  "year": 2026,
+  "venue": "ASE 2026",
+  "url": "https://arxiv.org/abs/2608.01927"
+ },
+ {
+  "key": "arXiv260809290",
+  "arxiv_id": "2608.09290",
+  "title": "OpenCodeReview: Determinism over Non-Determinism for Cost-Effective Agent-Based Code Review",
+  "authors": [
+   "Zhengfeng Li",
+   "Lei Zhang",
+   "Xianwei Wu",
+   "Zhengqi Zhuang",
+   "Yingjie Xu",
+   "Boge Wang",
+   "Shaofei Zhu",
+   "Chuan Wang",
+   "Peng Zhao",
+   "Xinyu Zheng",
+   "Guoping Rong"
+  ],
+  "year": 2026,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2608.09290"
+ },
+ {
+  "key": "arXiv260827442",
+  "arxiv_id": "2608.27442",
+  "title": "From Static to Dynamic: Benchmarking Real-World Code Review with MCR-Bench",
+  "authors": [
+   "Dewu Zheng",
+   "Yanlin Wang",
+   "Xiwen Wang",
+   "Kefeng Duan",
+   "Hongyu Zhang",
+   "Xilin Liu",
+   "Yuchi Ma",
+   "Zibin Zheng"
+  ],
+  "year": 2026,
+  "venue": "ISSTA 2026",
+  "url": "https://arxiv.org/abs/2608.27442"
+ },
+ {
+  "key": "codefuse2025crbench",
+  "arxiv_id": "2509.14856",
+  "title": "CodeFuse-CR-Bench: A Comprehensiveness-aware Benchmark for End-to-End Code Review Evaluation in Python Projects",
+  "authors": [
+   "Hanyang Guo",
+   "Xunjin Zheng",
+   "Zihan Liao",
+   "Hang Yu",
+   "Peng DI",
+   "Ziyin Zhang",
+   "Hong-Ning Dai"
+  ],
+  "year": 2025,
+  "venue": "",
+  "url": "https://arxiv.org/abs/2509.14856"
+ },
+ {
+  "key": "song2026regression",
+  "arxiv_id": null,
+  "title": "Characterizing Regression Bug-Inducing Changes and Improving LLM-Based Regression Bug Detection",
+  "authors": [
+   "Xuezhi Song",
+   "Yijian Wu",
+   "Bihuan Chen",
+   "Zhengjie Lu",
+   "Shuning Liu",
+   "Xin Peng"
+  ],
+  "year": 2026,
+  "venue": "ICSE 2026 (Research Track)",
+  "url": "https://github.com/FudanSELab/LLM4Reg"
+ },
+ {
+  "key": "arXiv180302324",
+  "arxiv_id": "1803.02324",
+  "title": "Annotation Artifacts in Natural Language Inference Data",
+  "authors": [
+   "Suchin Gururangan",
+   "Swabha Swayamdipta",
+   "Omer Levy",
+   "Roy Schwartz",
+   "Samuel R. Bowman",
+   "Noah A. Smith"
+  ],
+  "year": "2018",
+  "venue": "NAACL 2018",
+  "url": "https://arxiv.org/abs/1803.02324"
+ },
+ {
+  "key": "arXiv180501042",
+  "arxiv_id": "1805.01042",
+  "title": "Hypothesis Only Baselines in Natural Language Inference",
+  "authors": [
+   "Adam Poliak",
+   "Jason Naradowsky",
+   "Aparajita Haldar",
+   "Rachel Rudinger",
+   "Benjamin Van Durme"
+  ],
+  "year": "2018",
+  "venue": "*SEM 2018",
+  "url": "https://arxiv.org/abs/1805.01042"
+ },
+ {
+  "key": "arXiv190505778",
+  "arxiv_id": "1905.05778",
+  "title": "Misleading Failures of Partial-input Baselines",
+  "authors": [
+   "Shi Feng",
+   "Eric Wallace",
+   "Jordan Boyd-Graber"
+  ],
+  "year": "2019",
+  "venue": "ACL 2019",
+  "url": "https://arxiv.org/abs/1905.05778"
+ },
+ {
+  "key": "arXiv200402709",
+  "arxiv_id": "2004.02709",
+  "title": "Evaluating Models' Local Decision Boundaries via Contrast Sets",
+  "authors": [
+   "Matt Gardner",
+   "Yoav Artzi",
+   "Victoria Basmova",
+   "Jonathan Berant",
+   "Ben Bogin",
+   "Sihao Chen",
+   "Pradeep Dasigi",
+   "Dheeru Dua",
+   "Yanai Elazar",
+   "Ananth Gottumukkala",
+   "Nitish Gupta",
+   "Hanna Hajishirzi",
+   "Gabriel Ilharco",
+   "Daniel Khashabi",
+   "Kevin Lin",
+   "Jiangming Liu",
+   "Nelson F. Liu",
+   "Phoebe Mulcaire",
+   "Qiang Ning",
+   "Sameer Singh",
+   "Noah A. Smith",
+   "Sanjay Subramanian",
+   "Reut Tsarfaty",
+   "Eric Wallace",
+   "Ally Zhang",
+   "Ben Zhou"
+  ],
+  "year": "2020",
+  "venue": "Findings of EMNLP 2020",
+  "url": "https://arxiv.org/abs/2004.02709"
+ },
+ {
+  "key": "arXiv190912434",
+  "arxiv_id": "1909.12434",
+  "title": "Learning the Difference that Makes a Difference with Counterfactually-Augmented Data",
+  "authors": [
+   "Divyansh Kaushik",
+   "Eduard Hovy",
+   "Zachary C. Lipton"
+  ],
+  "year": "2020",
+  "venue": "ICLR 2020",
+  "url": "https://arxiv.org/abs/1909.12434"
+ }
 ]
