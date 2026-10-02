@@ -8,7 +8,7 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line. Correct on a twin means not flagging the mutated line (Figure 4).
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line (Figure 4).
 
 | Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=134) |
 |---|---|---|
