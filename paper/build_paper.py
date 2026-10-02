@@ -24,6 +24,7 @@ refs = {}
 try:
     for r in json.loads((ROOT / "references.json").read_text()):
         refs[r.get("arxiv_id") or r["key"]] = r
+        refs[r["key"]] = r
 except Exception:
     pass
 order = []  # citation keys in order of first appearance
@@ -32,14 +33,14 @@ def cite(m):
     keys = [k.strip() for k in m.group(1).split(",")]
     nums = []
     for k in keys:
-        k = k.replace("arXiv:", "")
+        k = k.replace("arXiv:", "").replace("ref:", "")
         if k not in order: order.append(k)
         nums.append(str(order.index(k) + 1))
     return "[" + ", ".join(nums) + "]"
 
 def inline(s):
     s = html.escape(s, quote=False)
-    s = re.sub(r"\[((?:arXiv:[0-9.]+)(?:,\s*arXiv:[0-9.]+)*)\]", cite, s)
+    s = re.sub(r"\[((?:(?:arXiv|ref):[\w.]+)(?:,\s*(?:arXiv|ref):[\w.]+)*)\]", cite, s)
     s = re.sub(r"`([^`]+)`", r"<code>\1</code>", s)
     s = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", s)
     s = re.sub(r"(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)", r"<em>\1</em>", s)
@@ -117,7 +118,9 @@ def ref_html(k, n):
     authors = r.get("authors") or []
     a = ", ".join(authors[:6]) + (" et al." if len(authors) > 6 else "")
     venue = f" {r['venue']}." if r.get("venue") else ""
-    return f"<li id='ref{n}'>[{n}] {html.escape(a)}. {html.escape(r.get('title',''))}. {r.get('year','')}.{html.escape(venue)} <a href='{r.get('url','https://arxiv.org/abs/'+k)}'>arXiv:{k}</a></li>"
+    link = r.get("url") or ("https://arxiv.org/abs/" + k)
+    tag = f"arXiv:{r['arxiv_id']}" if r.get("arxiv_id") else link.replace("https://", "")
+    return f"<li id='ref{n}'>[{n}] {html.escape(a)}. {html.escape(r.get('title',''))}. {r.get('year','')}.{html.escape(venue)} <a href='{link}'>{html.escape(tag)}</a></li>"
 references = "\n".join(ref_html(k, i + 1) for i, k in enumerate(order))
 
 page = f"""<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><title>{html.escape(title)}</title>
