@@ -246,7 +246,7 @@ defects.
 | | Count | |
 |---|---|---|
 | anchored in a file the pull request changed | 291 | **100%** |
-| anchored on a line the pull request changed | 213 | 98% |
+| anchored on a line the pull request changed | 213 | 73% |
 | **refer to something outside the diff — strict** | **97** | **33%** |
 | refer to something outside the diff — loose | 146 | 50% |
 
@@ -459,6 +459,28 @@ Readings, provisional:
   diff 32.9%, random 34.7%, lexical 35.6%, **graph 48.4%**; graph − random
   +13.7 [+8.7, +19.2], graph − lexical +12.8 [+7.8, +17.8]. Random-other-files-only control: 33.5%; graph − that +15.1 [+9.6, +21.1].
   It is the graph, not "any other file".
+
+
+### After the external review (2 Oct 2026) — what remains and what it costs
+
+Applied without cost: partial-input-baseline and contrast-set framing (Gururangan
+2018, Poliak 2018, Feng 2019, Gardner 2020, Kaushik 2020 now cited), overclaims
+cut ("common benchmarks", "accusation", five-point correlations), c-CRAB model
+named and the three retrieval repairs dated, pre-registration tied to commit
+307bf32, judge disclosure, twins' public-API limitation, abstract shortened to
+the independent judge's range, figure order, mechanical fixes.
+
+Pushed back on: the precision gain for the bare link is 3 vs 2 with a block in
+both arms, so "nonsense metadata lowers precision" cannot explain it; it does
+confound 2 vs 1 and 7 vs 1, which arm 2b would settle.
+
+| Still open | Needs | Cost |
+|---|---|---|
+| Arm 2b: snippets with no metadata block, four runs | API credit | ~$0.40 |
+| One frontier model on the eight arms | API credit | ~$5–10 |
+| Judge validation: 150–200 messages labelled blind, two people | the author + one person | 2–3 h each |
+| Second model and seed on c-CRAB | API credit | ~$3 |
+| Twins on private functions | generator work | 1 day |
 
 ### What the literature sweep (June–October 2026) changes
 
