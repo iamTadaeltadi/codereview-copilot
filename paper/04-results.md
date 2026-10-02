@@ -1,6 +1,6 @@
 # Results
 
-All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/analyse_structure.py` from the frozen per-call records. Intervals are 95% percentile bootstraps that resample repositories; the task-resampled interval, shown in the analysis files, is never narrower in a way that changes a conclusion. "Excludes zero" and "spans zero" are the only verdicts used. Each run has 225 to 229 defects paired across all eight arms; three defects generated after the base runs had been relaunched appear only in the noise run.
+All numbers come from the analysis files under `results/`, produced by `experiments/analyse_structure.py` from the frozen per-call records. Intervals are 95% percentile bootstraps that resample repositories; the task-resampled interval, shown in the analysis files, is never narrower in a way that changes a conclusion. "Excludes zero" and "spans zero" are the only verdicts used. Each run has 225 to 229 defects paired across all eight arms; three defects generated after the base runs had been relaunched appear only in the noise run.
 
 ## 4.1 The three diagnostics
 
@@ -8,7 +8,7 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line (Figure 4).
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; 143 have a decoy and are run, and the deepseek run completed 134 of them before credit ran out. Correct on a twin means not flagging the mutated line (Figure 3).
 
 | Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=134) |
 |---|---|---|
@@ -23,7 +23,7 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 No arm on either model clears more than about a fifth of the twins (at most 21%), and on gpt-4o-mini none but the corrupted arm clears more than one in sixteen, and that one clears one in ten. Shown the robust caller, the model flags the change anyway; on deepseek the caller lifts the clear rate from 17.2% to 20.9%, which is within its interval. Balanced accuracy over defects and twins is therefore near chance for every arm, and no form of context moves it far. A variant that instructs the model that the shown code is every use of the changed function is reported in 4.5.
 
-## 4.2 Does the caller help? The relevance control done properly
+## 4.2 Does the caller help? A relevance control, and partly a sanity check
 
 The scrambled control (arm 2) and the foreign-repository arm (arm 7) receive the same number of snippets at the same budget; only arm 2's snippets are the real definition, caller and decoy. The header-only arm (arm 8) receives the dependency section with no snippets. The metric is the validated judge: does the message on the defect line name a concrete fact about the caller.
 
@@ -36,7 +36,7 @@ Two judges are reported: J1 is deepseek-v3.2, which is also a reviewed model, an
 | header only − diff only | 0.0 [−2.7, +2.7] | −1.3 [−4.3, +1.8] | −3.1 [−8.4, +2.6] | −0.9 [−3.4, +1.6] |
 | foreign − diff only | +1.8 [−1.0, +4.9] | +1.3 [−2.4, +5.2] | −1.3 [−5.8, +3.5] | −0.4 [−3.1, +2.2] |
 
-Every real-versus-foreign interval excludes zero on every model and encoding under both judges, and every real-versus-header interval under J1. Foreign code and the header alone do nothing. The caller is what helps, and it helps the model say why the change is wrong. Arms that never see the caller sit at 1–8% on this metric for gpt-4o-mini and llama and at 14–18% for deepseek, which is the floor set by the judge's strictness. Under J2 the real-versus-header difference is +10.2 [+5.7, +14.8], +8.4 [+2.4, +14.6], +12.9 [+4.4, +21.4] and, on llama, +4.4 [−2.3, +11.7]; the rows below the first are J1.
+Every real-versus-foreign interval excludes zero on every model and encoding under both judges, and every real-versus-header interval under J1. Part of this is a sanity check rather than a finding: a model that never saw the caller can only state a caller-side fact by inferring it from the mutation, which J2 credits in about a third of diff-only messages and J1 in a twentieth. The gap above that floor is what the caller adds. Arms that never see the caller sit at 1–8% on this metric for gpt-4o-mini and llama and at 14–18% for deepseek, which is the floor set by the judge's strictness. Under J2 the real-versus-header difference is +10.2 [+5.7, +14.8], +8.4 [+2.4, +14.6], +12.9 [+4.4, +21.4] and, on llama, +4.4 [−2.3, +11.7]; the rows below the first are J1.
 
 The same snippets lower precision on two of three models. Precise means the defect line was found and no harmless line was flagged. Showing the real snippets costs 18.6 to 23.5 points of precision against the diff alone on gpt-4o-mini under both encodings and 19.1 on deepseek, while foreign snippets cost nothing on gpt-4o-mini (−0.4 and +0.9) and 8.9 [−14.2, −3.6] on deepseek. On llama the real snippets cost nothing: +2.7 [−3.5, +8.6] against the diff. Where it occurs, relevant code makes the model flag more of the diff than irrelevant code does.
 
@@ -73,7 +73,7 @@ The typed and attributed arms add the relation kind and its argument on top of t
 
 ## 4.5 The authoritative-callers variant
 
-The twins were re-run with one added sentence, identical across arms: the related code shown is every use of the changed function, and a change compatible with every use shown is not a defect. Correct still means not flagging the mutated line. All 143 twins with a decoy:
+The twins were re-run on gpt-4o-mini with one added sentence, identical across arms: the related code shown is every use of the changed function, and a change compatible with every use shown is not a defect. Correct still means not flagging the mutated line. All 143 twins with a decoy:
 
 | Arm | correct on twins |
 |---|---|
@@ -86,15 +86,15 @@ The twins were re-run with one added sentence, identical across arms: the relate
 | 7 random | 14.0% |
 | 8 header | 5.6% |
 
-Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 91% of cases with the evidence and in 100% with the typed or attributed relation. The attributed arm is 9.1 points below the control [−14.3, −4.9]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. Dependency metadata is read as an accusation, not as information, and the evidence that should exonerate a change does not. The two arms above 10% are the ones whose context points away from the caller: corrupted and foreign. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
+Told that the shown caller is the whole truth, and shown a caller that tolerates the change, the model flags the change in 91% of cases with the evidence and in 100% with the typed or attributed relation. The attributed arm is 9.1 points below the control [−14.3, −4.9]; the more the metadata says about the relation, the more certain the model is that the relation is the problem. On these twins the metadata moves the model toward flagging, never away from it; the evidence that should exonerate a change does not. The two arms above 10% are the ones whose context points away from the caller: corrupted and foreign. Context, in every form tested, moves the model's explanation of a defect and not its willingness to call a change safe.
 
 On the defect side the instruction raises precision across the board, and the foreign-code arm shows why. On all 226 defects, precision is 71.2% for the diff alone, 73.0% with the real snippets, 85.8% with foreign snippets under the same instruction (+14.6 [+7.9, +21.2] over the diff), 91.6% with the bare link and 96.5% with the attributed relation. The instruction tells the model that the code shown is the whole truth, and the model flags fewer lines whatever that code is; the link adds +18.6 [+14.3, +22.8] over the scrambled control, and the foreign arm shows that most of a 15-point rise is available from the instruction alone, which that arm receives though for it the instruction is false. Told that the shown code is the whole truth, the model stops flagging the harmless lines around a defect, and still flags the twin.
 
 ## 4.6 Real defects: c-CRAB
 
-The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
+The model throughout is gpt-4o-mini. The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node rather than the function, walked two hops, and filled its budget with same-file neighbours, so it reached the depended-on caller in 4% of tasks where that caller was available; it is not reported. Three repairs were made and committed on 30 August, before the controlled re-run was designed: query the enclosing function, walk three hops, and rank other-file neighbours ahead of same-file ones before the budget applies. The fault-location oracle scores no better than the diff because it returns the entities spanning the defect line, which the diff already shows; it is an oracle for location, not for evidence.
 
-All retrieval conditions were re-run on the same day (Figure 3) with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across the first four and 218 across all five.
+All retrieval conditions were re-run on the same day (Figure 4) with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across the first four and 218 across all five.
 
 | Condition | Localised |
 |---|---|
@@ -126,7 +126,7 @@ One model (gemini-2.5-flash, which is also judge J2 and is not a reviewed model 
 
 ## 4.8 Explanation against precision, and cost per true finding
 
-A reviewer may object that a better explanation is overcorrection in disguise [arXiv:2603.00539]: a model that says more may also flag more. Across the five arms that share the same snippets, the judge rate and the false-flag rate move in opposite directions on three of four runs. The correlation of judge-YES with confirmed false flags per review across arms 2 to 6 is −0.72 on gpt-4o-mini under the tag encoding, −0.94 on deepseek, −0.71 on llama, and +0.11 on gpt-4o-mini under flat. Where the metadata improves the explanation it also reduces the noise; the two are not traded against each other.
+A reviewer may object that a better explanation is overcorrection in disguise [arXiv:2603.00539]: a model that says more may also flag more. The table below shows the two side by side for the arms that share the same snippets; on every run the arms with the highest judge rate are among those with the fewest confirmed false flags. With five arms per run this is a description, not a test.
 
 Cost per true finding, in thousandths of a dollar per defect found and confirmed false flags per defect found:
 
