@@ -22,7 +22,7 @@ Calls are resolved through imports: a bare name imported from the defining modul
 
 Distractors are rewrites that cannot change behaviour, such as `dict()` → `{}` or `== None` → `is None`. Each is applied to a copy of the whole file and rejected unless the file still parses. The diff lists the defect and the distractors in line order with nothing marking which is which.
 
-An earlier version of this benchmark is withdrawn. Its distractor rewriter broke docstrings in 145 of 204 tasks, so a model that flagged a syntax error was scored as a false positive, and its evidence was located by a regular expression within eight lines of any same-named call, which was a genuine demonstration of dependency in roughly a third of tasks. Section 7 reports the figures. The present generator was written against those findings, and a test suite pins each of them.
+An earlier version of this benchmark is withdrawn. Its distractor rewriter broke docstrings in 145 of 204 tasks, so a model that flagged a syntax error was scored as a false positive, and its evidence was located by a regular expression within eight lines of any same-named call, which was a genuine demonstration of dependency in roughly a third of tasks. Section 6 reports the figures. The present generator was written against those findings, and a test suite pins each of them.
 
 ## 3.3 Evidence set
 
@@ -53,7 +53,7 @@ The same relations are rendered three ways, because graph-reasoning accuracy is 
 
 ## 3.6 Metrics
 
-*Judge.* The mechanism judge is a separate model asked, blind to arm and snippets, whether the message names a concrete fact about the caller. The first judge was deepseek-v3.2, which is also one of the three reviewed models; every run is therefore re-judged by a fourth family, gemini-2.5-flash, and both verdicts are released. Validation against 40 hand-labelled messages is in Section 7.
+*Judge.* The mechanism judge is a separate model asked, blind to arm and snippets, whether the message names a concrete fact about the caller. The first judge was deepseek-v3.2, which is also one of the three reviewed models; every run is therefore re-judged by a fourth family, gemini-2.5-flash, and both verdicts are released. Validation against 40 hand-labelled messages is in Section 6.
 
 *Hit*: a finding's line equals the defect line. *Precise*: hit, and no finding on a distractor line. *Mechanism*: hit, and the message on the defect line names what the caller depends on. Mechanism is a per-kind keyword rubric; for `exception_type` the message must contain the old exception name and one of *caller*, *catch*, *except*, *handle*. It is mechanical and auditable, and it is crude: a message can satisfy it by accident, and a correct explanation phrased unusually can fail it. The rubric and every scored message are released. A finding on the right line for the wrong reason, which an earlier version counted as a hit, fails mechanism.
 

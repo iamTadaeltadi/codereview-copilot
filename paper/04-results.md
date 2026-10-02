@@ -4,11 +4,11 @@ All numbers come from `results/v2-*/analysis-*.txt`, produced by `experiments/an
 
 ## 4.1 The three diagnostics
 
-**Diff-only ceiling.** On the rebuilt benchmark, a model given nothing but the diff finds the defect line in 97.8% of tasks (gpt-4o-mini). The mutated line is conspicuous among cosmetic edits, and hit rate cannot distinguish any arm from any other. Hit is reported in the analysis files and nowhere else in this section. The withdrawn first benchmark had the same ceiling (93%) and, in addition, distractors that broke the file; its numbers are not reported (Section 7).
+**Diff-only ceiling.** On the rebuilt benchmark, a model given nothing but the diff finds the defect line in 97.8% of tasks (gpt-4o-mini). The mutated line is conspicuous among cosmetic edits, and hit rate cannot distinguish any arm from any other. Hit is reported in the analysis files and nowhere else in this section. The withdrawn first benchmark had the same ceiling (93%) and, in addition, distractors that broke the file; its numbers are not reported (Section 6).
 
 **Anchor versus evidence, on real comments.** Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request changed and 213 on a changed line. Under the strict reading, 97 (33%) refer to something the diff does not contain; under the loose reading, 146 (50%). Where a comment sits is not where its justification lives.
 
-**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line. Correct on a twin means not flagging the mutated line.
+**Discrimination with safe twins.** Twins are the same surface mutation as a defect task, placed where the shown caller is verifiably robust to it. The generator produced 150, of two kinds, from 20 repositories; those with a decoy are run. Correct on a twin means not flagging the mutated line. Correct on a twin means not flagging the mutated line (Figure 4).
 
 | Arm | gpt-4o-mini (n=143) | deepseek-v3.2 (n=134) |
 |---|---|---|
@@ -45,7 +45,7 @@ Arms 2 through 6 receive identical snippets. The pre-registered primary comparis
 
 **On the pre-registered keyword rubric, the primary spans zero** on both runs where it was computed: −0.9 [−5.3, +3.2] on gpt-4o-mini and −2.7 [−6.7, +0.9] on llama. The rubric was found, before the full data existed, to pass boilerplate: a diff-only reviewer writing "may lead to unexpected behavior if the caller expects a None return value" satisfies it, and 50% of diff-only messages do. It is reported as pre-registered and not interpreted further.
 
-**On the validated judge**, with a miss counted as a failure so that arms are compared on the same tasks:
+**On the validated judges**, with a miss counted as a failure so that arms are compared on the same tasks (Figures 1 and 2):
 
 | 3 topology − 2 control | gpt tag | gpt flat | deepseek tag | llama tag |
 |---|---|---|---|---|
@@ -93,7 +93,7 @@ On the defect side the instruction raises precision across the board, and the fo
 
 The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node and never reached a caller, and is not reported.
 
-All four retrieval conditions were re-run on the same day with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across all four.
+All retrieval conditions were re-run on the same day (Figure 3) with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across all four.
 
 | Condition | Localised |
 |---|---|
