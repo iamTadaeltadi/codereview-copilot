@@ -49,7 +49,7 @@ The pre-registered primary comparison is arm 3 against arm 2 on the mechanism me
 
 ## 3.5 Serialisation
 
-The same relations are rendered three ways, because graph-reasoning accuracy is known to depend on encoding [arXiv:2511.10234]: a flat arrow line, an XML-style tag `<dependency type="catches" argument="TypeError" source=… target=…/>`, and a prose sentence. A result that appears under one encoding only is reported as a result about that encoding.
+The same relations are rendered two ways, because graph-reasoning accuracy is known to depend on encoding [arXiv:2511.10234]: a flat arrow line and an XML-style tag `<dependency type="catches" argument="TypeError" source=… target=…/>`. A prose rendering exists in the code and was run only on the withdrawn benchmark. A result that appears under one encoding only is reported as a result about that encoding.
 
 ## 3.6 Metrics
 
