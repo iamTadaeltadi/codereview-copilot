@@ -27,9 +27,10 @@ ARM_ATTRIBUTED = "5-attributed"
 ARM_CORRUPTED = "6-corrupted"
 ARM_RANDOM = "7-random"
 ARM_HEADER = "8-header"
+ARM_SNIPPETS = "2b-snippets"
 
 ARMS = (ARM_DIFF_ONLY, ARM_EVIDENCE, ARM_TOPOLOGY, ARM_TYPED,
-        ARM_ATTRIBUTED, ARM_CORRUPTED, ARM_RANDOM, ARM_HEADER)
+        ARM_ATTRIBUTED, ARM_CORRUPTED, ARM_RANDOM, ARM_HEADER, ARM_SNIPPETS)
 
 # Arms that receive the identical evidence snippets. The core comparison lives
 # entirely inside this set; anything outside it varies more than structure.
@@ -345,6 +346,10 @@ def _corrupt(relations, snippets, seed: str):
 
 
 def metadata_block(evidence: Evidence, arm: str, encoding: str = FLAT, seed: str = "") -> str:
+    """Arm 2b receives the snippets and no block at all. It separates the cost
+    of showing the snippets from the cost of a metadata section being present,
+    which arm 2 (snippets plus scrambled block) cannot; the external review
+    pointed out that the header-only arm lowers precision by itself."""
     if arm in (ARM_EVIDENCE, ARM_HEADER):
         return _serialise(_shuffle_labels(evidence.relations, seed), encoding)
     if arm == ARM_TOPOLOGY:
