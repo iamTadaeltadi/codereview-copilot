@@ -1,0 +1,8 @@
+{
+  "title": "Can this benchmark measure context? Diagnostics for context-dependent code review (code, benchmark, results)",
+  "upload_type": "software",
+  "creators": [{"name": "Shewarega Gebre, Tadael", "affiliation": "Independent researcher, Addis Ababa"}],
+  "license": "Apache-2.0",
+  "keywords": ["code review", "large language models", "benchmark", "partial-input baseline", "contrast set", "retrieval"],
+  "description": "Benchmark generator for cross-file Python defects with AST-verified evidence, safe twins, the held-constant-evidence experiment (eight arms, three model families, two serialisations, two judges), the c-CRAB retrieval runs, the frozen per-call records, the analysis scripts, and the paper sources. python scripts/reproduce.py recomputes every reported number from the frozen records without network access."
+}

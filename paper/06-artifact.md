@@ -12,6 +12,8 @@ Everything needed to regenerate the benchmark, re-run every arm, and recompute e
 
 **Secondary measurements.** `experiments/evidence_scope.py` classifies c-CRAB comments by whether they refer to anything outside the diff, mechanically, with the reason recorded for every decision; `experiments/run_search_trigger.py` is the search-trigger test; `experiments/mine_regressions.py` mines the real cross-file regression candidates.
 
+**Reproduction.** `scripts/reproduce.py` recomputes every analysis file in `results/` from the raw records beside it and compares line by line, offline, in about two minutes; `REPRODUCE.md` maps each number in Section 4 to its input file and command. The repository carries `CITATION.cff` and `.zenodo.json`, and the archived release is deposited on Zenodo with a DOI.
+
 **Frozen results.** `results/` holds one directory per run with the raw per-call records and the analysis output. Directories measured on the withdrawn first benchmark carry a `WITHDRAWN.md` stating why, and are kept so the withdrawal can be checked.
 
 **Tests.** 551 unit tests, including one for each fault found in the first benchmark: a distractor that breaks the file is rejected, an unresolved name is not evidence, a handler that also catches the new type is not evidence, a scrambled control contains no true token, a corrupted relation is never a self-loop.

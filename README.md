@@ -66,6 +66,14 @@ and run `docker compose up`.
 - measure backend coverage with `bash scripts/coverage.sh`
 - CI runs the same suites on every push and pull request
 
+## Research Artifact
+
+The paper *Can this benchmark measure context? Diagnostics for context-dependent
+code review* (`paper/paper.pdf`) was produced from this repository. The benchmark
+generator and experiment runners are in `experiments/`, the generated data in
+`data/`, the frozen per-call records in `results/`, and `REPRODUCE.md` recomputes
+every reported number offline with `scripts/reproduce.py`.
+
 ## License and Attribution
 
 This project is licensed under the Apache License 2.0 — see `LICENSE`.

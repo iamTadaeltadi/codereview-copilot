@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this benchmark, code or data, please cite it as below."
+title: "Can this benchmark measure context? Diagnostics for context-dependent code review"
+authors:
+  - family-names: Shewarega Gebre
+    given-names: Tadael
+    affiliation: Independent researcher, Addis Ababa
+type: software
+repository-code: https://github.com/iamTadaeltadi/codereview-copilot
+license: Apache-2.0
+version: "1.0"
+date-released: 2026-10-25
+keywords:
+  - code review
+  - large language models
+  - benchmark diagnostics
+  - partial-input baseline
+  - contrast set
