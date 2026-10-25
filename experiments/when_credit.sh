@@ -3,6 +3,10 @@
 set -e
 export PYTHONPATH="$PWD:$PWD/services/graph:$PWD/services/agents"
 B=data/crossfile-v2.jsonl
+# 0. Neutral prompt (no "assume there is something to find"; empty list allowed), twins then defects,
+#    gpt-4o-mini, tag encoding, arms 1/3/5/6/7: ~$0.30. Shows how much of the twin flag rate the prompt causes.
+.venv/bin/python -u experiments/run_structure.py --limit 400 --encoding tag --model openai/gpt-4o-mini --neutral-prompt --arms 1-diff,3-topology,5-attributed,6-corrupted,7-random --name v2twins-neutral-gpt4omini --benchmark data/crossfile-v2-twins.jsonl
+.venv/bin/python -u experiments/run_structure.py --limit 400 --encoding tag --model openai/gpt-4o-mini --neutral-prompt --arms 1-diff,3-topology,5-attributed,6-corrupted,7-random --name v2-neutral-gpt4omini --benchmark $B
 # 1. Arm 2b (snippets, no metadata block) on the four base runs: ~$0.40
 for spec in "tag openai/gpt-4o-mini v2-tag-gpt4omini" "flat openai/gpt-4o-mini v2-flat-gpt4omini" "tag deepseek/deepseek-v3.2 v2-tag-deepseek" "tag meta-llama/llama-3.3-70b-instruct v2-tag-llama"; do
   set -- $spec

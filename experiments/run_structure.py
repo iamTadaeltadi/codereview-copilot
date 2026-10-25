@@ -66,12 +66,26 @@ def mechanism_correct(kind: str, argument: str, messages) -> bool | None:
 
 
 
+NEUTRAL_SYSTEM_PROMPT = SYSTEM_PROMPT.replace(
+    "This diff has already been reviewed by humans, and they found real problems "
+    "in it. Assume there is something to find and look carefully. ",
+    "The change may or may not contain a defect. If it is compatible with the "
+    "code shown, say so by returning an empty list. ")
+NEUTRAL_OUTPUT_CONTRACT = OUTPUT_CONTRACT.replace(
+    "Report your best candidates even when you are not\n"
+    "certain — a plausible defect that turns out to be wrong is more useful here than\n"
+    "silence. Return an empty list only if you genuinely cannot identify anything.",
+    "Report a finding only when you can say what breaks and where. Return an empty\n"
+    "list when nothing is wrong; an empty list is a correct answer.")
+assert NEUTRAL_SYSTEM_PROMPT != SYSTEM_PROMPT and NEUTRAL_OUTPUT_CONTRACT != OUTPUT_CONTRACT
+
 AUTHORITATIVE = ("The related code shown below is every place in the repository that uses "
                  "the changed function. Judge the change against that code only: if it is "
                  "compatible with every use shown, it is not a defect.")
 
 
-def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = False):
+def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = False,
+                 neutral: bool = False):
     parts = [f"Repository: {task.repo}", "", "Pull request diff:",
              "```diff", task.diff, "```"]
     # Without this, "safe for the shown caller" is not "safe", and a reviewer
@@ -90,8 +104,8 @@ def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = Fals
             # so that "evidence vs diff only" can be separated from "the
             # presence of a dependency section vs none".
             parts += ["", METADATA_HEADER, METADATA_NOTE, block]
-    parts += ["", OUTPUT_CONTRACT]
-    return [{"role": "system", "content": SYSTEM_PROMPT},
+    parts += ["", NEUTRAL_OUTPUT_CONTRACT if neutral else OUTPUT_CONTRACT]
+    return [{"role": "system", "content": NEUTRAL_SYSTEM_PROMPT if neutral else SYSTEM_PROMPT},
             {"role": "user", "content": "\n".join(parts)}]
 
 
@@ -125,6 +139,9 @@ def main() -> int:
     ap.add_argument("--arms", default=",".join(ARMS))
     ap.add_argument("--name", default="structure")
     ap.add_argument("--check-every", type=int, default=8)
+    ap.add_argument("--neutral-prompt", action="store_true",
+                    help="drop the 'assume there is something to find' instruction and tell the "
+                         "model an empty list is a correct answer; identical across arms")
     ap.add_argument("--authoritative", action="store_true",
                     help="tell the model the shown related code is every use of the changed function")
     ap.add_argument("--noise", type=int, default=0,
@@ -180,7 +197,8 @@ def main() -> int:
             # Arm 7 varies the evidence itself; every other arm varies only what
             # is said about it.
             shown = decoy_ev if arm == ARM_RANDOM else ev
-            messages = build_prompt(task, shown, arm, a.encoding, task.task_id, authoritative=a.authoritative)
+            messages = build_prompt(task, shown, arm, a.encoding, task.task_id, authoritative=a.authoritative,
+                                    neutral=a.neutral_prompt)
             try:
                 c = client.complete(model=a.model, messages=messages,
                                     max_tokens=2048, temperature=0.1)
@@ -207,7 +225,7 @@ def main() -> int:
                     "mechanism": mech, "message": " | ".join(on_defect)[:600],
                     "is_defect": is_defect, "correct": correct, "correct_precise": correct_precise,
                     "finish_reason": getattr(c, "finish_reason", None),
-                    "hide_evidence": a.hide_evidence, "noise": a.noise, "authoritative": a.authoritative, "benchmark": os.path.basename(a.benchmark),
+                    "hide_evidence": a.hide_evidence, "noise": a.noise, "authoritative": a.authoritative, "neutral_prompt": a.neutral_prompt, "benchmark": os.path.basename(a.benchmark),
                     "usage": c.usage.as_dict(),
                 }) + "\n")
             print(f"  [{i}/{len(tasks)}] {arm:<14} hit={'Y' if sc.hit else 'n'} "
