@@ -467,7 +467,7 @@ Applied without cost: partial-input-baseline and contrast-set framing (Gururanga
 2018, Poliak 2018, Feng 2019, Gardner 2020, Kaushik 2020 now cited), overclaims
 cut ("common benchmarks", "accusation", five-point correlations), c-CRAB model
 named and the three retrieval repairs dated, pre-registration tied to commit
-d3f9309, judge disclosure, twins' public-API limitation, abstract shortened to
+71fb660, judge disclosure, twins' public-API limitation, abstract shortened to
 the independent judge's range, figure order, mechanical fixes.
 
 Pushed back on: the precision gain for the bare link is 3 vs 2 with a block in
