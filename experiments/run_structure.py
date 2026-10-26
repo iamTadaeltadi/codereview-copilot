@@ -40,8 +40,8 @@ from experiments.review import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
 
 METADATA_HEADER = "Dependency information for the code above:"
 METADATA_NOTE = ("Each line states a relationship between two of the snippets above. "
-                 "A snippet is identified as file-stem:line, where line is inside the "
-                 "snippet's range.")
+                 "A snippet is identified as file-stem.function, the function that "
+                 "encloses it.")
 
 # Mechanism scoring. A finding on the right line for the wrong reason — "prefer
 # f-strings" on the mutated line — counted as a hit in the first version, and
