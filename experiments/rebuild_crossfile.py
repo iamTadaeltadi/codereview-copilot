@@ -340,3 +340,42 @@ if __name__ == "__main__" and "--trees" in sys.argv:
     else:
         rebuild_from_trees(repos, a.out, per_repo=a.per_repo, cap=a.cap, workers=a.workers)
     raise SystemExit(0)
+
+
+def rebuild_from_pools(out_path, per_repo=8):
+    """Regenerate defects from the cached pools at the commits they were
+    fetched at, so a generator fix yields a benchmark on the same sources."""
+    funnel = {"pools": 0, "defects": 0, "by_kind": collections.Counter()}
+    with open(out_path, "w") as h:
+        for f in sorted(POOL_DIR.glob("*.json")):
+            repo, sha = f.stem.split("@")
+            repo = repo.replace("__", "/", 1)
+            sources = json.loads(f.read_text())
+            funnel["pools"] += 1
+            defects = find_defects(sources, max_per_repo=per_repo)
+            for d in defects:
+                _cache_sources(repo, sha, d.definition_path, d.caller_path, sources)
+                funnel["defects"] += 1; funnel["by_kind"][d.kind] += 1
+                h.write(json.dumps({
+                    "task_id": f"xf::{repo.replace('/', '__')}::{d.defect_id}",
+                    "repo": repo, "commit": sha, "kind": d.kind,
+                    "defect_path": d.definition_path, "defect_line": d.definition_line,
+                    "caller_path": d.caller_path, "caller_line": d.caller_line,
+                    "before": d.before, "after": d.after, "why": d.why,
+                    "evidence": d.evidence, "argument": d.argument,
+                    "distractor_lines": [c.line for c in d.distractors],
+                    "verified": "ast", "diff": build_diff(d),
+                }) + "\n")
+            h.flush()
+            print(f"  {repo:<34} {len(sources):>3} files  {len(defects):>2} defects (total {funnel['defects']})", flush=True)
+    print(f"\nfunnel: {json.dumps({k: (dict(v) if isinstance(v, collections.Counter) else v) for k, v in funnel.items()})}")
+
+
+if __name__ == "__main__" and "--from-pools" in sys.argv:
+    import argparse as _ap
+    ap = _ap.ArgumentParser(); ap.add_argument("--from-pools", action="store_true")
+    ap.add_argument("--out", default=str(Path(_ROOT) / "data" / "crossfile-v3.jsonl"))
+    ap.add_argument("--per-repo", type=int, default=8)
+    a = ap.parse_args()
+    rebuild_from_pools(a.out, per_repo=a.per_repo)
+    raise SystemExit(0)

@@ -209,8 +209,11 @@ def main() -> int:
             sc = score_review(task, arm, reported, tolerance=0)
             on_defect = [f.message for f in findings if f.line == task.defects[0].line]
             is_defect = bool(task.metadata.get("is_defect", True))
-            correct = sc.hit if is_defect else not sc.hit
-            correct_precise = sc.precise if is_defect else (not sc.hit and sc.flagged_distractors == 0)
+            # A reply that could not be parsed is not an answer: on a twin, "no
+            # findings" would otherwise count as correctly staying silent (102
+            # such rows in one deepseek run). None drops the row from the metric.
+            correct = None if failed else (sc.hit if is_defect else not sc.hit)
+            correct_precise = None if failed else (sc.precise if is_defect else (not sc.hit and sc.flagged_distractors == 0))
             mech = mechanism_correct(task.metadata.get("kind", ""), task.metadata.get("argument", ""),
                                      on_defect) if sc.hit else (False if findings else None)
             spent += c.usage.cost_usd

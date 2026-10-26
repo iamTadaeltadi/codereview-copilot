@@ -1,0 +1,42 @@
+file:                 results/v2twins-tag-deepseek/structure-rescored.jsonl
+model:                deepseek/deepseek-v3.2
+encoding:             tag
+metric:               correct
+arms:                 1-diff, 2-evidence, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
+tasks compared:       134
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   6  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------
+1-diff          134       125         0.112      1.19      0.28           9          1222     0.00019
+2-evidence      134       117         0.094      1.88      0.51          17          4322     0.00047
+3-topology      134       123         0.049      1.78      0.43          11          4289     0.00039
+4-typed         134       120         0.050      1.69      0.48          14          4300     0.00034
+5-attributed    134       121         0.091      1.62      0.40          13          4322     0.00024
+6-corrupted     134       122         0.115      1.75      0.39          12          4322     0.00026
+7-random        134       127         0.087      1.33      0.36           7          3451     0.00030
+8-header        134       125         0.112      1.41      0.41           9          1530     0.00021
+
+arm            n_defect n_twin  on defects  on twins  balanced
+1-diff                0    125         nan     0.112       nan
+2-evidence            0    117         nan     0.094       nan
+3-topology            0    123         nan     0.049       nan
+4-typed               0    120         nan     0.050       nan
+5-attributed          0    121         nan     0.091       nan
+6-corrupted           0    122         nan     0.115       nan
+7-random              0    127         nan     0.087       nan
+8-header              0    125         nan     0.112       nan
+
+comparisons (2 in the Holm family)
+
+primary: 3-topology minus 2-evidence  (metric=correct, n=109, skipped=25)
+  difference  -0.055   repo-clustered 95% CI [ -0.122,   0.000]   task-clustered 95% CI [ -0.119,   0.009]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=4 (a right, b wrong)  c=10 (a wrong, b right)  exact p=0.1796  Holm-adjusted p=0.3591
+
+secondary: 6-corrupted minus 2-evidence  (metric=correct, n=107, skipped=27)
+  difference   0.019   repo-clustered 95% CI [ -0.059,   0.104]   task-clustered 95% CI [ -0.056,   0.093]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=9 (a right, b wrong)  c=7 (a wrong, b right)  exact p=0.8036  Holm-adjusted p=0.8036

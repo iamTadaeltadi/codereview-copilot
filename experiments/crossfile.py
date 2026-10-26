@@ -21,6 +21,7 @@ defect and is discarded.
 from __future__ import annotations
 
 import ast
+import random
 import re
 from dataclasses import dataclass, field
 
@@ -466,29 +467,64 @@ def _still_parses(lines, index, replacement):
     return True
 
 
-def find_distractors(lines, exclude_line, wanted=3, window=60):
-    """Harmless rewrites on other lines near the defect, each parse-checked."""
-    out = []
-    lo = max(0, exclude_line - window)
-    hi = min(len(lines), exclude_line + window)
-    for index in range(lo, hi):
-        lineno = index + 1
-        if lineno == exclude_line:
+AST_NEUTRAL = (_distract_quote_style, _distract_redundant_parens, _distract_spacing)
+
+
+def _same_ast(lines, index, replacement):
+    """Apply one rewrite to a copy of the file and require an identical syntax
+    tree, so the rewrite cannot change behaviour. Parse-checking alone let a
+    quote-style rewrite through when it merged or split a string."""
+    trial = list(lines)
+    trial[index] = replacement
+    try:
+        return ast.dump(ast.parse("\n".join(trial))) == ast.dump(ast.parse("\n".join(lines)))
+    except (SyntaxError, ValueError, RecursionError):
+        return False
+
+
+def _distract_one(lines, index, order):
+    original = lines[index]
+    stripped = original.strip()
+    if not stripped or stripped.startswith("#") or '"""' in original or "'''" in original:
+        return None
+    for rewrite in order:
+        changed = rewrite(original)
+        if not changed or changed == original:
             continue
-        original = lines[index]
-        stripped = original.strip()
-        if not stripped or stripped.startswith("#"):
-            continue
-        if '"""' in original or "'''" in original:
-            continue
-        for rewrite in DISTRACTORS:
-            changed = rewrite(original)
-            if changed and changed != original and _still_parses(lines, index, changed):
-                out.append(Change(lineno, original, changed, is_defect=False))
-                break
-        if len(out) >= wanted:
+        ok = _same_ast(lines, index, changed) if rewrite in AST_NEUTRAL else _still_parses(lines, index, changed)
+        if ok:
+            return Change(index + 1, original, changed, is_defect=False)
+    return None
+
+
+def find_distractors(lines, exclude_line, wanted=3, window=60, seed=""):
+    """Harmless rewrites on other lines near the defect.
+
+    Each rewrite must leave the file's syntax tree unchanged (quote style,
+    parentheses, spacing) or, for the two idiom swaps, still parse. They are
+    placed on both sides of the defect with a seeded split, so the defect is
+    not predictably the last change in the diff; the first version scanned
+    upward from sixty lines above and the defect came last in 62% of tasks.
+    The rewrite tried first rotates per line, so one kind does not dominate.
+    """
+    rng = random.Random(seed or str(exclude_line))
+    above, below = [], []
+    for distance in range(1, window + 1):
+        for lineno, bucket in ((exclude_line - distance, above), (exclude_line + distance, below)):
+            if len(bucket) >= wanted or not (1 <= lineno <= len(lines)):
+                continue
+            k = lineno % len(DISTRACTORS)
+            order = DISTRACTORS[k:] + DISTRACTORS[:k]
+            change = _distract_one(lines, lineno - 1, order)
+            if change:
+                bucket.append(change)
+        if len(above) >= wanted and len(below) >= wanted:
             break
-    return tuple(out)
+    k_above = min(len(above), rng.randint(0, wanted))
+    k_below = min(len(below), wanted - k_above)
+    k_above = min(len(above), wanted - k_below)
+    chosen = above[:k_above] + below[:k_below]
+    return tuple(sorted(chosen, key=lambda c: c.line))
 
 
 # --- resolution and verification -------------------------------------------
@@ -529,25 +565,105 @@ def _enclosing(node, parents, kinds=(ast.FunctionDef, ast.AsyncFunctionDef)):
     return None
 
 
-def _resolves(tree, name, definition_path):
-    """Does this module import `name`, or the module that defines it?
+def _module_of(path: str) -> str:
+    """Dotted module name of a repository-relative file path."""
+    mod = path[:-3] if path.endswith(".py") else path
+    if mod.endswith("/__init__"):
+        mod = mod[: -len("/__init__")]
+    return mod.replace("/", ".")
+
+
+def _absolute_import(module, level: int, importer_path: str) -> str:
+    """The dotted module an import statement names, with relative dots resolved
+    against the importing file. Unknown importer: the dots are dropped and the
+    name is matched by suffix, which is weaker but never wrong by prefix."""
+    module = module or ""
+    if not level:
+        return module
+    if not importer_path:
+        return module
+    package = _module_of(importer_path).split(".")
+    if not importer_path.endswith("__init__.py"):
+        package = package[:-1]
+    base = package[: len(package) - (level - 1)] if level > 1 else package
+    return ".".join([*base, module] if module else base)
+
+
+def _module_matches(imported: str, definition_path: str) -> bool:
+    """`imported` names the definition module exactly, or by a suffix that
+    accounts for a `src/` or `lib/` prefix in the repository path."""
+    if not imported:
+        return False
+    target = _module_of(definition_path)
+    return target == imported or target.endswith("." + imported)
+
+
+def _package_init(sources, imported: str):
+    """The `__init__.py` of the package `imported` names, if it is in the pool."""
+    if not sources or not imported:
+        return None
+    tail = imported.replace(".", "/") + "/__init__.py"
+    for path in sources:
+        if path == tail or path.endswith("/" + tail):
+            return path
+    return None
+
+
+def _reexports(sources, imported: str, name: str, definition_path: str, depth: int = 3) -> bool:
+    """Does package `imported` re-export `name` from the definition module?
+
+    `from scipy.stats import skew` is only evidence about `scipy/stats/_stats_py.py`
+    if `scipy/stats/__init__.py` imports `skew` from there. The first version
+    accepted any `from X import name`, whatever X was, so a caller using a
+    different function of the same name was recorded as depending on the
+    mutated one."""
+    if depth <= 0:
+        return False
+    init = _package_init(sources, imported)
+    if init is None:
+        return False
+    try:
+        tree = ast.parse(sources[init])
+    except SyntaxError:
+        return False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.ImportFrom):
+            continue
+        if not any(a.name in (name, "*") for a in node.names):
+            continue
+        target = _absolute_import(node.module, node.level, init)
+        if _module_matches(target, definition_path):
+            return True
+        if _reexports(sources, target, name, definition_path, depth - 1):
+            return True
+    return False
+
+
+def _resolves(tree, name, definition_path, importer_path: str = "", sources=None):
+    """Does this module import `name` from the module that defines it, or that
+    module itself?
 
     Returns the alias under which the module is bound when it is imported as a
-    module, or True for a bare-name import, or None.
+    module, True for a bare-name import that resolves to the definition, or
+    None. A `from X import name` counts only when X is the definition module
+    or a package in the pool that re-exports `name` from it.
     """
-    stem = definition_path.rsplit("/", 1)[-1].removesuffix(".py")
+    stem = _module_of(definition_path).split(".")[-1]
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
+            imported = _absolute_import(node.module, node.level, importer_path)
             if any(a.name == name for a in node.names):
-                return True
-            if node.module and node.module.split(".")[-1] == stem:
-                if any(a.name == "*" for a in node.names):
+                if _module_matches(imported, definition_path) or _reexports(sources, imported, name, definition_path):
                     return True
-                if any(a.name == stem for a in node.names):
-                    return next(a.asname or a.name for a in node.names if a.name == stem)
+                continue
+            if any(a.name == "*" for a in node.names) and _module_matches(imported, definition_path):
+                return True
+            if any(a.name == stem for a in node.names) and _module_matches(
+                    f"{imported}.{stem}" if imported else stem, definition_path):
+                return next(a.asname or a.name for a in node.names if a.name == stem)
         elif isinstance(node, ast.Import):
             for a in node.names:
-                if a.name.split(".")[-1] == stem:
+                if _module_matches(a.name, definition_path):
                     return a.asname or a.name.split(".")[-1]
     return None
 
@@ -678,10 +794,11 @@ def _detail(kind, fn, before, after):
     return {}
 
 
-def find_evidence(caller_tree, caller_lines, fn, name, definition_path, kind, detail):
+def find_evidence(caller_tree, caller_lines, fn, name, definition_path, kind, detail,
+                  caller_path: str = "", sources=None):
     """The line in the caller that demonstrates the dependency, verified on
     the syntax tree. Returns (lineno, text, argument) or None."""
-    bound = _resolves(caller_tree, name, definition_path)
+    bound = _resolves(caller_tree, name, definition_path, caller_path, sources)
     if bound is None:
         return None
     parents = _parents(caller_tree)
@@ -706,6 +823,7 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
         except SyntaxError:
             continue
     called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
+    texts = {path: text for path, (_, _, text) in parsed.items()}
 
     found = []
     for path, (tree, lines, text) in parsed.items():
@@ -732,10 +850,11 @@ def find_defects(sources, max_per_repo: int = 3, kinds=VERIFIED_KINDS, min_distr
                 if detail is None:
                     continue
                 for caller_path, caller_tree, caller_lines in candidates:
-                    evidence = find_evidence(caller_tree, caller_lines, fn, fn.name, path, kind, detail)
+                    evidence = find_evidence(caller_tree, caller_lines, fn, fn.name, path, kind, detail,
+                                             caller_path, texts)
                     if not evidence:
                         continue
-                    distractors = find_distractors(lines, lineno)
+                    distractors = find_distractors(lines, lineno, seed=f"{path}:{lineno}")
                     if len(distractors) < min_distractors:
                         break
                     found.append(
@@ -811,8 +930,9 @@ def _robust_default_flip(fn, call, parents, lines, detail):
 ROBUST = {"exception_type": _robust_exception_type, "default_flip": _robust_default_flip}
 
 
-def find_robust_caller(caller_tree, caller_lines, fn, name, definition_path, kind, detail):
-    bound = _resolves(caller_tree, name, definition_path)
+def find_robust_caller(caller_tree, caller_lines, fn, name, definition_path, kind, detail,
+                       caller_path: str = "", sources=None):
+    bound = _resolves(caller_tree, name, definition_path, caller_path, sources)
     if bound is None:
         return None
     parents = _parents(caller_tree)
@@ -840,6 +960,7 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
         except SyntaxError:
             continue
     called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
+    texts = {path: text for path, (_, _, text) in parsed.items()}
     found = []
     for path, (tree, lines, text) in parsed.items():
         if is_test_path(path):
@@ -864,13 +985,14 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
                 detail = _detail(kind, fn, before, after)
                 if detail is None:
                     continue
-                if any(find_evidence(ct, cl, fn, fn.name, path, kind, detail) for _, ct, cl in candidates):
+                if _dependent_call_anywhere(parsed, texts, fn, fn.name, path, kind, detail):
                     continue
                 for caller_path, caller_tree, caller_lines in candidates:
-                    robust = find_robust_caller(caller_tree, caller_lines, fn, fn.name, path, kind, detail)
+                    robust = find_robust_caller(caller_tree, caller_lines, fn, fn.name, path, kind, detail,
+                                                caller_path, texts)
                     if not robust:
                         continue
-                    distractors = find_distractors(lines, lineno)
+                    distractors = find_distractors(lines, lineno, seed=f"{path}:{lineno}")
                     if len(distractors) < min_distractors:
                         break
                     found.append(CrossFileDefect(
@@ -885,6 +1007,34 @@ def find_twins(sources, max_per_repo: int = 8, kinds=TWIN_KINDS, min_distractors
                 if len(found) >= max_per_repo:
                     return found
     return found
+
+
+def _dependent_call_anywhere(parsed, texts, fn, name, path, kind, detail):
+    """Any call in the pool that the mutation would break: in another file
+    through a resolved import, in the definition's own file, or through an
+    attribute `x.name(...)` whose receiver cannot be resolved and is therefore
+    assumed to be this function. Finding one makes the twin a defect, so the
+    candidate is dropped. The first version checked only resolved cross-file
+    callers; same-file calls and `module.f()` calls were invisible, and a
+    reviewer that flagged such a twin was right."""
+    verify = VERIFIERS[kind]
+    for other, (tree, lines, _) in parsed.items():
+        if is_test_path(other):
+            continue
+        bound = True if other == path else _resolves(tree, name, path, other, texts)
+        calls = list(_calls(tree, name, bound)) if bound is not None else []
+        seen = set(map(id, calls))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) \
+                    and node.func.attr == name and id(node) not in seen:
+                calls.append(node)
+        if not calls:
+            continue
+        parents = _parents(tree)
+        for call in calls:
+            if verify(fn, call, parents, lines, detail):
+                return other, call.lineno
+    return None
 
 
 def _robust_reason(kind, argument):
@@ -935,6 +1085,7 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
         except SyntaxError:
             continue
     called = {path: _called_names(text) for path, (_, _, text) in parsed.items()}
+    texts = {path: text for path, (_, _, text) in parsed.items()}
     found = []
     for path, (tree, lines, text) in parsed.items():
         if is_test_path(path):
@@ -958,7 +1109,7 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
                     continue
                 hit = None
                 for mid_path, mid_tree, mid_lines in mids:
-                    bound = _resolves(mid_tree, fn.name, path)
+                    bound = _resolves(mid_tree, fn.name, path, mid_path, texts)
                     if bound is None:
                         continue
                     through = _passthrough_line(mid_tree, fn.name, bound, _parents(mid_tree))
@@ -972,7 +1123,8 @@ def find_chains(sources, max_per_repo: int = 8, kinds=CHAIN_KINDS, min_distracto
                     ends = [(o, ot, ol) for o, (ot, ol, otx) in parsed.items()
                             if o not in (path, mid_path) and not is_test_path(o) and g_name in called[o]]
                     for end_path, end_tree, end_lines in ends:
-                        ev = find_evidence(end_tree, end_lines, g_fn, g_name, mid_path, kind, detail)
+                        ev = find_evidence(end_tree, end_lines, g_fn, g_name, mid_path, kind, detail,
+                                           end_path, texts)
                         if ev:
                             hit = (mid_path, via_line, g_name, end_path, ev)
                             break

@@ -157,7 +157,7 @@ def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = Fals
     if definition_src is None or caller_src is None:
         return None
 
-    d_lo, d_hi, d_text = window(definition_src, defect.line, radius)
+    d_lo, d_hi, d_text = window(definition_src, defect.line + _jitter(task.task_id + "def", radius), radius)
     if hide_evidence:
         # The window above the evidence line, excluding it. For a handler or a
         # None check the call precedes the line that demonstrates the
@@ -170,10 +170,12 @@ def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = Fals
         if c_hi >= int(caller_line):
             return None
     else:
-        c_lo, c_hi, c_text = window(caller_src, int(caller_line), radius)
+        c_lo, c_hi, c_text = window(caller_src, int(caller_line) + _jitter(task.task_id + "caller", radius), radius)
 
-    definition = Snippet(defect.path, d_lo, d_hi, d_text, _label(defect.path, defect.line))
-    caller = Snippet(caller_path, c_lo, c_hi, c_text, _label(caller_path, int(caller_line)))
+    definition = Snippet(defect.path, d_lo, d_hi, d_text,
+                         _label(defect.path, _enclosing_name(definition_src, defect.line)))
+    caller = Snippet(caller_path, c_lo, c_hi, c_text,
+                     _label(caller_path, _enclosing_name(caller_src, int(caller_line))))
 
     # A decoy is required, not optional. With two snippets the only endpoint a
     # corrupted edge can move to is its own source, and a self-loop is nonsense
@@ -183,7 +185,8 @@ def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = Fals
     # plausible to point.
     decoy = _decoy(definition_src, defect.path, defect.line, radius)
     snippets = (definition, caller) + ((decoy,) if decoy else ())
-    kind, argument = _relation_for(meta.get("kind", ""), meta.get("argument", ""), meta.get("evidence", ""))
+    kind, argument = _relation_for(meta.get("kind", ""), meta.get("argument", ""), meta.get("evidence", ""),
+                                   is_defect=bool(meta.get("is_defect", True)))
     relations = [Relation(caller.label, definition.label, kind, argument)]
 
     # Two-hop chain: the pass-through sits between caller and definition, and
@@ -194,7 +197,7 @@ def evidence_for(task, sources, radius: int = WINDOW, hide_evidence: bool = Fals
         if via_src is None:
             return None
         v_lo, v_hi, v_text = window(via_src, int(via_line), radius)
-        via = Snippet(via_path, v_lo, v_hi, v_text, _label(via_path, int(via_line)))
+        via = Snippet(via_path, v_lo, v_hi, v_text, _label(via_path, _enclosing_name(via_src, int(via_line))))
         snippets = snippets + (via,)
         relations = [Relation(caller.label, via.label, kind, argument),
                      Relation(via.label, definition.label, "returns-result-of", "")]
@@ -212,15 +215,48 @@ def _decoy(source: str, path: str, avoid_line: int, radius: int):
         return None
     line = min(candidates, key=lambda i: abs(i - avoid_line))
     lo, hi, text = window(source, line, radius)
-    return Snippet(path, lo, hi, text, _label(path, line))
+    return Snippet(path, lo, hi, text, _label(path, _enclosing_name(source, line)))
 
 
-def _label(path: str, line: int) -> str:
+def _label(path: str, name: str) -> str:
+    """`stem.function`: the endpoint a map would name.
+
+    The first version labelled every snippet `stem:line` with the mutated
+    line's own number, and the diff's hunk header carries that number, so
+    the true-map arms pointed at the answer and the scrambled control did
+    not. Labels now name the enclosing function, which the diff shows as well
+    for every changed line, true or distractor."""
     stem = path.rsplit("/", 1)[-1].replace(".py", "")
-    return f"{stem}:{line}"
+    return f"{stem}.{name}"
 
 
-def _relation_for(mutation_kind: str, argument: str = "", evidence_line: str = ""):
+def _enclosing_name(source: str, line: int) -> str:
+    """Innermost function or class whose span contains `line`, else `module`."""
+    import ast as _ast
+    try:
+        tree = _ast.parse(source)
+    except SyntaxError:
+        return "module"
+    best = None
+    for node in _ast.walk(tree):
+        if isinstance(node, (_ast.FunctionDef, _ast.AsyncFunctionDef, _ast.ClassDef)):
+            end = getattr(node, "end_lineno", node.lineno)
+            if node.lineno <= line <= end and (best is None or node.lineno >= best.lineno):
+                best = node
+    return best.name if best else "module"
+
+
+def _jitter(seed: str, radius: int) -> int:
+    """A deterministic offset so the window is not centred on the line of
+    interest; the line stays inside the window."""
+    rng = random.Random(hashlib.sha1((seed + "window").encode()).hexdigest())
+    return rng.randint(-(radius // 2), radius // 2)
+
+
+TWIN_KINDS_RELATION = {"default_flip": "calls-with-argument", "exception_type": "catches"}
+
+
+def _relation_for(mutation_kind: str, argument: str = "", evidence_line: str = "", is_defect: bool = True):
     """The relation the caller has to the definition, and its argument.
 
     The argument comes from the generator, which verified it on the caller's
@@ -237,6 +273,11 @@ def _relation_for(mutation_kind: str, argument: str = "", evidence_line: str = "
         "empty_to_none": "iterates-return-of",
     }
     kind = kinds.get(mutation_kind, "depends-on")
+    if not is_defect:
+        # A twin's caller passes the argument or catches the broader type; the
+        # defect relation ("calls-without-argument") would be false for it, and
+        # the first version stated it anyway.
+        kind = TWIN_KINDS_RELATION.get(mutation_kind, kind)
     if not argument:
         match = re.search(r"except\s+(\w+)", evidence_line or "")
         argument = match.group(1) if match else ""
@@ -319,10 +360,11 @@ def _scramble_word(word: str, rng) -> str:
 
 
 def _scramble(label: str, rng) -> str:
-    stem, _, line = label.partition(":")
-    chars = list(stem)
-    rng.shuffle(chars)
-    return f"{''.join(chars)}:{_scramble_number(line, rng)}"
+    """Every part of `stem.name` (or the older `stem:line`) permuted; the
+    separators and lengths survive."""
+    parts = re.split(r"([.:])", label)
+    return "".join(p if p in (".", ":") else (_scramble_number(p, rng) if p.isdigit() else _scramble_word(p, rng))
+                   for p in parts)
 
 
 def _corrupt(relations, snippets, seed: str):
@@ -418,7 +460,12 @@ def random_evidence(task, sources, evidence: Evidence, seed: str = "",
     if len(pool) < len(evidence.snippets):
         return evidence
     rng = random.Random(hashlib.sha1((seed + "foreign").encode()).hexdigest())
-    picked = rng.sample(pool, len(evidence.snippets))
+    # Length-matched: of twenty-five candidate draws, the one whose total text
+    # length is closest to the real evidence. Unmatched draws ran about 15%
+    # shorter, which confounded "foreign" with "less".
+    target = sum(len(s.text) for s in evidence.snippets)
+    draws = [rng.sample(pool, len(evidence.snippets)) for _ in range(25)]
+    picked = min(draws, key=lambda d: abs(sum(len(r["text"]) for r in d) - target))
     return Evidence(
         snippets=tuple(Snippet(r["path"], r["start_line"], r["end_line"], r["text"], r["label"])
                        for r in picked),
