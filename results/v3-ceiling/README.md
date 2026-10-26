@@ -2,7 +2,7 @@
 
 Pre-set stop rule (author, 26 Oct): if the diff-only exact-line hit rate on v3 is 95% or higher, stop the queue and report only that.
 
-Run: gpt-4o-mini, tag serialisation, all nine arms, stopped after 201 of 277 defects. Tolerance 0 (exact line). Parse failures: 0 of 1802 replies. Spend: about $0.00.
+Run: gpt-4o-mini, tag serialisation, all nine arms, stopped after 201 of 277 defects. Tolerance 0 (exact line). Parse failures: 0 of 1802 replies. Spend: about $.375 (summed from the run log).
 
 | arm | n | hit (exact line) | precise (defect is the only flagged hunk) | findings per task | distractors flagged per task |
 |---|---|---|---|---|---|
