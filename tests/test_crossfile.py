@@ -61,15 +61,15 @@ class HardnessGuaranteeTests(unittest.TestCase):
         caller_source = SENTINEL[defect.caller_path]
         self.assertIn(defect.evidence, caller_source)
 
-    def test_the_diff_contains_only_the_mutated_line(self):
+    def test_the_diff_carries_the_mutated_line_and_its_distractors_only(self):
         defect = find_defects(SENTINEL, min_distractors=0)[0]
         body = [
             l for l in build_diff(defect).split("\n")
             if l.startswith(("-", "+")) and not l.startswith(("---", "+++"))
         ]
-        self.assertEqual(len(body), 2)
-        self.assertTrue(body[0].startswith("-"))
-        self.assertTrue(body[1].startswith("+"))
+        self.assertEqual(len(body), 2 * (1 + len(defect.distractors)))
+        self.assertIn("-" + defect.before, body)
+        self.assertIn("+" + defect.after, body)
 
     def test_the_caller_file_never_appears_in_the_diff(self):
         defect = find_defects(SENTINEL, min_distractors=0)[0]
@@ -261,15 +261,21 @@ class DistractorTests(unittest.TestCase):
         self.assertIn(f"+{self.defect.after}", self.diff)
 
     def test_every_distractor_is_behaviour_preserving(self):
+        import ast
+        from experiments.crossfile import AST_NEUTRAL, DISTRACTORS
+        source = NOISY[self.defect.definition_path]
+        idiom_swaps = (
+            {"DEFAULT = dict()", "DEFAULT = {}"},
+            {"if items == None:", "if items is None:"},
+        )
         for change in self.defect.distractors:
             with self.subTest(line=change.line):
                 pair = {change.before.strip(), change.after.strip()}
-                harmless = (
-                    {"DEFAULT = dict()", "DEFAULT = {}"},
-                    {'label = "index"', "label = 'index'"},
-                    {"if items == None:", "if items is None:"},
-                )
-                self.assertTrue(any(pair == h for h in harmless), pair)
+                if any(pair == h for h in idiom_swaps):
+                    continue
+                lines = source.split("\n")
+                trial = list(lines); trial[change.line - 1] = change.after
+                self.assertEqual(ast.dump(ast.parse("\n".join(trial))), ast.dump(ast.parse(source)), pair)
 
     def test_no_distractor_is_marked_as_the_defect(self):
         self.assertTrue(all(not c.is_defect for c in self.defect.distractors))

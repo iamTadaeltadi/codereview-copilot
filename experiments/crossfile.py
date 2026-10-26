@@ -438,8 +438,36 @@ def _distract_spacing(line):
     return None
 
 
+def _distract_quote_style_reverse(line):
+    """`'text'` -> `"text"`, the mirror of the rewrite above, so a diff is not
+    a one-way stream of double-to-single changes."""
+    match = re.search(r"'([^'\\{}]*)'", line)
+    if match and '"' not in match.group(1) and match.group(1):
+        return line[: match.start()] + '"' + match.group(1) + '"' + line[match.end():]
+    return None
+
+
+def _distract_parenthesise_return(line):
+    """`return x + y` -> `return (x + y)`; the tree is unchanged."""
+    match = re.match(r"^(\s*return )([^(#][^#]*?)\s*$", line)
+    if match and not match.group(2).endswith(":"):
+        return f"{match.group(1)}({match.group(2)})"
+    return None
+
+
+def _distract_parenthesise_rhs(line):
+    """`x = a + b` -> `x = (a + b)` for a plain assignment; the tree is unchanged."""
+    match = re.match(r"^(\s*[A-Za-z_][\w.]*\s*=\s*)([^=(#\s][^#]*?)\s*$", line)
+    if match and "==" not in line and not match.group(2).endswith((":", "\\", ",")):
+        return f"{match.group(1)}({match.group(2)})"
+    return None
+
+
 DISTRACTORS = (
     _distract_quote_style,
+    _distract_parenthesise_return,
+    _distract_quote_style_reverse,
+    _distract_parenthesise_rhs,
     _distract_none_comparison,
     _distract_empty_literal,
     _distract_redundant_parens,
@@ -467,7 +495,8 @@ def _still_parses(lines, index, replacement):
     return True
 
 
-AST_NEUTRAL = (_distract_quote_style, _distract_redundant_parens, _distract_spacing)
+AST_NEUTRAL = (_distract_quote_style, _distract_quote_style_reverse, _distract_parenthesise_return,
+               _distract_parenthesise_rhs, _distract_redundant_parens, _distract_spacing)
 
 
 def _same_ast(lines, index, replacement):
