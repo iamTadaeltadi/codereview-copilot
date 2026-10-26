@@ -18,11 +18,18 @@ generated benchmark, `data/crossfile.jsonl`. See the `WITHDRAWN.md` in each.
 | `audit/` | the retrieval-comparison audit that withdrew "which code does not matter" |
 | `judge-validation-*.json` | 40 hand-labelled messages and the judge's verdicts, used to validate `mechanism_judge` |
 
-## Rebuilt benchmark (`data/crossfile-v2*.jsonl`), runs in `runs/v2*`
+## Second benchmark (`data/crossfile-v2*.jsonl`): withdrawn 26 Oct 2026
 
-Frozen into `results/v2-*/` when complete. Run names: `v2-tag-gpt4omini`,
-`v2-flat-gpt4omini`, `v2-tag-llama`, `v2-tag-deepseek` (base, eight arms);
-`v2-noise4-gpt4omini` (four unrelated snippets added); `v2-hidden-gpt4omini`
-(caller window above the demonstrating line); `v2twins-tag-gpt4omini`
-(matched safe twins). Analyse with `experiments/analyse_structure.py`;
-`experiments/judge_mechanism.py --strict` adds the validated judge verdict.
+`v2-*/` and `v2twins-*/` are the held-constant-evidence runs on the second
+generated benchmark. Every number from them is withdrawn after an external
+review found five instrument defects; see `WITHDRAWN-v2-structure.md` and
+`audit/v2-recheck.txt`. Kept whole so the withdrawal can be checked.
+
+## Third benchmark (`data/crossfile-v3*.jsonl`): standing
+
+| Directory | What |
+|---|---|
+| `audit/v3-recheck.*` | the released benchmark re-checked with the generator's own resolver and tree comparison: 0 / 0 / 0 |
+| `v3-ceiling/` | the diff-only ceiling run, stopped at 201 of 277 defects under the pre-set 95% rule; all nine arms kept, arm comparisons not reported |
+| `v3twins-tag-gpt4omini/`, `v3twins-tag-deepseek/` | safe twins, nine arms, two models; `analysis-correct.txt` is the clear rate per arm |
+| `test-verified/` | each repository's own tests run before and after each mutation; `summary.txt` has the funnel |

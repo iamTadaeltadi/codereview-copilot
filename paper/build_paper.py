@@ -14,10 +14,9 @@ ORDER = ["00-abstract.md", "01-intro.md", "02-related.md", "03-method.md", "04-r
 AUTHOR = "Tadael Shewarega Gebre"; AFFIL = "Independent researcher, Addis Ababa"
 EMAIL = "tadaelshewaregagebre30@gmail.com"
 FIGS = {  # anchor substring in a heading -> (file, caption)
-    "4.3 Does stating the structure": [("fig1-arms.png", "Figure 2. Per-arm rates on the rebuilt benchmark, four runs, three metrics (J1 is deepseek-v3.2, which is also the reviewed model in the third column; see 3.6). Arms 2–6 see identical snippets; only the metadata block differs."),
-                                       ("fig2-primary.png", "Figure 3. The primary comparison, bare link against the scrambled control, with 95% repository-clustered intervals for two judges and for precision.")],
-    "4.6 Real defects": [("fig3-ccrab.png", "Figure 4. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
-    "4.1 The three diagnostics": [("fig4-twins.png", "Figure 1. Safe twins: the share the model leaves unflagged, by arm, on two models and under the authoritative-callers instruction.")],
+    "4.1 The partial-input ceiling": [("fig1-ceiling.png", "Figure 1. The partial-input ceiling: share of defect lines a model finds from the diff alone (gpt-4o-mini, exact line) on the second and third generated benchmarks and on the real c-CRAB defects. The third version was stopped under the pre-set 95% rule.")],
+    "4.3 Safe twins": [("fig3-twins.png", "Figure 3. Safe twins on the third benchmark: the share of changes every caller tolerates that the model leaves unflagged, by arm, on two models.")],
+    "4.5 Real defects": [("fig2-ccrab.png", "Figure 2. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
 }
 
 refs = {}
