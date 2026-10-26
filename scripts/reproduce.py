@@ -49,12 +49,25 @@ def reproduce(path):
 
 
 def main(argv):
-    files = sorted(ROOT.glob("results/v2*/analysis-*.txt"))
+    files = sorted(ROOT.glob("results/v2*/analysis-*.txt")) + sorted(ROOT.glob("results/v3twins-*/analysis-*.txt"))
     bad = 0
     for f in files:
         status = reproduce(f)
         bad += status == "DIFF"
         print(f"{status:<28}{f.relative_to(ROOT)}")
+    # The stopped third-version run: the per-arm table in its README is recomputed from the records.
+    ceiling = ROOT / "results/v3-ceiling/structure-gpt4omini-tag-partial.jsonl"
+    if ceiling.exists():
+        import collections, json
+        rows = [json.loads(l) for l in ceiling.open() if l.strip()]
+        by = collections.defaultdict(list)
+        for r in rows: by[r["arm"]].append(r)
+        want = [l for l in (ROOT / "results/v3-ceiling/README.md").read_text().splitlines() if l.startswith("| ") and l[2].isdigit()]
+        got = [f"| {arm} | {len(rs)} | {sum(1 for r in rs if r['hit'])/len(rs):.1%} | {sum(1 for r in rs if r['precise'])/len(rs):.1%} | {sum(r['findings'] for r in rs)/len(rs):.2f} | {sum(r['flagged_distractors'] for r in rs)/len(rs):.2f} |" for arm, rs in sorted(by.items())]
+        same = got == want
+        bad += not same
+        print(f"{'MATCH' if same else 'DIFF':<28}results/v3-ceiling/README.md (per-arm table)")
+        files.append(ceiling)
     frozen = (ROOT / "results/ccrab-today/analysis.txt").read_text()
     fresh = subprocess.run([sys.executable, "experiments/analyse_ccrab.py"], cwd=ROOT,
                            capture_output=True, text=True, check=True).stdout
