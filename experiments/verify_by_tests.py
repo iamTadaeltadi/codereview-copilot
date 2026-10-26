@@ -139,12 +139,15 @@ def verify(task):
 
 
 def main():
+    global OUT
     ap = argparse.ArgumentParser()
     ap.add_argument("--benchmark", default=str(ROOT / "data" / "crossfile-v2.jsonl"))
     ap.add_argument("--repos", nargs="*", default=[])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--retry", nargs="*", default=[], help="status prefixes to redo, e.g. error timeout 'no passing'")
+    ap.add_argument("--out", default=str(OUT), help="results file (default results/test-verified/verify.jsonl)")
     a = ap.parse_args()
+    OUT = Path(a.out)
     tasks = [json.loads(l) for l in open(a.benchmark) if l.strip()]
     if a.repos:
         tasks = [t for t in tasks if t["repo"] in a.repos]

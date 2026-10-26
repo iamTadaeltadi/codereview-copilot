@@ -116,6 +116,15 @@ class KindVerifierTests(unittest.TestCase):
         tree, lines = _caller("from lib.m import items\ndef f(s):\n    return items(s)\n")
         self.assertIsNone(find_evidence(tree, lines, _fn("items"), "items", "lib/m.py", "empty_to_none", {}))
 
+    def test_empty_to_none_evidence_is_the_iteration_not_the_def(self):
+        # a comprehension or list() over the result is evidence on its own line
+        tree, lines = _caller("from lib.m import items\ndef f(s):\n    r = items(s)\n    r = list(r)\n    return [x for x in r]\n")
+        ev = find_evidence(tree, lines, _fn("items"), "items", "lib/m.py", "empty_to_none", {})
+        self.assertEqual((ev[0], ev[2]), (4, "iterates"))
+        tree, lines = _caller("from lib.m import items\ndef f(s):\n    r = items(s)\n    return [x for x in r]\n")
+        ev = find_evidence(tree, lines, _fn("items"), "items", "lib/m.py", "empty_to_none", {})
+        self.assertEqual(ev[0], 4)
+
 
 @unittest.skipUnless(_AVAILABLE, "experiment package not importable")
 class DistractorTests(unittest.TestCase):

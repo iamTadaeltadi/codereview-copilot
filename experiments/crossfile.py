@@ -788,13 +788,20 @@ def _verify_empty_to_none(fn, call, parents, lines, detail):
     var = _assigned_to(call, parents)
     def is_result(node):
         return node is call or (var and isinstance(node, ast.Name) and node.id == var)
+    # The first version returned the enclosing function's `def` line for a
+    # comprehension (ast.comprehension has no lineno), so the evidence line
+    # named a signature rather than the iteration; and it missed list(x),
+    # which raises on None just as a for loop does.
+    hits = []
     for node in ast.walk(owner):
         if isinstance(node, (ast.For, ast.comprehension)) and is_result(node.iter):
-            return node.lineno if isinstance(node, ast.For) else owner.lineno, "iterates"
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "len" \
-                and node.args and is_result(node.args[0]):
-            return node.lineno, "len"
-    return None
+            hits.append((node.lineno if isinstance(node, ast.For) else node.iter.lineno, "iterates"))
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.args and is_result(node.args[0]):
+            if node.func.id == "len":
+                hits.append((node.lineno, "len"))
+            elif node.func.id in ("list", "tuple", "set", "sorted", "frozenset"):
+                hits.append((node.lineno, "iterates"))
+    return min(hits) if hits else None
 
 
 VERIFIERS = {
