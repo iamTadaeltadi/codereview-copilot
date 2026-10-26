@@ -41,7 +41,7 @@ class ErrorAnalysisAgent:
         }
         for msg in state["vuln_state"]["issues"]:
             if isinstance(msg,AIMessage):
-                if not "tool_calls" in msg.content: 
+                if not "tool_calls" in msg.content:
                     issues["vulnerability"].append(msg.content)
         for msg in state["bug_state"]["issues"]:
             if isinstance(msg,AIMessage):

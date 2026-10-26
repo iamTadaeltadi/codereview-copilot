@@ -13,7 +13,7 @@ export default function FormCheckbox({ id, label, required = false }: FormCheckb
         type="checkbox"
         id={id}
         required={required}
-        className="h-4 w-4 rounded border-gray-300 text-blue-500 
+        className="h-4 w-4 rounded border-gray-300 text-blue-500
           focus:ring-blue-200 focus:ring-offset-0
           transition-colors duration-200
           cursor-pointer"

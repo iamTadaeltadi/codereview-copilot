@@ -11,7 +11,7 @@ class RepositorySerializer(serializers.ModelSerializer):
     owner = UserSerializer(read_only=True)
     # For request (create/update), owner will be set from the request user, not from input data.
     # For response, owner will be serialized.
-    
+
     # Fields from FastAPI RepositoryCreate/Update/Response
     # repo_name, repo_url, description, github_native_id, coding_standards, code_metrics, llm_preference, webhook_url
 
@@ -32,7 +32,7 @@ class RepositorySerializer(serializers.ModelSerializer):
         # The owner is set in the view from request.user
         # Webhook URL is also generated in the view after initial save
         return super().create(validated_data)
-    
+
     def validate_repo_name(self, value):
         if '/' not in value or len(value.split('/')) != 2:
             raise serializers.ValidationError("repo_name must be in the format 'owner/repo'.")
@@ -104,7 +104,7 @@ class PRSerializer(serializers.ModelSerializer):
         model = PullRequest
         fields = [
             'id', 'repository', 'repository_id', # Standard fields
-            'pr_github_id', 'pr_number', 'title', 'body', 'author_github_id', 
+            'pr_github_id', 'pr_number', 'title', 'body', 'author_github_id',
             'status', 'url', 'head_sha', 'base_sha', # Model fields
             'user_login', 'user_avatar_url', # Additional GitHub data
             'created_at_gh', 'updated_at_gh', 'closed_at_gh', 'merged_at_gh', # Additional GitHub data
@@ -113,7 +113,7 @@ class PRSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id', 'repository', 'created_at', 'updated_at', 'source',
-            'user_login', 'user_avatar_url', 'created_at_gh', 'updated_at_gh', 
+            'user_login', 'user_avatar_url', 'created_at_gh', 'updated_at_gh',
             'closed_at_gh', 'merged_at_gh'
         ]
     def to_representation(self, instance):
@@ -133,7 +133,7 @@ class PRSerializer(serializers.ModelSerializer):
             for field_name in non_model_fields:
                 if field_name in self.initial_data:
                     representation[field_name] = self.initial_data[field_name]
-        
+
         # Set 'source' from context if provided, otherwise ensure it's present (e.g. as None)
         # if not already set by super() from a model field (which it isn't for 'source').
         if self.context.get('source'):
@@ -161,7 +161,7 @@ class CommitSerializer(serializers.ModelSerializer):
         model = Commit
         fields = [
             'id', 'repository', 'repository_id', # Standard fields
-            'commit_hash', 'message', 'author_github_id', 'committer_github_id', 
+            'commit_hash', 'message', 'author_github_id', 'committer_github_id',
             'url', 'timestamp', # Model fields
             'author_name', 'author_email', # Additional GitHub data
             'committer_name', 'committer_email', 'committed_date', # Additional GitHub data
@@ -170,7 +170,7 @@ class CommitSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = [
             'id', 'repository', 'created_at', 'updated_at', 'source',
-            'author_name', 'author_email', 
+            'author_name', 'author_email',
             'committer_name', 'committer_email', 'committed_date'
         ]
     def to_representation(self, instance):
@@ -188,12 +188,12 @@ class CommitSerializer(serializers.ModelSerializer):
             for field_name in non_model_fields:
                 if field_name in self.initial_data:
                     representation[field_name] = self.initial_data[field_name]
-        
+
         if self.context.get('source'):
             representation['source'] = self.context.get('source')
         elif 'source' not in representation: # Default if not set by super and not in context
             representation['source'] = None
-            
+
         return representation
 class ReviewFeedbackSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True) # Feedback is always by the logged-in user
@@ -218,7 +218,7 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = [
-            'id', 'thread', 'user', 'comment', 'comment_data', 'type', 
+            'id', 'thread', 'user', 'comment', 'comment_data', 'type',
             'parent_comment', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'user', 'thread', 'created_at', 'updated_at']
@@ -227,11 +227,11 @@ class CommentSerializer(serializers.ModelSerializer):
         # Avoids excessively deep nesting or circular dependencies if not careful
         if self.context.get('depth', 0) > 10: # Control nesting depth
             return []
-        
+
         # Create a new context with incremented depth
         new_context = self.context.copy()
         new_context['depth'] = self.context.get('depth', 0) + 1
-        
+
         replies = Comment.objects.filter(parent_comment=obj)
         return CommentSerializer(replies, many=True, read_only=True, context=new_context).data
 
@@ -269,11 +269,11 @@ class ThreadSerializer(serializers.ModelSerializer):
                 if 'comment_data' in comment_dict and comment_dict['comment_data'] is not None:
                     original_comment_data_dict = comment_dict['comment_data']
                     filtered_comment_data = {}
-                    
+
                     if isinstance(original_comment_data_dict, dict):
                         base_fields_to_keep = [
-                            'repo', 'user', 'pr_id', 'feedback', 'llm_model', 
-                            'standards', 'metrics', 'reviewer_id', 'feedback_status', 
+                            'repo', 'user', 'pr_id', 'feedback', 'llm_model',
+                            'standards', 'metrics', 'reviewer_id', 'feedback_status',
                             'feedback_suggestion', 'feedback_explanation'
                         ]
                         for field in base_fields_to_keep:
@@ -286,7 +286,7 @@ class ThreadSerializer(serializers.ModelSerializer):
                             for field in additional_fields_for_last:
                                 if field in original_comment_data_dict:
                                     filtered_comment_data[field] = original_comment_data_dict[field]
-                        
+
                         comment_dict['comment_data'] = filtered_comment_data if filtered_comment_data else None
                     else:
                         # If original_comment_data_dict is not a dict, set to None
@@ -312,7 +312,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     pull_request = PRSerializer(read_only=True)
     commit = CommitSerializer(read_only=True)
     parent_review = serializers.PrimaryKeyRelatedField(read_only=True)
-    
+
     # Add threads relationship
     threads = ThreadSerializer(many=True, read_only=True)
     thread_count = serializers.SerializerMethodField()
@@ -320,10 +320,10 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = [
-            'id', 
-            'repository', 'repository_id', 
+            'id',
+            'repository', 'repository_id',
             'pull_request', 'pull_request_id',
-            'commit', 'commit_id', 
+            'commit', 'commit_id',
             'parent_review', 'parent_review_id',
             'status', 'review_data', 'threads', 'thread_count', 'error_message',
             'created_at', 'updated_at'
@@ -333,12 +333,12 @@ class ReviewSerializer(serializers.ModelSerializer):
             'status': {'required': False},  # Often auto-set
             'review_data': {'required': False},  # Often set by system processes
         }
-    
+
     def get_thread_count(self, obj):
         return obj.threads.count()
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        
+
         # Include threads with comments if requested
         if self.context.get('include_threads'):
             thread_serializer = ThreadSerializer(
@@ -347,7 +347,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 context=self.context
             )
             data['threads'] = thread_serializer.data
-        
+
         return data
 class LLMUsageSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
@@ -376,12 +376,12 @@ class WebhookEventLogSerializer(serializers.ModelSerializer):
         queryset=DBRepository.objects.all(), source='repository', write_only=True, required=False
     )
     repository = RepositorySerializer(read_only=True)
-    
+
     class Meta:
         model = WebhookEventLog
         fields = [
-            'id', 'repository', 'repository_id', 'event_id', 'event_type', 
-            'payload', 'headers', 'status', 'error_message', 
+            'id', 'repository', 'repository_id', 'event_id', 'event_type',
+            'payload', 'headers', 'status', 'error_message',
             'processed_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'repository']

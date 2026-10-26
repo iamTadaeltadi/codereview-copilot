@@ -297,4 +297,3 @@ class LangGraphServiceTests(unittest.TestCase):
 
         self.assertEqual(result['status'], 'ok')
         self.assertTrue(mock_handle_feedback.called)
-

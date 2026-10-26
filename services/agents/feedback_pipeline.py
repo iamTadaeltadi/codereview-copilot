@@ -228,12 +228,12 @@ class FeedbackPipeline:
     def preprocess(self, state: FeedbackState):
         print("--- Running Preprocess ---")
         updates = {}
-        
+
         # Initialize state
         updates.update(self._initialize_state(state))
         # Initialize LLM
         updates.update(self._initialize_llm(state))
-        
+
         # Setup repository and tools if needed
         if self._needs_setup(state):
             updates.update(self._setup_repository(state))
@@ -243,7 +243,7 @@ class FeedbackPipeline:
                     G = pickle.load(f)
                 self.tools = toolOrganizer(G, state["graph_folder_path"])
                 updates.update(self._log_action("preprocess", {"status": "Skipped setup, tools checked/re-initialized"}))
-        
+
         # Reset review state
         updates.update(self._reset_review_state())
         return updates
@@ -256,7 +256,7 @@ class FeedbackPipeline:
     def _needs_setup(self, state: FeedbackState) -> bool:
         repo_folder_path = state.get("repo_folder_path")
         graph_folder_path = state.get("graph_folder_path")
-        return not (repo_folder_path and os.path.exists(repo_folder_path) and 
+        return not (repo_folder_path and os.path.exists(repo_folder_path) and
                    graph_folder_path and os.path.exists(graph_folder_path))
 
     def _setup_repository(self, state: FeedbackState) -> dict:
@@ -271,10 +271,10 @@ class FeedbackPipeline:
         files_content = json.loads(files_json_string)
         supplied_diff = state.get("diff_str","")
         user_github_token = state.get("user_github_token")
-        
+
         repo_folder_path = None
         diffs_data = [] # This will hold the formatted diffs list
-        
+
         # Determine mode: local, commit, or PR
         if files_content and supplied_diff:
             # Local mode
@@ -297,9 +297,9 @@ class FeedbackPipeline:
                 print(f"Error fetching default branch for {user}/{repo}: {e}. Falling back to 'main'.")
                 # Fallback or re-raise, depending on desired strictness
                 default_branch_to_clone = "main" # Or raise ValueError("Could not determine default branch and no fallback.")
-            
+
             repo_folder_path = clone_repo(user, repo, default_branch_to_clone, user_github_token, commit_hash=commit_hash)
-            
+
             diffs_data = get_commit_diff(user, repo, commit_hash, user_github_token)
             metadata_user_for_clone = user # For potential future use, not directly for clone_repo here
             branch_for_clone_or_checkout = f"commit-{commit_hash[:7]}"
@@ -311,7 +311,7 @@ class FeedbackPipeline:
             metadata = get_pr_metadata(user, repo, pr_id, user_github_token=user_github_token)
             branch_for_clone_or_checkout = metadata["head"]["ref"]
             metadata_user_for_clone = metadata["head"]["user"]
-            
+
             repo_folder_path = clone_repo(metadata_user_for_clone, repo, branch_for_clone_or_checkout, user_github_token=user_github_token)
             diffs_data = get_pr_diff(user, repo, pr_id, user_github_token=user_github_token)
         else:
@@ -332,21 +332,21 @@ class FeedbackPipeline:
         # The original logic used repo-branch-uuid. Let's try to stick to that pattern.
         graph_folder_path_name_part = branch_for_clone_or_checkout if branch_for_clone_or_checkout else mode_identifier
         graph_folder_path = os.path.join(".", "tmp", "graph", f"{graph_repo_id}-{graph_folder_path_name_part}-{uuid.uuid4()}")
-        
+
         print_graph_info(G, repo_folder_path)
         save_graph(graph_folder_path, G)
-        
+
         # Initialize tools and get repo summary
         self.tools = toolOrganizer(G, graph_folder_path)
         summarizer = RepoSummarizerAgent(self.llm)
         repo_summary = summarizer.summarize_repository(repo_folder_path)
-        
+
         # Get PR diffs
         diffs = diffs_data
         diff_map = {diff["file_path"]: (i, diff) for i, diff in enumerate(diffs)}
-        
+
         updates.update({
-            "user_github_token": "", # user github token is not used in the pipeline after this, so should be empty so that it won't get exposed later 
+            "user_github_token": "", # user github token is not used in the pipeline after this, so should be empty so that it won't get exposed later
             "files": "", # files are not used after this, so should be empty so that it won't get exposed later
             "diff_str": "", # diff_str is not used after this, so should be empty so that it won't get exposed later
             "repo_folder_path": repo_folder_path,
@@ -361,7 +361,7 @@ class FeedbackPipeline:
             },
             "fixes": [None] * len(diffs)
         })
-        
+
         return updates
 
     def _initialize_llm(self, state: FeedbackState) -> dict:
@@ -372,7 +372,7 @@ class FeedbackPipeline:
             "OPENROUTER": Config.OPENROUTER
         }
         selected_config = provider_map.get(provider, Config.CEREBRAS)
-        
+
         self.llm = CustomLLM(
             openai_api_key=selected_config["api_key"],
             model=model_name,
@@ -382,7 +382,7 @@ class FeedbackPipeline:
         )
         self.standards = state["standards"]
         self.metrics = state["metrics"]
-        
+
         return {}
 
     def _reset_review_state(self) -> dict:
@@ -402,7 +402,7 @@ class FeedbackPipeline:
         print("--- Running Sufficiency Checker ---")
         feedback = state["feedback"]
         current_review = state.get("updated_review", state.get("original_review", {}))
-        
+
         config = self._get_episodic_config(state)
         episodic_query = f"Feedback and actions for thread {state['thread_id']} in {state['repo']}"
         episodic_results = self.episodic_search_tool.invoke(
@@ -411,14 +411,14 @@ class FeedbackPipeline:
         )
         episodic_context = episodic_results if episodic_results else []
         episodic_context = json.loads(episodic_context)
-        
+
         sufficiency_checker = SufficiencyCheckerAgent(self.llm)
         result = sufficiency_checker.sufficiency_checker(
             feedback=feedback,
             original_review=current_review,
             episodic_context="\n".join([episode.get('value', {}).get('content', '') for episode in episodic_context])
         )
-        
+
         updates = {}
         if result:
             updates["sufficiency"] = result.get("classification", "insufficient")
@@ -428,7 +428,7 @@ class FeedbackPipeline:
             updates["sufficiency"] = "insufficient"
             updates["sufficiency_explanation"] = "Failed to parse sufficiency response."
             updates["sufficiency_suggestion"] = "Include specific files or issues to address."
-        
+
         updates.update(self._log_action("sufficiency_checker", {
             "status": updates["sufficiency"],
             "feedback_snippet": feedback[:50]
@@ -451,7 +451,7 @@ class FeedbackPipeline:
         )
         episodic_context = episodic_results if episodic_results else []
         episodic_context = json.loads(episodic_context)
-        
+
         # Extract relevant context from episodic memory
         episodic_summary = self._process_episodic_memory(episodic_context)
 
@@ -461,10 +461,10 @@ class FeedbackPipeline:
             {"query": "user preferences and review style", "limit": 10},
             config=ltm_config
         )
-        
+
         # Prepare preference context
         preference_context = self._process_preferences(json.loads(preferences))
-        
+
         rereview_instruction_generator = ReReviewInstructionGeneratorAgent(self.llm)
         instructions = rereview_instruction_generator.re_review_instruction_generator(
             re_run_plan=re_run_plan,
@@ -473,7 +473,7 @@ class FeedbackPipeline:
             preference_context=preference_context,
             episodic_context=episodic_summary
         )
-        
+
         updates = {"instructions": instructions}
         updates.update(self._log_action("instruction_generator", {
             "files_instructed": list(instructions.keys()) if instructions else [],
@@ -502,7 +502,7 @@ class FeedbackPipeline:
             "feedback_received": state["feedback"],
             "ai_response_snippet": state.get("messages", [])[-1].content if state.get("messages") else "N/A"
         }
-        
+
         try:
             config = self._get_episodic_config(state)
             print(f"episodic turn_summary: {turn_summary}")
@@ -580,14 +580,14 @@ class FeedbackPipeline:
         feedback = state["feedback"]
         guardrail_checker = GuardrailCheckerAgent(self.llm)
         result = guardrail_checker.guardrail_checker(feedback)
-        
+
         if not result:
             return {
                 "feedback_status": "irrelevant",
                 "feedback_explanation": "Failed to parse guardrail response.",
                 "feedback_suggestion": "Provide feedback related to specific code or review aspects."
             }
-        
+
         return {
             "feedback_status": result.get("classification", "irrelevant"),
             "feedback_explanation": result.get("explanation", "No explanation provided."),
@@ -598,7 +598,7 @@ class FeedbackPipeline:
     def plan_generator(self, state: FeedbackState):
         print("--- Running Re-Review Planner ---")
         feedback = state["feedback"]
-        
+
         config = self._get_episodic_config(state)
         episodic_query = f"Previous review actions and feedback for PR {state['pr_id']} in thread {state['thread_id']}"
         episodic_results = self.episodic_search_tool.invoke(
@@ -607,15 +607,15 @@ class FeedbackPipeline:
         )
         episodic_context = episodic_results if episodic_results else []
         episodic_context = json.loads(episodic_context)
-        
+
         episodic_summary = self._process_episodic_memory(episodic_context)
-        
+
         rereview_planner = ReReviewPlannerAgent(self.llm)
         re_run_plan = rereview_planner.re_review_planner(
             feedback=feedback,
             episodic_context=episodic_summary
         )
-        
+
         updates = {"re_run_plan": re_run_plan}
         updates.update(self._log_action("plan_generator", {
             "episodic_memory_used": len(episodic_summary),
@@ -628,13 +628,13 @@ class FeedbackPipeline:
         print("--- Running Dynamic Review Executor ---")
         if not self.tools:
             raise ValueError("Tools not initialized.")
-        
+
         re_run_plan = state.get("re_run_plan", {})
         instructions = state.get("instructions", {})
         diff_map = state.get("diff_map", {})
         repo_summary = state.get("repo_summary", {})
         current_review = state.get("updated_review", state.get("original_review", {}))
-        
+
         dynamic_review_executor = DynamicReviewExecutorAgent(
             self.llm, self.standards, self.tools, self.metrics, state["max_tool_calls"]
         )
@@ -647,7 +647,7 @@ class FeedbackPipeline:
             fixes=state.get("fixes", []),
             reviews=state.get("reviews", {})
         )
-        
+
         updates = {"reviews": reviews, "fixes": fixes}
         updates.update(self._log_action("dynamic_review_executor", {
             "reviews_generated_steps": {
@@ -690,7 +690,7 @@ class FeedbackPipeline:
             if file_path not in diff_map:
                 print(f"Warning: File '{file_path}' from re_run_plan not found in diff_map. Skipping integration for this file.")
                 continue
-            
+
             file_index = diff_map[file_path][0]
             for step in steps:
                 if step in turn_reviews and turn_reviews[step][file_index]:
@@ -721,7 +721,7 @@ class FeedbackPipeline:
     def chat_responder(self, state: FeedbackState):
         print("--- Running Chat Responder ---")
         message = ""
-        
+
         if state.get("feedback_status") == "irrelevant":
             message = (
                 f"Your feedback was classified as '{state['feedback_status']}'. "
@@ -776,7 +776,7 @@ class FeedbackPipeline:
     def route_after_sufficiency(self, state: FeedbackState):
         print(f"--- Routing after Sufficiency ({state.get('sufficiency')}) ---")
         return "chat_responder" if state.get("sufficiency") == "insufficient" else "plan_generator"
-    
+
 checkpoint_db = os.getenv("CHECKPOINTER_DB_URI", "postgresql://langgraph:langgraph@db:5432/checkpointer")
 store_db = os.getenv("STORE_DB_URI", "postgresql://langgraph:langgraph@db:5432/store")
 

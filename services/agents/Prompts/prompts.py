@@ -1,16 +1,16 @@
 STANDARD_CHECKER_PROMPT_TEMPLATE = \
     """
     You are a compliance analyzer. Using the standards provided below, review the code diff (ignore diff markers like '+' and '-' and line numbers) and identify any deviations.
-    
+
     Standards:
     {standards_str}
 
     Code diff:
     {diff_content}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
+
     Provide your answer as valid JSON formatted like this:
     ```json
     {{
@@ -28,10 +28,10 @@ STANDARD_CHECKER_PROMPT_TEMPLATE = \
 SYNTAX_CHECKER_PROMPT_TEMPLATE = \
     """
     You are a syntax analyzer for {language} code. Examine the code diff (ignoring diff markers and line numbers) and detect any syntax errors.
-    
+
     Code Diff
     {diff_content}
-    
+
     Additional Instructions:
     {additional_instructions}
 
@@ -61,7 +61,7 @@ REPO_SUMMARIZER_PROMPT_TEMPLATE = \
     4. Any notable patterns or setups (e.g., CI/CD, containerization).
 
     Return your findings in valid JSON:
-    ```json 
+    ```json
         {{
         "project_type": "...",
         "tools_and_libraries": ["...", "..."],
@@ -82,7 +82,7 @@ CODE_SUMMARIZER_PROMPT_TEMPLATE = \
 CODE_SUMMARY_MERGER_PROMPT_TEMPLATE = \
     """
     Merge the following code summaries into one consolidated PR summary.
-    
+
     Summaries:
     {summaries}
 
@@ -91,18 +91,18 @@ CODE_SUMMARY_MERGER_PROMPT_TEMPLATE = \
 CODE_REVIEWER_PROMPT_TEMPLATE = \
     """
     You are a Code Reviewer. Evaluate the provided findings and the repository summary, then generate a comprehensive review per file. Rate the following metrics: {metrics}. Ensure that each rating (from 1 to 10) is justified by the findings and provide a reason for each rating.
-    
+
     Findings:
     {issue}
-    
+
     Repository Summary:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
-    Provide your answer as valid JSON formatted like this:     
-    ```json 
+
+    Provide your answer as valid JSON formatted like this:
+    ```json
     {{
         "summary": "overall_assessment",
         "file": "file_path",
@@ -116,38 +116,38 @@ CODE_REVIEWER_PROMPT_TEMPLATE = \
 CODE_FIX_PROMPT_TEMPLATE = \
     """
     Generate a corrected version of the code diff by addressing the issues listed below.
-    
-    Issues: 
+
+    Issues:
     {issues}
-    
-    File: 
+
+    File:
     {file_path}
-    
+
     Original diff:
     {diff_content}
-    
+
     Repository Summary:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
+
     Return your corrected code in unified diff format.
     """
 VULNERABILITY_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_EXCEEDED = \
     """
     You are an AI Vulnerability Analysis agent. Your task is to analyze this code diff for vulnerabilities.
     You have reached the maximum number of tool calls ({max_tool_calls}). Complete the analysis based on the available information without making further tool calls.
-    
+
     Code diff:
     {diff_content}
-    
+
     Here is the summary of the repository for context:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
+
     Provide your answer as valid JSON formatted like this:
     ```json
     {{
@@ -168,19 +168,19 @@ VULNERABILITY_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_NOT_EXCEEDED = \
     You are an AI Vulnerability Analysis agent. Your task is to analyze this code diff for vulnerabilities.
     If you need context, a tool call may have already been made and the context is in the previous tool result message. Use that context to complete the analysis. Do not make redundant tool calls for the same node.
     If no context is available, you may make a tool call.
-    
-    Tool calls made till now: 
+
+    Tool calls made till now:
     {tool_calls_made}
-    
+
     Code diff:
     {diff_content}
-    
+
     Here is the summary of the repository for context:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
+
     Provide your answer as valid JSON formatted like this:
     ```json
     {{
@@ -200,17 +200,17 @@ BUG_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_EXCEEDED = \
     """
     You are an AI bug detection agent. Your task is to analyze this code diff for potential bugs.
     You have reached the maximum number of tool calls ({max_tool_calls}). Complete the analysis based on the available information without making further tool calls.
-    
+
     Code diff:
     {diff_content}
-    
+
     Here is the summary of the repository for context:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
-    
-    Provide your answer as valid JSON formatted like this: 
+
+    Provide your answer as valid JSON formatted like this:
     ```json
     {{
         "issues": [
@@ -229,16 +229,16 @@ BUG_CHECKER_PROMPT_TEMPLATE_TOOL_CALL_LIMIT_NOT_EXCEEDED = \
     """
     You are an AI bug detection agent. Your task is to analyze this code diff for potential bugs.
     If you need context, a tool call may have already been made and the context is in the previous message (specifically Tool Message). But if not atleast make one. And if you already made one and you got no context, then move on with the analysis.
-    
+
     Tool calls made till now:
     {tool_calls_made}
-    
+
     Code diff:
     {diff_content}
-    
+
     Here is the summary of the repository for context:
     {repo_summary}
-    
+
     Additional Instructions:
     {additional_instructions}
 
@@ -262,7 +262,7 @@ ERROR_SUMMARIZER_PROMPT_TEMPLATE = \
     Synthesize these findings into a unified report:
     , ensuring to aggregate issues based on their type (vulnerability or bug)
     {results}
-    
+
     Provide your answer as valid JSON formatted like this:
     ```json
     {{
@@ -402,9 +402,9 @@ REREVIEW_PLANNER_PROMPT_TEMPLATE = \
     """
     Based on the feedback and previous context, identify which files and review steps (syntax, standards, error_analysis, final) need re-running.
     {review_structure}
-    
+
     Current Feedback: {feedback}
-    
+
     Previous Context:
     {episodic_context}
     Output a JSON like: {{"filename_1.py": ["syntax", "standards"], "filename_2.py": ["error_analysis"]}}
@@ -415,31 +415,31 @@ REREVIEW_INSTRUCTION_GENERATOR_PROMPT_TEMPLATE = \
     - Current feedback: '{feedback}'
     - User preferences: {preference_context}
     - Previous context: {episodic_context}
-    
+
     Using the following code‐review JSON structure:
     {review_structure}
-    
-    These are the files associated with the review: 
-    {files} 
-    
-    Use the files list to correct file names if you have been provided with the wrong file name or 
-    in case you have to use indexes to access content from the review json the indexes for the files are given 
+
+    These are the files associated with the review:
+    {files}
+
+    Use the files list to correct file names if you have been provided with the wrong file name or
+    in case you have to use indexes to access content from the review json the indexes for the files are given
     in the list use them to access the content for the appropriate file.
-    
+
     Your task: craft an instruction that suggests how to modify the existing {step} step
     in line with the user's feedback and previous context. The instruction must be phrased as a concrete suggestion
     to adjust the current {step} process.
-    
+
     When asked a question, return a JSON object with:
     "queries": [ "<JMESPath expr1>", "<JMESPath expr2>", … ]
     You may emit multiple queries if the answer requires gathering data from different parts.
-    
+
     Example for how the queries might look like:
         "queries":[
         "review.error_analysis[?current_diff.file_path=='file_1.py']",
         "review.syntax[].issues[?file=='file_2.py']"
         ]
-    
+
     Provide specific instructions for re-running the {step} step.
     Return your response in JSON format with keys:
     "queries" and "instruction".
@@ -461,13 +461,13 @@ SUFFICIENCY_CHECKER_PROMPT_TEMPLATE = \
 LONG_TERM_MEMORY_PROMPT_TEMPLATE = \
     """
         Analyze the following interaction and existing preferences to identify or update user preferences.
-        
+
         Current Interaction:
         {interaction}
-        
+
         Existing Preferences:
         {existing_preferences}
-        
+
         Return a single consolidated list of JSON objects representing the final state of all preferences.
         For each preference, include:
         {{
@@ -477,12 +477,12 @@ LONG_TERM_MEMORY_PROMPT_TEMPLATE = \
             "confidence": "How confident you are in this preference (0-1)",
             "supporting_evidence": ["List of interactions that support this preference"],
         }}
-        
+
         Rules:
         1. Return a single list of JSON objects
         2. Include all valid preferences (both existing and new)
         3. Keep confidence scores between 0 and 1
         4. Ensure all JSON objects are valid and complete
-        
+
         Return only the JSON array, no additional text or explanation.
     """

@@ -28,7 +28,7 @@ class CodeReviewState(TypedDict):
     max_tokens: Annotated[int, lambda old, new: new]
     diffs: Annotated[list, lambda old, new: new]
     current_diff: Annotated[dict, lambda old, new: new]
-    current_review: Annotated[dict, lambda old, new: new] 
+    current_review: Annotated[dict, lambda old, new: new]
     reviews: Annotated[dict, lambda old, new: new]
     repo_folder_path: Annotated[str, lambda old, new: new]
     repo_summary: Annotated[dict, lambda old, new: new]
@@ -55,7 +55,7 @@ class ParallelReviewPipeline:
         # files_content = json.loads(config.get("configurable").get("files"))  # Expecting a dictionary of file paths and their content
         supplied_diff = state.get("diff_str","")
         user_github_token = state.get("user_github_token")
-        
+
         # Initialize LLM,standards and metrics
         provider, model_name = state["llm_model"].split("::")
 
@@ -77,10 +77,10 @@ class ParallelReviewPipeline:
         )
         self.standards = state["standards"]
         self.metrics = state["metrics"]
-        
+
         repo_folder_path = None
         diffs = []
-        
+
         # Determine mode: local, commit, or PR
         if files_content and supplied_diff:
             # Local mode
@@ -89,14 +89,14 @@ class ParallelReviewPipeline:
                 raise ValueError("For local mode, 'files' must be a dictionary of path:content.")
             if not isinstance(supplied_diff, str):
                  raise ValueError("For local mode, 'diff_str' must be a string of formatted diffs.")
-            
+
             repo_folder_path = setup_local_repo_from_files(files_content)
             diffs = DiffFormatter(supplied_diff).parse_and_format() # Assumes diff_list is in the format expected by DiffFormatter
 
         elif commit_hash and user and repo:
             # Commit mode
             print(f"--- Preprocessing: Commit Mode (commit: {commit_hash}) ---")
-            
+
             # Dynamically fetch the default branch
             try:
                 default_branch_to_clone = get_repo_default_branch(user, repo, user_github_token)
@@ -107,7 +107,7 @@ class ParallelReviewPipeline:
                 default_branch_to_clone = "main" # Or raise ValueError("Could not determine default branch and no fallback.")
 
             repo_folder_path = clone_repo(user, repo, default_branch_to_clone, user_github_token, commit_hash=commit_hash)
-            
+
             diffs = get_commit_diff(user, repo, commit_hash, user_github_token)
             metadata_user = user
             metadata_branch = f"commit-{commit_hash[:7]}"
@@ -134,10 +134,10 @@ class ParallelReviewPipeline:
         mode_identifier = "local"
         if pr_id: mode_identifier = f"pr-{pr_id}"
         elif commit_hash: mode_identifier = f"commit-{commit_hash[:7]}"
-        
+
         graph_repo_id = repo if repo else "local" # Handle case where repo might be None for local
         graph_folder_path = os.path.join(".", "tmp", "graph", f"{graph_repo_id}-{mode_identifier}-{uuid.uuid4()}")
-        
+
         G = generate_code_graph(repo_folder_path)
         print_graph_info(G, repo_folder_path)
         save_graph(graph_folder_path, G)
@@ -157,7 +157,7 @@ class ParallelReviewPipeline:
         state["fixes"] = []
         state["max_tool_calls"] = state.get("max_tool_calls", 3)
         state["messages"] = [f"Preprocessed PR {pr_id} for {user}/{repo}"]
-        
+
         self.original_diffs = diffs.copy()  # Store original diffs
         return state
     def repo_summary_node(self, state: CodeReviewState):
@@ -173,14 +173,14 @@ class ParallelReviewPipeline:
 
     def _build_graph(self):
         builder = StateGraph(CodeReviewState)
-        
+
         # Add preprocessing node as entry point
         builder.add_node("preprocess", self.preprocess)
         # Add repo summary node
         builder.add_node("repoSummary", self.repo_summary_node)
         # Use the start_node that assigns current_diff before continuing.
         builder.add_node("start", self.start_node)
-        
+
         # Group 1: Run syntax_check, standard_check, and error_analysis in parallel
         builder.add_node("syntax_check", self.run_syntax_check)
         builder.add_node("standard_check", self.run_standard_check)
@@ -193,21 +193,21 @@ class ParallelReviewPipeline:
         builder.add_edge("start", "standard_check")
         builder.add_edge("start", "error_analysis")
         builder.add_edge(["syntax_check", "standard_check", "error_analysis"], "merge_1")
-        
+
         # Group 2: Run generate_fix and generate_review in parallel
         builder.add_node("generate_fix", self.generate_fix)
         builder.add_node("generate_review", self.generate_review)
 
         builder.add_edge("merge_1", "generate_review")
         builder.add_edge("generate_review", "generate_fix")
-        
+
         # Conditional step: loop if diffs remain, else generate summary.
         builder.add_conditional_edges("generate_fix", self.should_continue,
                                     {"continue": "restart", END: "final_summary"})
         builder.add_node("restart", lambda state: state)
         builder.add_edge("restart", "start")
         builder.add_node("final_summary", self.generate_summary)
-        
+
         builder.set_entry_point("preprocess")
         return builder.compile()
 
@@ -323,4 +323,3 @@ graph = pipeline.graph
 # print(f"Reasoning Tokens: {callback_handler.reasoning_tokens}")
 # print(f"Successful Requests: {callback_handler.successful_requests}")
 # print(f"Total Cost (USD): ${callback_handler.total_cost}")
-

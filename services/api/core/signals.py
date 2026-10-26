@@ -8,4 +8,4 @@ def update_thread_last_comment_info(sender, instance, created, **kwargs):
         thread = instance.thread
         thread.last_comment_at = instance.created_at
         thread.updated_at = instance.created_at # Also update thread's general activity timestamp
-        thread.save(update_fields=['last_comment_at', 'updated_at']) 
+        thread.save(update_fields=['last_comment_at', 'updated_at'])

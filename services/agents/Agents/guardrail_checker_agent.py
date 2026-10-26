@@ -8,4 +8,3 @@ class GuardrailCheckerAgent:
         response = self.llm.invoke(prompt).content
         result = LLMResponseParser.parse_response(response)
         return result
-    

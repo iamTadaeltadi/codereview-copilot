@@ -94,7 +94,7 @@ class CanAccessRepository(BasePermission):
                     page=page,
                     per_page=per_page
                 )
-                
+
                 # Check if user is in this batch
                 for c in gh_collabs:
                     if str(c["id"]) == str(request.user.github_id):
@@ -105,11 +105,11 @@ class CanAccessRepository(BasePermission):
                             defaults={"role": c.get("permissions", {}).get("push") and "member" or "read"}
                         )
                         return True
-                
+
                 # If we got fewer resnversation_history,ults than requested, we've reached the end
                 if len(gh_collabs) < per_page:
                     break
-                    
+
                 page += 1
         except Exception:
             logger.warning(f"Could not verify collaborator via GitHub for {request.user}")

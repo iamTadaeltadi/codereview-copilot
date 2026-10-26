@@ -31,8 +31,8 @@ const Sidebar: React.FC = () => {
         {isOpen && (
           <span className="text-blue-400 font-semibold text-lg">Code Review AI</span>
         )}
-        <button 
-          className="p-2 hover:bg-slate-700 rounded-lg transition-colors duration-200" 
+        <button
+          className="p-2 hover:bg-slate-700 rounded-lg transition-colors duration-200"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <FiX size={24} className="text-slate-300" /> : <FiMenu size={24} className="text-slate-300" />}
@@ -42,11 +42,11 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 overflow-y-auto">
         <ul className="space-y-2 p-4">
           <li>
-            <Link 
-              to="/dashboard" 
+            <Link
+              to="/dashboard"
               className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} p-3 rounded-lg transition-all duration-200 ${
-                isActiveRoute('/dashboard') 
-                  ? 'bg-blue-600 text-white' 
+                isActiveRoute('/dashboard')
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-300 hover:bg-slate-700'
               }`}
             >
@@ -55,11 +55,11 @@ const Sidebar: React.FC = () => {
             </Link>
           </li>
           <li>
-            <Link 
-              to="/repo-registration" 
+            <Link
+              to="/repo-registration"
               className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} p-3 rounded-lg transition-all duration-200 ${
-                isActiveRoute('/repo-registration') 
-                  ? 'bg-blue-600 text-white' 
+                isActiveRoute('/repo-registration')
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-300 hover:bg-slate-700'
               }`}
             >
@@ -68,11 +68,11 @@ const Sidebar: React.FC = () => {
             </Link>
           </li>
           <li>
-            <Link 
-              to="/repositories" 
+            <Link
+              to="/repositories"
               className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'} p-3 rounded-lg transition-all duration-200 ${
-                isActiveRoute('/repositories') 
-                  ? 'bg-blue-600 text-white' 
+                isActiveRoute('/repositories')
+                  ? 'bg-blue-600 text-white'
                   : 'text-slate-300 hover:bg-slate-700'
               }`}
             >

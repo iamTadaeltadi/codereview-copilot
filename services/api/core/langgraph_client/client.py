@@ -19,7 +19,7 @@ class LangGraphClient:
         try:
             # Ensure client is initialized (it is in __init__ if url is present)
             # self.assistants = await self.client.assistants.search() # No longer searching all
-            
+
             # Fetch specific assistants by ID or name from settings
             # assistants = await self.client.assistants.search()
             self.review_agent = await self.client.assistants.get(settings.LANGGRAPH_REVIEW_ASSISTANT_ID)
@@ -29,7 +29,7 @@ class LangGraphClient:
                 logger.error(f"Review agent with ID '{settings.LANGGRAPH_REVIEW_ASSISTANT_ID}' not found.")
             if not self.feedback_agent:
                 logger.error(f"Feedback agent with ID '{settings.LANGGRAPH_FEEDBACK_ASSISTANT_ID}' not found.")
-                
+
         except Exception as e:
             logger.error(f"Error initializing LangGraph client or fetching assistants: {str(e)}")
             # Depending on policy, you might want to set agents to None or re-raise
@@ -60,10 +60,10 @@ class LangGraphClient:
         try:
             # Create a new thread for the review
             thread = await self.client.threads.create()
-            
+
             # Determine if this is a PR or commit review
             is_commit_review = 'commit' in pr_data and pr_data.get('commit') and isinstance(pr_data.get('commit'), dict)
-            
+
             # Prepare input data for the review
             input_data = {
                 "llm_model": repo_settings.get('llm_preference', 'CEREBRAS::llama-3.3-70b'),
@@ -74,7 +74,7 @@ class LangGraphClient:
                 "max_tool_calls": 7,
                 "user_github_token": github_token
             }
-            
+
             # Handle PR review
             if not is_commit_review and 'base' in pr_data:
                 input_data.update({
@@ -88,14 +88,14 @@ class LangGraphClient:
                 # For commit reviews (either from the event_data format or our custom format)
                 commit_data = pr_data.get('commit', {})
                 repo_name = pr_data.get('repository', {}).get('full_name', '')
-                
+
                 # Extract commit hash - handle different possible structures
                 commit_hash = ""
                 if isinstance(commit_data, dict):
                     commit_hash = commit_data.get('sha', commit_data.get('id', ''))
                 elif 'commit_sha' in pr_data:
                     commit_hash = pr_data.get('commit_sha', '')
-                    
+
                 input_data.update({
                     "user": repo_name.split('/')[0],
                     "repo": repo_name.split('/')[1],
@@ -181,7 +181,7 @@ class LangGraphClient:
                     "max_tool_calls": settings.DEFAULT_MAX_TOOL_CALLS,
                     "reviewer_id": user_id, # Already present
                 })
-            
+
             # The thread_id for the run/wait call
             config = {"recursion_limit": 99999999} # Configurable can be added if needed by your LangGraph setup
 
@@ -191,13 +191,13 @@ class LangGraphClient:
                 input=input_data,
                 config=config # Pass config here if using create
             )
-            
+
             # Wait for the run to complete
             completed_run = await self.client.runs.join(run_id=run['run_id'], thread_id=thread_id) # Adjust timeout
 
             # Get the final state of the feedback
             final_state = await self.client.threads.get_state(thread_id)
-            
+
             # Fetch token usage if not in completed_run or final_state
             # This part depends on your LangGraph SDK version and Langsmith client integration
             # token_usage = completed_run.get('token_usage', {})
@@ -222,4 +222,4 @@ class LangGraphClient:
 
         except Exception as e:
             logger.error(f"Error handling feedback: {str(e)}")
-            raise 
+            raise

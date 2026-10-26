@@ -45,7 +45,7 @@ class LLMUsageViewSet(viewsets.ReadOnlyModelViewSet):
             total_output=Sum('output_tokens', default=0),
             total_cost=Sum('cost', default=0.0)
         )
-        
+
         usage_by_model = list(base_queryset.values('llm_model').annotate(
             total_input=Sum('input_tokens', default=0),
             total_output=Sum('output_tokens', default=0),

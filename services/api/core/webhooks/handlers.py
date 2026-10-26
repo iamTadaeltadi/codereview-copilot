@@ -33,12 +33,12 @@ class GitHubWebhookHandler:
         action = event_data.get('action')
         pr_data = event_data.get('pull_request', {})
         repo_data = event_data.get('repository', {})
-        
+
         try:
             repo = await Repository.objects.aget(
                 repo_name=f"{repo_data['owner']['login']}/{repo_data['name']}"
             )
-            
+
             pr, created = await PullRequest.objects.aupdate_or_create(
                 repository=repo,
                 pr_number=pr_data['number'],
@@ -64,12 +64,12 @@ class GitHubWebhookHandler:
         """Handle push events"""
         repo_data = event_data.get('repository', {})
         commits = event_data.get('commits', [])
-        
+
         try:
             repo = await Repository.objects.aget(
                 repo_name=f"{repo_data['owner']['login']}/{repo_data['name']}"
             )
-            
+
             for commit_data in commits:
                 await Commit.objects.aupdate_or_create(
                     repository=repo,
@@ -93,12 +93,12 @@ class GitHubWebhookHandler:
         action = event_data.get('action')
         repo_data = event_data.get('repository', {})
         member_data = event_data.get('member', {})
-        
+
         try:
             repo = await Repository.objects.aget(
                 repo_name=f"{repo_data['owner']['login']}/{repo_data['name']}"
             )
-            
+
             # Update collaborator status
             if action == 'added':
                 # First get or create the user based on GitHub ID
@@ -133,4 +133,4 @@ class GitHubWebhookHandler:
             logger.info(f"Repository not registered: {repo_data['full_name']}")
         except Exception as e:
             logger.error(f"Error processing member event: {str(e)}")
-            raise 
+            raise

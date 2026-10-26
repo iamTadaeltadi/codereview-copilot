@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import (
-    User, Repository, RepoCollaborator, PullRequest, Commit, 
+    User, Repository, RepoCollaborator, PullRequest, Commit,
     Review, Thread, Comment, LLMUsage, ReviewFeedback, WebhookEventLog
 )
 
@@ -94,7 +94,7 @@ class CommentAdmin(admin.ModelAdmin):
     def thread_info(self, obj):
         return f"Thread ID: {obj.thread.id}"
     thread_info.short_description = 'Thread'
-    
+
     def comment_short(self, obj):
         return obj.comment[:75] + '...' if len(obj.comment) > 75 else obj.comment
     comment_short.short_description = 'Comment'

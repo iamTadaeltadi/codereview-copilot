@@ -47,7 +47,7 @@ class CommitViewSet(viewsets.ModelViewSet):
             raise PermissionDenied("You do not have permission to access this repository.")
 
         db_items = CommitModel.objects.filter(repository=db_repo).order_by('-timestamp')
-        
+
         serialized_db_items = self.get_serializer(db_items, many=True).data
         for item in serialized_db_items:
             item['source'] = 'db'
@@ -63,7 +63,7 @@ class CommitViewSet(viewsets.ModelViewSet):
 
                 owner_login = db_repo.owner.username
                 repo_name_only = db_repo.repo_name.split('/')[-1]
-                
+
                 gh_items_raw = get_repository_commits_from_github(
                     github_token=request.user.github_access_token,
                     owner_login=owner_login,
@@ -78,7 +78,7 @@ class CommitViewSet(viewsets.ModelViewSet):
                         commit_data = gh_commit.get('commit', {})
                         author_data = commit_data.get('author', {}) # Git author
                         committer_data = commit_data.get('committer', {}) # Git committer
-                        
+
                         # GitHub user objects (can be different from git author/committer)
                         gh_author_user = gh_commit.get('author') # GitHub user who authored
                         gh_committer_user = gh_commit.get('committer') # GitHub user who committed
@@ -86,20 +86,20 @@ class CommitViewSet(viewsets.ModelViewSet):
                         transformed_gh_item = {
                             'commit_hash': gh_commit.get('sha'),
                             'message': commit_data.get('message'),
-                            
+
                             'author_name': author_data.get('name'),
                             'author_email': author_data.get('email'),
                             # 'author_date': author_data.get('date'), # Replaced by timestamp
-                            
+
                             'committer_name': committer_data.get('name'),
                             'committer_email': committer_data.get('email'),
                             'committed_date': committer_data.get('date'), # Keep this for committer specific date
-                            
+
                             'url': gh_commit.get('html_url'),
                             'source': 'github',
-                            'id': None, 
+                            'id': None,
                             'repository_id': db_repo.id,
-                            'created_at': None, 
+                            'created_at': None,
                             'updated_at': None,
 
                             # Align with model fields
@@ -113,11 +113,11 @@ class CommitViewSet(viewsets.ModelViewSet):
                         # A better way might be to have a different serializer for GitHub-only objects
                         # or make the main serializer flexible.
                         serializer_instance = self.get_serializer(data=transformed_gh_item)
-                        
+
                         if serializer_instance.is_valid():
                             validated_data = serializer_instance.data
                             # Ensure 'source' is present if it's part of read_only_fields but you want it in output
-                            validated_data['source'] = 'github' 
+                            validated_data['source'] = 'github'
                             combined_items_dict[gh_commit['sha']] = validated_data
                         else:
                              logger.error(f"GitHub commit data for {gh_commit['sha']} not valid for serializer: {serializer_instance.errors}")
@@ -165,7 +165,7 @@ class CommitViewSet(viewsets.ModelViewSet):
             repository = get_object_or_404(DBRepository, pk=repository_id)
         except ValueError: # Should be caught by get_object_or_404 for non-int pk
              return Response({"detail": "Invalid repository_id format."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Check permissions for the repository
         if not CanAccessRepository().has_object_permission(request, self, repository):
             raise PermissionDenied("You do not have permission to trigger reviews for this repository.")
@@ -180,23 +180,23 @@ class CommitViewSet(viewsets.ModelViewSet):
                     {"detail": f"Commit {commit_hash_from_request} not found in DB and no GitHub token available to fetch from GitHub."},
                     status=status.HTTP_403_FORBIDDEN # 403 as token is missing for required action
                 )
-            
+
             try:
                 owner_login = repository.owner.username
                 repo_name_only = repository.repo_name.split('/')[-1]
-                
+
                 gh_commit_data = get_single_commit_from_github(
                     github_token=request.user.github_access_token,
                     owner_login=owner_login,
                     repo_name=repo_name_only,
                     commit_sha=commit_hash_from_request
                 )
-                
+
                 # Transform and save/update the commit
                 commit_payload = gh_commit_data.get('commit', {})
                 author_payload = commit_payload.get('author', {})
                 # committer_payload = commit_payload.get('committer', {}) # If you store separate committer date
-                
+
                 gh_author_user = gh_commit_data.get('author')  # GitHub user object for author
                 gh_committer_user = gh_commit_data.get('committer') # GitHub user object for committer
 
@@ -204,7 +204,7 @@ class CommitViewSet(viewsets.ModelViewSet):
                 parsed_timestamp = None
                 if timestamp_str:
                     parsed_timestamp = parse_datetime(timestamp_str)
-                
+
                 commit_defaults = {
                     'message': commit_payload.get('message'),
                     'author_github_id': str(gh_author_user.get('id')) if gh_author_user and gh_author_user.get('id') is not None else None,
@@ -235,13 +235,13 @@ class CommitViewSet(viewsets.ModelViewSet):
             except Exception as e:
                 logger.error(f"Unexpected error fetching or saving commit {commit_hash_from_request} for repo {repository.id} from GitHub: {e}", exc_info=True)
                 return Response({"detail": "An unexpected error occurred while fetching commit from GitHub."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+
         # Check for existing reviews that are completed or in progress
         existing_reviews = ReviewModel.objects.filter(
             commit=commit_instance,
             status__in=['completed', 'in_progress', 'pending', 'processing', 'pending_analysis']
         ).order_by('-created_at') # Order to get the latest if multiple exist
-        
+
         if existing_reviews.exists():
             latest_review = existing_reviews.first()
             return Response({
@@ -249,7 +249,7 @@ class CommitViewSet(viewsets.ModelViewSet):
                 "review_id": latest_review.id,
                 "status": latest_review.status
             }, status=status.HTTP_409_CONFLICT)
-        
+
         # Create a new review
         review = ReviewModel.objects.create(
             repository=repository,
@@ -257,7 +257,7 @@ class CommitViewSet(viewsets.ModelViewSet):
             status='pending',
             review_data={'message': 'Commit review manually triggered by user.'}
         )
-        
+
         # Prepare data for the Celery task
         author_username, author_email = None, None
         if commit_instance.author_github_id:
@@ -272,7 +272,7 @@ class CommitViewSet(viewsets.ModelViewSet):
             if committer_user:
                 committer_username = committer_user.username
                 committer_email = committer_user.email
-        
+
         event_data = {
             'commit': {
                 'id': commit_instance.commit_hash, # Using commit_hash as 'id' for consistency
@@ -281,13 +281,13 @@ class CommitViewSet(viewsets.ModelViewSet):
                 'url': commit_instance.url,
                 'author': {
                     'id': commit_instance.author_github_id,
-                    'name': author_username, 
-                    'email': author_email   
+                    'name': author_username,
+                    'email': author_email
                 },
                 'committer': {
                     'id': commit_instance.committer_github_id,
-                    'name': committer_username, 
-                    'email': committer_email    
+                    'name': committer_username,
+                    'email': committer_email
                 },
                 'timestamp': commit_instance.timestamp.isoformat() if commit_instance.timestamp else None
             },
@@ -297,11 +297,11 @@ class CommitViewSet(viewsets.ModelViewSet):
                 'owner': {'login': repository.owner.username}
             },
             'action': 'manual_trigger_commit_review',
-            'triggered_by_user_id': request.user.id 
+            'triggered_by_user_id': request.user.id
         }
-        
+
         process_commit_review.delay(event_data, repository.id, commit_instance.id)
-        
+
         return Response({
             "detail": "AI review has been triggered for the commit.",
             "review_id": review.id,
@@ -309,27 +309,27 @@ class CommitViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_201_CREATED)
         # """
         # Manually trigger an AI review for a commit.
-        
+
         # Args:
         #     commit_hash: The hash of the Commit model instance
-        
+
         # Returns:
         #     Response with the review ID and status
         # """
         # # Get the commit
         # commit = self.get_object()
         # repository = commit.repository
-        
+
         # # Check permissions (must be owner or collaborator)
         # if not CanAccessRepository().has_object_permission(request, self, repository):
         #     raise PermissionDenied("You do not have permission to trigger reviews for this repository.")
-        
+
         # # Check for existing reviews that are completed or in progress
         # existing_reviews = ReviewModel.objects.filter(
         #     commit=commit,
         #     status__in=['completed', 'in_progress', 'pending']
         # )
-        
+
         # if existing_reviews.exists():
         #     # Return the most recent review
         #     latest_review = existing_reviews.order_by('-created_at').first()
@@ -338,7 +338,7 @@ class CommitViewSet(viewsets.ModelViewSet):
         #         "review_id": latest_review.id,
         #         "status": latest_review.status
         #     }, status=status.HTTP_409_CONFLICT)
-        
+
         # # Create a new review
         # review = ReviewModel.objects.create(
         #     repository=repository,
@@ -346,7 +346,7 @@ class CommitViewSet(viewsets.ModelViewSet):
         #     status='pending',
         #     review_data={'message': 'Commit review manually triggered by user.'}
         # )
-        
+
         # # Prepare data for the Celery task
         # event_data = {
         #     'commit': {
@@ -357,7 +357,7 @@ class CommitViewSet(viewsets.ModelViewSet):
         #         'author': {
         #             'id': commit.author_github_id,
         #             'name': (
-        #                 User.objects.filter(github_id=commit.author_github_id).values_list('username', flat=True).first() 
+        #                 User.objects.filter(github_id=commit.author_github_id).values_list('username', flat=True).first()
         #                 if commit.author_github_id and User.objects.filter(github_id=commit.author_github_id).exists()
         #                 else None
         #             ),
@@ -389,10 +389,10 @@ class CommitViewSet(viewsets.ModelViewSet):
         #     },
         #     'action': 'manual_trigger'
         # }
-        
+
         # # Enqueue the review task
         # process_commit_review.delay(event_data, repository.id, commit.id)
-        
+
         # # Return response
         # return Response({
         #     "detail": "AI review has been triggered for the commit.",

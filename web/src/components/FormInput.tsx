@@ -26,7 +26,7 @@ const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, classNa
           id={inputId}
           name={name}
           className={`
-            block w-full rounded-lg border-gray-200 
+            block w-full rounded-lg border-gray-200
             ${Icon ? 'pl-10' : 'pl-4'} pr-4 py-2.5
             focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500
             disabled:bg-gray-50 disabled:text-gray-500
@@ -43,4 +43,4 @@ const FormInput: React.FC<FormInputProps> = ({ label, icon: Icon, error, classNa
   );
 };
 
-export default FormInput; 
+export default FormInput;

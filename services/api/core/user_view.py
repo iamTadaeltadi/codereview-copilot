@@ -7,7 +7,7 @@ from .models import (
     Repository as DBRepository,
 )
 from .serializers import (
-    UserSerializer, 
+    UserSerializer,
     GitHubRepositorySerializer, GitHubOrganizationSerializer
 )
 from .services import (
@@ -42,12 +42,12 @@ class UserRepositoriesView(APIView):
                 page=page,
                 per_page=per_page
             )
-            
+
             processed_repos = []
             for gh_repo_data in github_repos_list:
                 # Check if this repo is registered in our system by GitHub native ID
                 db_repo = DBRepository.objects.filter(github_native_id=gh_repo_data['id']).first()
-                
+
                 # Use a temporary dict to build up the response for this repo
                 repo_info_to_return = gh_repo_data.copy() # Start with all GitHub data
 
@@ -57,10 +57,10 @@ class UserRepositoriesView(APIView):
                 else:
                     repo_info_to_return['is_registered_in_system'] = False
                     repo_info_to_return['system_id'] = None
-                
+
                 processed_repos.append(repo_info_to_return)
-            
-            # Serialize the processed list. 
+
+            # Serialize the processed list.
             # GitHubRepositorySerializer is designed for this kind of mixed data.
             serializer = GitHubRepositorySerializer(processed_repos, many=True)
             return Response(serializer.data)

@@ -41,7 +41,7 @@ const AuthLayout = () => (
 // Layout with sidebar (for main app pages)
 const MainLayout = () => {
   const { isOpen } = useSidebar();
-  
+
   return (
   <div className="flex">
     <Sidebar />

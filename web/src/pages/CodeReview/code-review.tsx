@@ -45,7 +45,7 @@ const CodeReviewPage: React.FC = () => {
 
     try {
       let threadId = review.activeThreadId;
-      
+
       // Auto-create thread if none exists
       if (!threadId) {
         try {
@@ -55,14 +55,14 @@ const CodeReviewPage: React.FC = () => {
           throw new Error(`Failed to create discussion thread: ${threadErr?.response?.data?.detail || threadErr?.message || 'Unknown error'}`);
         }
       }
-      
+
       // Send the reply
       await replyToReviewThread(threadId, chatInput.trim());
       setChatInput("");
-      
+
       // Refresh the review data to get the latest thread state
       await dispatch(fetchCodeReview(review.id)).unwrap();
-      
+
     } catch (err: any) {
       const errorMessage = err?.response?.data?.detail || err?.message || 'Failed to send feedback to the review thread.';
       setSendError(errorMessage);
@@ -278,7 +278,7 @@ const CodeReviewPage: React.FC = () => {
                 ) : 'Send'}
               </button>
             </div>
-            
+
             <div className="mt-2 text-xs text-gray-500">
               💡 Tip: Press Enter to send, Shift+Enter for new line
             </div>

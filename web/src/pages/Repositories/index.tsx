@@ -110,7 +110,7 @@ const Repositories: React.FC = () => {
               {filteredRepos.map((repo: Repo) => (
                     <tr key={repo.id} className="hover:bg-gray-50 transition-colors duration-150">
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <Link 
+                        <Link
                           to={`/repos/${repo.id}`}
                           className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                         >
@@ -120,7 +120,7 @@ const Repositories: React.FC = () => {
                   </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-600 line-clamp-2">
-                          {repo.description || 
+                          {repo.description ||
                             <span className="text-gray-400 italic">No description provided</span>
                           }
                         </div>

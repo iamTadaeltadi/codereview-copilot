@@ -55,11 +55,11 @@ class DynamicReviewExecutorAgent:
                     "standards": [reviews["standards"][idx]],
                     "error_analysis": [reviews["error_analysis"][idx]]
                 }
-                
+
                 # Generate a fix, applying any provided “fix” instruction
                 fix_section = instructions.get(file, {}).get("fix", {})
                 fix_instr = fix_section.get("instruction", "")
-                
+
                 # If a “final” instruction exists and current_review is missing any review sections,
                 # complete them from the original review using the proper index.
                 final_section = instructions.get(file, {}).get("final", {})

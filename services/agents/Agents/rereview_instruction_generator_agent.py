@@ -42,4 +42,4 @@ class ReReviewInstructionGeneratorAgent:
                     "current_section": current_section_str
                 }
         print(f"Generated instructions: {instructions.keys()}")
-        return instructions   
+        return instructions

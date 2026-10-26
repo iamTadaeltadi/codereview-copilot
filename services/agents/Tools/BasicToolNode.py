@@ -11,7 +11,7 @@ class BasicToolNode:
             ai_message = messages[-1]
         else:
             raise ValueError("No message found in input")
-        
+
         json_str = ai_message.content.strip("```json\n").strip("\n```")
         try:
             # Try parsing the JSON string
@@ -41,5 +41,5 @@ class BasicToolNode:
             print("Json Str: ",inputs.get("issues", []))
             # Handle JSON decoding errors gracefully
             print("Failed to parse tool calls JSON.")
-            
+
         return inputs

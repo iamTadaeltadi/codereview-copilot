@@ -31,7 +31,7 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
             if not repo_full_name or not pr_number:
                 logger.error(f"Missing repo_full_name or pr_number for PR event. Data: {event_data}")
                 return
-            
+
             try:
                 repo = Repository.objects.get(repo_name=repo_full_name)
                 pr, pr_created = PullRequest.objects.update_or_create(
@@ -77,7 +77,7 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
                     logger.info(f"Skipping AI review for PR action '{action}' on PR {pr.id}")
             except Repository.DoesNotExist:
                 logger.warning(f"Repository {repo_full_name} not found in DB. Cannot process PR event.")
-        
+
         elif event_type == 'push':
             logger.info("Push event received. Processing... ")
             repo_data = event_data.get('repository', {})
@@ -87,7 +87,7 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
             if not repo_full_name or not commits_data:
                 logger.error(f"Missing repo_full_name or commits_data for push event. Data: {event_data}")
                 return
-            
+
             try:
                 repo = Repository.objects.get(repo_name=repo_full_name)
                 for commit_payload in commits_data:
@@ -95,7 +95,7 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
                     if not commit_sha:
                         logger.warning(f"Skipping commit with no SHA in push event: {commit_payload}")
                         continue
-                    
+
                     commit_author_github_id = str(commit_payload.get('author', {}).get('id') or commit_payload.get('author', {}).get('name'))
                     commit_author_login = commit_payload.get('author', {}).get('username') or commit_payload.get('author', {}).get('name')
 
@@ -128,11 +128,11 @@ def process_webhook_event(self, event_type: str, event_data: Dict[str, Any]) -> 
 def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_model_id: int,triggering_user_id: int = None) -> None:
     logger.info(f"PROCESS_PR_REVIEW_TASK: Starting for PR ID {pr_model_id}, Repo ID {repository_id}")
     review = None
-    
+
     # Create a new event loop for this task execution
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
     try:
         repo = Repository.objects.get(id=repository_id)
         pr = PullRequest.objects.get(id=pr_model_id, repository=repo)
@@ -153,7 +153,7 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
         client = LangGraphClient()
         # Run the async initialize method
         loop.run_until_complete(client.initialize())
-        
+
         if not client.review_agent:
             logger.error("PROCESS_PR_REVIEW_TASK: LangGraph review agent not available after initialization.")
             raise Exception("LangGraph review agent not available.")
@@ -176,14 +176,14 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
         review_result = loop.run_until_complete(client.generate_review(
             pr_data=pr_github_payload,
             repo_settings=repo_settings,
-            user_id=pr_author_github_id 
+            user_id=pr_author_github_id
         ))
         logger.info(f"PROCESS_PR_REVIEW_TASK: LangGraph review generated for review ID {review.id}")
 
         raw_review_data = review_result.get('review_data', {})
         allowed_review_keys = ["repo", "user", "fixes", "metrics", "reviews", "llm_model", "standards",'final_result']
         filtered_review_data = {key: raw_review_data[key] for key in allowed_review_keys if key in raw_review_data}
-        
+
         review.review_data = filtered_review_data
         review.status = 'completed'
         review.save()
@@ -220,7 +220,7 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
                         'email': pr_github_payload.get('user', {}).get('email') # Ensure your User model handles potentially null email
                     }
                 )
-            
+
             LLMUsage.objects.create(
                 review=review, user=user_for_llm_usage,
                 llm_model=repo_settings['llm_preference'],
@@ -230,7 +230,7 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
             )
             logger.info(f"PROCESS_PR_REVIEW_TASK: LLM usage recorded for review {review.id} by user {user_for_llm_usage.username}.")
 
-        github_service = GitHubService() 
+        github_service = GitHubService()
         review_url = f"{settings.FRONTEND_URL}/reviews/{review.id}"
         comment_body = (
             f"🤖 AI Code Review Complete!\n\n"
@@ -271,7 +271,7 @@ def process_pr_review(self, event_data: Dict[str, Any], repository_id: int, pr_m
 def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, commit_model_id: int) -> None:
     """
     Process an AI review for a standalone commit.
-    
+
     Args:
         event_data: Dictionary of GitHub webhook data or manually prepared data
         repository_id: ID of the Repository model instance
@@ -284,7 +284,7 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
     try:
         repo = Repository.objects.get(id=repository_id)
         commit = Commit.objects.get(id=commit_model_id, repository=repo)
-        
+
         # Get or create a pending review
         review, created = Review.objects.get_or_create(
             repository=repo,
@@ -298,17 +298,17 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
         elif review.status != 'in_progress':
             logger.warning(f"PROCESS_COMMIT_REVIEW_TASK: Review {review.id} for Commit {commit.id} is not 'pending' or 'in_progress' (current: {review.status}). Skipping.")
             return
-        
+
         logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Processing review {review.id} for Commit {commit.id}")
-        
+
         # Initialize LangGraph client
         client = LangGraphClient()
         loop.run_until_complete(client.initialize())
-        
+
         if not client.review_agent:
             logger.error("PROCESS_COMMIT_REVIEW_TASK: LangGraph review agent not available after initialization.")
             raise Exception("LangGraph review agent not available.")
-        
+
         # Prepare commit data for LangGraph
         commit_github_data = event_data.get('commit', {})
         if not commit_github_data:
@@ -327,24 +327,24 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
                     'email': getattr(commit, 'committer_email', None)
                 }
             }
-        
+
         # If we need to fetch more detailed commit data from GitHub
         # Here we could use GitHubService to get more info if needed
-        
+
         # Get repo settings
         repo_settings = {
             'coding_standards': repo.coding_standards or [],
             'code_metrics': repo.code_metrics or [],
             'llm_preference': repo.llm_preference or settings.DEFAULT_LLM_MODEL,
         }
-        
+
         # Author identification for LLM usage tracking
         commit_author_github_id = commit.author_github_id
         commit_author_name = getattr(commit, 'author_name', 'unknown_user')
-        
+
         # Generate review using LangGraph
         logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Calling LangGraph to generate review for commit review ID {review.id}")
-        
+
         # Transform the commit data to match what LangGraph expects
         # The structure may need adjustment based on your LangGraph agent's expectations
         input_data = {
@@ -363,16 +363,16 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
                 user_id=repo.owner.github_id if repo.owner else None,)
         )
         logger.info(f"PROCESS_COMMIT_REVIEW_TASK: LangGraph review generated for review ID {review.id}")
-        
+
         raw_review_data = review_result.get('review_data', {})
         allowed_review_keys = ["repo", "user", "fixes", "metrics", "reviews", "llm_model", "standards",'final_result']
         filtered_review_data = {key: raw_review_data[key] for key in allowed_review_keys if key in raw_review_data}
-        
+
         review.review_data = filtered_review_data
         review.status = 'completed'
         review.save()
         logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Review {review.id} updated and saved as completed.")
-        
+
         # Create a main thread for this review
         thread_id = review_result.get('thread_id')
         if thread_id:
@@ -384,7 +384,7 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
                 status='open'
             )
             logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Created main thread for review {review.id}")
-        
+
         # Record token usage
         token_usage_data = review_result.get('token_usage', {})
         if token_usage_data:
@@ -404,7 +404,7 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
                 cost=calculate_cost(token_usage_data, repo_settings['llm_preference'])
             )
             logger.info(f"PROCESS_COMMIT_REVIEW_TASK: LLM usage recorded for review {review.id}")
-        
+
         # Post a comment to GitHub if possible
         github_service = GitHubService()
         review_url = f"{settings.FRONTEND_URL}/reviews/{review.id}"
@@ -414,7 +414,7 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
             f"View the full report: {review_url}\n"
             f"(Review ID: {review.id})"
         )
-        
+
         # try:
         #     logger.info(f"PROCESS_COMMIT_REVIEW_TASK: Posting comment to GitHub commit {commit.commit_hash} in repo {repo.repo_name}")
         #     owner_login, repo_name = repo.repo_name.split('/')
@@ -430,7 +430,7 @@ def process_commit_review(self, event_data: Dict[str, Any], repository_id: int, 
         # except Exception as e:
         #     logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Failed to post GitHub comment: {str(e)}", exc_info=True)
         #     # We continue even if comment posting fails - the review is still available in our system
-    
+
     except Commit.DoesNotExist:
         logger.error(f"PROCESS_COMMIT_REVIEW_TASK: Commit ID {commit_model_id} not found for repo {repository_id}.")
     except Repository.DoesNotExist:
@@ -461,11 +461,11 @@ def calculate_cost(token_usage: Dict[str, int], model: str) -> float:
             input_cost_per_token = PRICING[key_part]["input"]
             output_cost_per_token = PRICING[key_part]["output"]
             break
-    
+
     input_tokens = token_usage.get('input_tokens', 0) or 0
     output_tokens = token_usage.get('output_tokens', 0) or 0
-    
+
     input_cost = input_tokens * input_cost_per_token
     output_cost = output_tokens * output_cost_per_token
-    
+
     return round(input_cost + output_cost, 6)

@@ -69,13 +69,13 @@ class GitHubCallbackView(APIView):
                 raise Exception("Failed to retrieve GitHub access token.")
 
             github_user_info = get_github_user_info(github_token)
-            
+
             # Ensure email is present, if not, try to get it or handle missing email
             user_email = github_user_info.get("email")
             if not user_email:
                 # Potentially raise an error or redirect with a message if email is strictly required
                 # For now, we'll allow it to be null if not provided by GitHub or primary email not found
-                pass 
+                pass
 
             user, created = User.objects.update_or_create(
                 github_id=str(github_user_info["id"]),
@@ -118,7 +118,7 @@ class GitHubExchangeAuthTokenView(APIView):
                 github_access_token = github_token_data['access_token']
             else:
                 raise ValueError("Invalid token data from GitHub service")
-                
+
             github_user_info = await get_github_user_info(github_access_token)
 
             user, created = await User.objects.aget_or_create(
@@ -135,9 +135,9 @@ class GitHubExchangeAuthTokenView(APIView):
                 user.email = github_user_info.get("email")
                 user.github_access_token = github_access_token
                 await user.asave()
-            
+
             refresh = RefreshToken.for_user(user)
-            
+
             return Response({
                 "access_token": str(refresh.access_token),
                 "refresh_token": str(refresh),

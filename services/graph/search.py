@@ -218,10 +218,10 @@ def show_call_chain(G, start_func_node_id, end_func_node_id):
         return False
     try:
         return nx.shortest_path(
-            G, 
-            source=start_func_node_id, 
-            target=end_func_node_id, 
-            weight=None, 
+            G,
+            source=start_func_node_id,
+            target=end_func_node_id,
+            weight=None,
             method='dijkstra' if nx.is_weighted(G) else 'unweighted'
         )
     except nx.NetworkXNoPath:

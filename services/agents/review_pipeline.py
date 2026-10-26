@@ -23,7 +23,7 @@ class CodeReviewState(TypedDict):
     max_tokens: int
     diffs: list
     current_diff: dict
-    current_review: dict 
+    current_review: dict
     reviews: dict
     repo_folder_path: str
     repo_summary: dict
@@ -40,7 +40,7 @@ class ReviewPipeline:
         user = state["user"]
         repo = state["repo"]
         pr_id = state["pr_id"]
-        
+
         """Handle all preprocessing to initialize the state."""
         user = state["user"]
         repo = state["repo"]
@@ -66,7 +66,7 @@ class ReviewPipeline:
         )
         self.standards = state["standards"]
         self.metrics = state["metrics"]
-        
+
         # Fetch PR diffs and metadata
         diffs = get_pr_diff(user, repo, pr_id, "thought", {"headers": ""})
         metadata = get_pr_metadata(user, repo, pr_id, "thought", {"headers": ""})
@@ -92,7 +92,7 @@ class ReviewPipeline:
         state["fixes"] = []
         state["max_tool_calls"] = state.get("max_tool_calls",3)  # Default value, configurable if needed
         state["messages"] = [f"Preprocessed PR {pr_id} for {user}/{repo}"]
-        
+
         self.original_diffs = diffs.copy()  # Store original diffs
         return state
     def repo_summary_node(self, state: CodeReviewState):
@@ -108,7 +108,7 @@ class ReviewPipeline:
         builder.add_node("preprocess", self.preprocess)
         # Add repo summary node
         builder.add_node("repoSummary", self.repo_summary_node)
-        
+
         # Add nodes
         builder.add_node("syntax_check", self.run_syntax_check)
         builder.add_node("standard_check", self.run_standard_check)

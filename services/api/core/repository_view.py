@@ -11,7 +11,7 @@ from .models import (
     WebhookEventLog
 )
 from .serializers import (
-    RepositorySerializer, RepoCollaboratorSerializer, 
+    RepositorySerializer, RepoCollaboratorSerializer,
     GitHubCollaboratorSerializer,
     PRSerializer, CommitSerializer
 )
@@ -51,7 +51,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
         full_webhook_url = None
         try:
             # Assuming your webhook URL is named 'github-webhook' in your urls.py
-            webhook_path = reverse('github-webhook') 
+            webhook_path = reverse('github-webhook')
             base_url = self.request.build_absolute_uri('/').rstrip('/')
             full_webhook_url = f"{base_url}{webhook_path}"
         except Exception as e:
@@ -65,7 +65,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
             webhook_secret=webhook_secret,
             webhook_url=full_webhook_url # Pass the generated URL to be saved
         )
-        
+
         # Add owner as a collaborator
         RepoCollaborator.objects.create(repository=instance, user=self.request.user, role='owner')
 
@@ -131,7 +131,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
         collaborating_repos = DBRepository.objects.filter(id__in=collaborating_repo_ids)
         # Combine and remove duplicates
         queryset = (owned_repos | collaborating_repos).distinct()
-        
+
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -154,7 +154,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
                 page=page,
                 per_page=per_page
             )
-            
+
             # --- NEW: if the signed-in user is in that list, make sure they exist in our table ---
             for gh in github_collaborators_data:
                 if str(gh["id"]) == str(request.user.github_id):
@@ -203,18 +203,18 @@ class RepositoryViewSet(viewsets.ModelViewSet):
         except PRModel.DoesNotExist:
             if not request.user.github_access_token:
                 return Response({"detail": "Pull Request not found in DB and no GitHub token available to fetch from GitHub."}, status=status.HTTP_404_NOT_FOUND)
-            
+
             try:
                 owner_login = repository.owner.username # Assumes User model has username as GitHub login
                 repo_name_only = repository.repo_name.split('/')[-1]
-                
+
                 gh_pr_data = get_single_pull_request_from_github(
                     github_token=request.user.github_access_token,
                     owner_login=owner_login,
                     repo_name=repo_name_only,
                     pr_number=int(pr_number)
                 )
-                
+
                 # Transform GitHub data to fit PRSerializer structure
                 user_data = gh_pr_data.get('user', {})
                 head_data = gh_pr_data.get('head', {})
@@ -238,7 +238,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
                     'repository_id': repository.id, # Link to our DB repository ID
                     # 'source' will be added after serialization if needed, or serializer can handle it
                 }
-                
+
                 serializer = PRSerializer(data=transformed_data)
                 if serializer.is_valid():
                     # Optionally, save this fetched PR to DB if it wasn't found
@@ -318,8 +318,8 @@ class RepositoryViewSet(viewsets.ModelViewSet):
             serializer = CommitSerializer(data=transformed_data)
             if serializer.is_valid():
                 # final_output will contain the representation of model fields
-                final_output = serializer.data 
-                
+                final_output = serializer.data
+
                 # Now, add the non-model, read-only fields directly from the GitHub data
                 # to the response. These were not processed by serializer.is_valid()
                 # for input, and serializer.data wouldn't include them unless they were
@@ -329,7 +329,7 @@ class RepositoryViewSet(viewsets.ModelViewSet):
                 # final_output['committer_name'] = transformed_data.get('committer_name')
                 # final_output['committer_email'] = transformed_data.get('committer_email')
                 # final_output['committed_date'] = transformed_data.get("committed_date")
-                
+
                 # final_output['source'] = 'github'
                 return Response(final_output)
             else:

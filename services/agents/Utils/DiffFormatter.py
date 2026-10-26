@@ -15,7 +15,7 @@ def get_repo_default_branch(owner: str, repo: str, user_github_token: t.Optional
     headers = {"Accept": "application/vnd.github.v3+json"}
     if user_github_token:
         headers["Authorization"] = f"Bearer {user_github_token}"
-    
+
     response = requests.get(url, headers=headers)
     response.raise_for_status() # Raise an exception for HTTP errors
     repo_data = response.json()
@@ -186,7 +186,7 @@ def get_pr_diff(owner: str, repo: str, pull_number: str, user_github_token: t.Op
             repo=repo,
             pull_number=pull_number,
         ),
-        headers= {        
+        headers= {
                 "Accept": "application/vnd.github.v3+json",
                 "Authorization": f"Bearer {user_github_token}" if user_github_token else ""
             }
@@ -211,7 +211,7 @@ def get_pr_metadata(owner: str, repo: str, pull_number: str, user_github_token: 
             repo=repo,
             pull_number=pull_number,
         ),
-        headers= {        
+        headers= {
                 "Accept": "application/vnd.github.v3+json",
                 "Authorization": f"Bearer {user_github_token}" if user_github_token else ""
             }
@@ -247,7 +247,7 @@ def get_commit_diff(owner: str, repo: str, commit_sha: str, user_github_token: t
     headers = {"Accept": "application/vnd.github.v3.diff"}
     if user_github_token:
         headers["Authorization"] = f"Bearer {user_github_token}"
-    
+
     response = requests.get(url, headers=headers)
     response.raise_for_status() # Raise an exception for HTTP errors
     return DiffFormatter(response.text).parse_and_format()
@@ -261,11 +261,11 @@ def get_commit_metadata(owner: str, repo: str, commit_sha: str, user_github_toke
     headers = {"Accept": "application/vnd.github.v3+json"}
     if user_github_token:
         headers["Authorization"] = f"Bearer {user_github_token}"
-            
+
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     data = response.json()
-    
+
     # Extract relevant information, e.g., parent shas, author, date, associated branch (if possible)
     # For simplicity, returning basic info. You might need more, like default_branch if cloning.
     return {

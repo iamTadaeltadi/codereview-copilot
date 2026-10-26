@@ -30,7 +30,7 @@ class CustomLLM(ChatOpenAI):
                     f"{functions_description}"
                 ))
             )
-        
+
         response = super()._generate(messages, stop=stop, **kwargs)
         return response
 

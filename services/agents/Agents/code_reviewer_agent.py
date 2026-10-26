@@ -5,7 +5,7 @@ class CodeReviewerAgent:
     def __init__(self, llm, metrics: list):
         self.llm = llm
         self.metrics = metrics  # e.g., ["security", "readability", "performance"]
-        
+
     def generate_review(self, issues: dict, repo_summary: dict, additional_instructions: str = ""):
         aligned_issues = list(zip(issues["syntax"], issues["standards"], issues["error_analysis"]))
         output = []

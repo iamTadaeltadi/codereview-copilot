@@ -17,7 +17,7 @@ from .services import (
     LangGraphService
 )
 from django.conf import settings
-from django.db.models import Q 
+from django.db.models import Q
 import logging
 from .permissions import (CanAccessRepository)
 from core.langgraph_client.client import LangGraphClient
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthenticated]
-    
+
     @action(detail=False, methods=['get'],url_path='history', permission_classes=[IsAuthenticated, CanAccessRepository])
     def history(self, request, pk=None):
         """
@@ -35,13 +35,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
         """
         context_param = request.query_params.get('context')  # 'pr' or 'commit'
         item_id = request.query_params.get('id')  # PR or Commit ID
-        
+
         if not context_param or not item_id:
             return Response(
                 {"detail": "Context and ID parameters are required."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         reviews_qs = ReviewModel.objects.none()
         if context_param == 'pr':
             reviews_qs = ReviewModel.objects.filter(pull_request_id=item_id)
@@ -52,31 +52,31 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 {"detail": "Invalid context. Must be 'pr' or 'commit'."},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         reviews_qs = reviews_qs.prefetch_related('threads', 'threads__comments')
-        
+
         # Use default serializer context, ReviewSerializer includes threads by default if present in Meta
         serializer_context = self.get_serializer_context()
         serializer = self.get_serializer(reviews_qs.order_by('-created_at'), many=True, context=serializer_context)
-        
+
         response_data = serializer.data # This is a list of serialized review objects
-        
+
         fields_to_remove_from_each_review = [
-            'repository', 
-            'pull_request', 
-            'review_data', 
+            'repository',
+            'pull_request',
+            'review_data',
             'threads',
             'thread_count' # Also remove thread_count as it's related to threads
         ]
-        
+
         cleaned_response_data = []
         for review_item_data in response_data:
             for key_to_remove in fields_to_remove_from_each_review:
                 review_item_data.pop(key_to_remove, None)
             cleaned_response_data.append(review_item_data)
-            
+
         return Response(cleaned_response_data)
-    
+
     def get_queryset(self):
         return ReviewModel.objects.filter(
             Q(repository__owner=self.request.user) |
@@ -87,10 +87,10 @@ class ReviewViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         data = serializer.data
-        
+
         # Serialize and add thread information if threads exist
         # It's better to check instance.threads.exists() or instance.threads.all()
-        if instance.threads.exists(): 
+        if instance.threads.exists():
             # Assuming ThreadSerializer is available and imported correctly
             # Pass the request context to the ThreadSerializer if it needs it (e.g., for HyperlinkedRelatedField)
             serializer_context = self.get_serializer_context()
@@ -188,13 +188,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def re_review(self, request, pk=None):
         review = self.get_object()
         issues = request.data.get('issues', [])
-        
+
         if not issues:
             return Response(
                 {"detail": "No issues provided for re-review"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         try:
             # Create new review based on previous one
             new_review = ReviewModel.objects.create(
@@ -204,7 +204,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 status='pending',
                 parent_review=review
             )
-            
+
             # Trigger re-review process
             process_pr_review.delay({
                 'pull_request': {
@@ -222,7 +222,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                     'name': review.repository.repo_name.split('/')[-1]
                 }
             })
-            
+
             return Response({
                 'review_id': new_review.id,
                 'status': 'pending'
@@ -238,35 +238,35 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def submit_ai_rating(self, request, pk=None):
         """
         Submit a rating and feedback about the AI review quality
-        
+
         Args:
             pk: The ID of the Review model instance
-            
+
         Request body:
             rating: int (1-5)
             feedback: str
-            
+
         Returns:
             Response with success message
         """
         review = self.get_object()
-        
+
         # Validate input
         rating = request.data.get('rating')
         feedback_text = request.data.get('feedback')
-        
+
         if not rating or not isinstance(rating, int) or rating < 1 or rating > 5:
             return Response(
                 {"detail": "Rating must be an integer between 1 and 5"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         if not feedback_text:
             return Response(
                 {"detail": "Feedback text is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-            
+
         # Create or update a ReviewFeedback with a specific feedback_type
         feedback, created = ReviewFeedback.objects.update_or_create(
             review=review,
@@ -276,7 +276,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 'feedback': feedback_text
             }
         )
-        
+
         # Track token usage for this feedback
         try:
             # Create a minimal LLMUsage entry for the rating submission
@@ -292,7 +292,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         except Exception as e:
             logger.warning(f"Failed to record LLM usage for rating: {str(e)}")
             # Continue even if tracking fails
-            
+
         return Response({
             "detail": "Thank you for your feedback!",
             "review_id": review.id,

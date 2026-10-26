@@ -29,4 +29,4 @@ const FormCheckbox: React.FC<FormCheckboxProps> = ({ label, error, className = '
   );
 };
 
-export default FormCheckbox; 
+export default FormCheckbox;

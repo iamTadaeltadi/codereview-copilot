@@ -35,13 +35,13 @@ class ThreadViewSet(viewsets.ModelViewSet):
     def reply(self, request, pk=None):
         """
         Reply to a thread and get an AI response.
-        
+
         Args:
             pk: The ID of the Thread model instance
-            
+
         Request body:
             message: str - The user's reply message
-            
+
         Returns:
             Response with user comment and AI response
         """
@@ -64,7 +64,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 {"detail": "Message is required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Create user's comment
         user_comment = CommentModel.objects.create(
             thread=thread,
@@ -73,7 +73,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
             type='request',  # This is a request for AI feedback
             parent_comment=parent_comment
         )
-        
+
         # Get AI user (create if not exists)
         ai_user, _ = User.objects.get_or_create(
             username="ai_assistant",
@@ -83,7 +83,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 "is_ai_user": True
             }
         )
-        
+
         # If no AI user ID is configured, use the first admin user
         if not ai_user and not settings.AI_USER_ID:
             ai_user = User.objects.filter(is_staff=True).first()
@@ -109,7 +109,7 @@ class ThreadViewSet(viewsets.ModelViewSet):
             conversation_history = []
             # Add the current user message
             conversation_history.append(("user", message))
-            
+
             # Get LangGraph service
             langgraph_client_instance = LangGraphClient()
             loop.run_until_complete(langgraph_client_instance.initialize())
@@ -125,12 +125,12 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 # Serialize review and repository for context
                 # This is a simplified example; you might need more detailed serialization
                 review_data_for_lg = ReviewSerializer(review_model_instance).data
-                
+
                 repo_settings_for_lg = {
                     'llm_preference': review_model_instance.repository.llm_preference or settings.DEFAULT_LLM_MODEL,
                     'coding_standards': review_model_instance.repository.coding_standards or [],
                     'code_metrics': review_model_instance.repository.code_metrics or [],
-                } 
+                }
             response = loop.run_until_complete(
                 langgraph_client_instance.handle_feedback(
                     feedback=message,
@@ -162,19 +162,19 @@ class ThreadViewSet(viewsets.ModelViewSet):
 
 
             token_usage = response.get('token_usage', {})
-            
+
             # Filter the feedback_data before saving
             raw_feedback_data = response.get('feedback_data', {})
             allowed_keys = [
-                "repo", "user", "fixes", "pr_id", "llm_model", "metrics", 
-                "reviews", "original_review", "updated_review", "messages", 
-                "feedback", "standards", "re_run_plan", "reviewer_id", 
-                "sufficiency", "instructions", "feedback_status", 
-                "feedback_suggestion", "feedback_explanation", 
+                "repo", "user", "fixes", "pr_id", "llm_model", "metrics",
+                "reviews", "original_review", "updated_review", "messages",
+                "feedback", "standards", "re_run_plan", "reviewer_id",
+                "sufficiency", "instructions", "feedback_status",
+                "feedback_suggestion", "feedback_explanation",
                 "sufficiency_suggestion", "sufficiency_explanation"
             ]
             filtered_feedback_data = {key: raw_feedback_data[key] for key in allowed_keys if key in raw_feedback_data}
-            
+
             ai_comment = CommentModel.objects.create(
                 thread=thread,
                 user=ai_user,
@@ -183,12 +183,12 @@ class ThreadViewSet(viewsets.ModelViewSet):
                 parent_comment=user_comment,
                 comment_data=filtered_feedback_data # Store the relevant part of the response
             )
-            
+
             # Update thread with last_comment reference and timestamp
             # thread.last_comment = ai_comment
             thread.last_comment_at = timezone.now()
             thread.save(update_fields=['last_comment_at'])
-            
+
             # Record token usage
             if token_usage:
                 LLMUsageModel.objects.create(
@@ -199,20 +199,20 @@ class ThreadViewSet(viewsets.ModelViewSet):
                     output_tokens=token_usage.get('output_tokens', 0),
                     cost=calculate_cost(token_usage, thread.review.repository.llm_preference or settings.DEFAULT_LLM_MODEL),
                 )
-            
+
             # Return both user comment and AI response
             return Response({
                 'user_comment': CommentSerializer(user_comment).data,
                 'ai_response': CommentSerializer(ai_comment).data,
                 'token_usage': token_usage
             })
-            
+
         except Exception as e:
             logger.error(f"Error processing thread reply: {str(e)}", exc_info=True)
-            
+
             # If we fail, we should still show the user's comment but explain the error
             error_message = f"I'm sorry, I couldn't process your request: {str(e)}"
-            
+
             # Try to create an error response from the AI
             try:
                 ai_comment = CommentModel.objects.create(
@@ -223,17 +223,17 @@ class ThreadViewSet(viewsets.ModelViewSet):
                     type='note',
                     comment_data={'error': str(e)}
                 )
-                
+
                 # thread.last_comment = ai_comment
                 thread.last_comment_at = timezone.now()
                 thread.save(update_fields=['last_comment_at'])
-                
+
                 return Response({
                     'user_comment': CommentSerializer(user_comment).data,
                     'ai_response': CommentSerializer(ai_comment).data,
                     'error': str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+
             except Exception as inner_e:
                 logger.error(f"Failed to create error comment: {str(inner_e)}")
                 # Return just the user comment if everything else fails
@@ -241,4 +241,3 @@ class ThreadViewSet(viewsets.ModelViewSet):
                     'user_comment': CommentSerializer(user_comment).data,
                     'error': str(e)
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-

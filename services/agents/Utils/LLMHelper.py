@@ -17,6 +17,6 @@ class LLMResponseParser:
                 try:
                     return json.loads(json_str)
                 except json.decoder.JSONDecodeError:
-                    json_str = repair_json(json_str) 
+                    json_str = repair_json(json_str)
                     return json.loads(json_str) if json_str else {}
             return {}

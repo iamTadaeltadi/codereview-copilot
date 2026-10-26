@@ -114,7 +114,7 @@ def generate_code_graph(repo_folder_path):
     all_tags = parse_code_files(code_graph, repo_dir, code_paths)
 
     G = code_graph.tag_to_graph(all_tags)
-    
+
     return G
 def print_graph_info(G, dir_name):
     print("---------------------------------")
