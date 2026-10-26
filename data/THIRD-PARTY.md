@@ -66,8 +66,7 @@ means `regressions*.jsonl`; "foreign snippets" means `foreign-snippets.jsonl`.
 
 ## c-CRAB
 
-`stage3_testgen_verified.jsonl`, `testgen_combined.zip` and
-`preprocess_dataset.jsonl` come from c-CRAB, Zhang et al., *Code Review Agent
+`stage3_testgen_verified.jsonl` and `testgen_combined.zip` come from c-CRAB, Zhang et al., *Code Review Agent
 Benchmark*, arXiv:2603.23448, published at
 https://github.com/c-CRAB-Benchmark/dataset (`results_preprocessed/` and
 `raw_results_compressed/`); c-CRAB itself builds on SWE-CARE pull requests.
