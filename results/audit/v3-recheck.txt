@@ -1,0 +1,13 @@
+== data/crossfile-v3.jsonl: 277 tasks
+  import does not resolve to the mutated module: 0 / 277
+  tasks with a tree-changing distractor: 0 / 277
+  defect is the last change: 77 / 277
+  by kind, import fails: Counter()
+  other statuses: Counter()
+== data/crossfile-v3-twins.jsonl: 165 tasks
+  import does not resolve to the mutated module: 0 / 165
+  tasks with a tree-changing distractor: 0 / 165
+  defect is the last change: 60 / 165
+  twins unsafe within the two files: 0 / 165  (no detail: 0 )
+  by kind, import fails: Counter()
+  other statuses: Counter()

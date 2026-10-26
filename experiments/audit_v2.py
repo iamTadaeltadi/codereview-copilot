@@ -3,12 +3,13 @@
     python experiments/audit_v2.py [defects.jsonl] [twins.jsonl] [--label v3]
 
 For each task: does the caller's import resolve to the mutated module (strict
-resolver, re-exports followed only within the two cached files); does every
+resolver; re-exports are followed through the repository pool in .pool-cache
+when one is cached, else only within the two cached files); does every
 distractor leave the definition file's syntax tree unchanged; for twins, does
 either cached file hold a call the mutation would break. Writes
 results/audit/v2-recheck.txt.
 """
-import ast, json, re, sys
+import ast, glob, json, re, sys
 from collections import Counter
 from experiments.benchmark import load_crossfile
 from experiments.evidence import sources_for
@@ -17,9 +18,20 @@ from experiments.crossfile import _resolves, _dependent_call_anywhere, _detail, 
 def hunks(diff):
     return [(int(a), b, c) for a, b, c in re.findall(r"@@ -(\d+),1 \+\d+,1 @@\n-(.*)\n\+(.*)", diff)]
 
+_POOLS = {}
+
+def pool_sources(repo):
+    """Every cached source file of the repository (the generator's own view)."""
+    if repo not in _POOLS:
+        hits = glob.glob(f".pool-cache/{repo.replace('/', '__')}@*.json")
+        _POOLS[repo] = json.load(open(hits[0])) if hits else {}
+    return _POOLS[repo]
+
 def check(task, is_twin):
     meta = task.metadata; d = task.defects[0]
     src = sources_for(task)
+    pool = pool_sources(meta.get("repo") or task.task_id.split("::")[1].replace("__", "/"))
+    src = {**pool, **src}
     def find(p):
         return next((src[k] for k in src if k == p or k.endswith(p) or p.endswith(k)), None)
     dsrc, csrc = find(d.path), find(meta["caller_path"])
