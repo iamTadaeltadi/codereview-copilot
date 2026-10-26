@@ -1,5 +1,6 @@
 services:
   db:
+    restart: unless-stopped
     image: postgres:16
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-code_review}
@@ -11,11 +12,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   redis:
+    restart: unless-stopped
     image: redis:7.4.2-alpine
     ports:
       - "${REDIS_PORT:-6379}:6379"
 
   api:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
@@ -43,6 +46,7 @@ services:
       - api
 
   agents:
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile

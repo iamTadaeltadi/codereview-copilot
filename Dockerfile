@@ -1,6 +1,6 @@
-FROM node:20.18.3-bookworm-slim AS node
+FROM node:20-bookworm-slim AS node
 
-FROM python:3.12.8-slim-bookworm
+FROM python:3.12-slim-bookworm
 
 ENV POETRY_VERSION=2.1.3 \
     PIP_DEFAULT_TIMEOUT=100 \

@@ -1,0 +1,10 @@
+.git
+.venv
+**/node_modules
+**/__pycache__
+.pool-cache
+.source-cache
+runs
+results
+paper/paper.pdf
+.env

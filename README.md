@@ -61,8 +61,8 @@ and run `docker compose up`.
 
 ## Verification
 
-- API, agent, graph, and web checks are documented in `TESTING.md`
-- run the full suite with `bash scripts/test.sh`
+- run the full suite with `python run_tests.py` (`--suite backend|python|frontend` for one part; `PYTHON=/path/to/python` to pick the interpreter)
+- `bash scripts/test.sh` does the same and installs the one optional test dependency
 - measure backend coverage with `bash scripts/coverage.sh`
 - CI runs the same suites on every push and pull request
 
