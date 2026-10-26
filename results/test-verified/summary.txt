@@ -1,0 +1,43 @@
+Test-verification of v2 synthetic defects against each repository's own test suite
+(experiments/verify_by_tests.py; a defect is test-verified when >=1 test that passed before the mutation fails after it)
+
+  28  not caught by selected tests
+  24  install failed
+  17  test-verified
+  11  no passing tests before mutation
+   6  no tests selected
+  86  total attempted
+
+test-verified by repo:
+    6  conan-io/conan
+    3  networkx/networkx
+    3  tobymao/sqlglot
+    1  bridgecrewio/checkov
+    1  deepset-ai/haystack
+    1  huggingface/datasets
+    1  python/mypy
+    1  sqlfluff/sqlfluff
+
+test-verified by mutation kind:
+    9  default_flip
+    6  tuple_order
+    2  none_sentinel
+
+test-verified task_ids:
+  xf::networkx__networkx::networkx/algorithms/distance_measures.py::diameter::default_flip::350
+  xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330
+  xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293
+  xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107
+  xf::conan-io__conan::conan/internal/model/conanconfig.py::loadconanconfig_yml::tuple_order::36
+  xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35
+  xf::conan-io__conan::conan/internal/util/runners.py::detect_runner::tuple_order::79
+  xf::networkx__networkx::networkx/utils/misc.py::pairwise::default_flip::214
+  xf::networkx__networkx::networkx/relabel.py::relabel_nodes::default_flip::9
+  xf::bridgecrewio__checkov::checkov/common/util/data_structures_utils.py::find_in_dict::none_sentinel::93
+  xf::deepset-ai__haystack::haystack/core/pipeline/utils.py::parse_connect_string::tuple_order::75
+  xf::huggingface__datasets::src/datasets/utils/py_utils.py::string_to_dict::none_sentinel::185
+  xf::python__mypy::mypy/find_sources.py::create_source_list::default_flip::31
+  xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::greedy_match::default_flip::558
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::array_append_sql::default_flip::1415
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::encode_decode_sql::default_flip::1837
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::date_delta_sql::default_flip::2060
