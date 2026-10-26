@@ -1,8 +1,6 @@
-# Coverage configuration for the Django application.
-#
-# Scope is the Django API service (`services/api/core`) — the deployable
-# application package. The agent and graph services ship their own dependency
-# manifests and are exercised by their own test modules.
+# Coverage scope for `bash scripts/coverage.sh` and the CI threshold step:
+# the Django API package (services/api/core). The agent, graph and experiment
+# code is exercised by tests/ but not counted here.
 [run]
 source =
     services/api/core
@@ -11,6 +9,7 @@ omit =
     */migrations/*
     */__pycache__/*
     */tests/*
+    */test_*.py
     services/api/manage.py
     services/api/core/tests.py
     services/api/django_backend/*
