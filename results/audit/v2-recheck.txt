@@ -1,0 +1,39 @@
+<unknown>:80: SyntaxWarning: invalid escape sequence '\.'
+<unknown>:80: SyntaxWarning: invalid escape sequence '\.'
+<unknown>:80: SyntaxWarning: invalid escape sequence '\.'
+<unknown>:80: SyntaxWarning: invalid escape sequence '\.'
+== data/crossfile-v2.jsonl: 229 tasks
+  import does not resolve to the mutated module: 36 / 229
+  tasks with a tree-changing distractor: 50 / 229
+  defect is the last change: 141 / 229
+  by kind, import fails: Counter({'default_flip': 30, 'tuple_order': 5, 'none_sentinel': 1})
+  other statuses: Counter()
+== data/crossfile-v2-twins.jsonl: 150 tasks
+  import does not resolve to the mutated module: 12 / 150
+  tasks with a tree-changing distractor: 39 / 150
+  defect is the last change: 95 / 150
+  twins unsafe within the two files: 0 / 150  (no detail: 150 )
+  by kind, import fails: Counter({'default_flip': 11, 'exception_type': 1})
+  other statuses: Counter()
+
+--- classification of the tree-changing distractors (v2 defects, 650 hunks) ---
+  91 distractor hunks change the definition file's syntax tree:
+    79 quote-style rewrites inside docstrings or on lines with mixed quotes
+       (a docstring's value changes; in at least one case code strings merge:
+       out.split("\n")[-2].split("\t") -> out.split("\n')[-2].split('\t"))
+    10 dict()/list()/tuple() -> {}/[]/() idiom swaps
+     2 == None -> is None swaps
+  The fixed generator requires an identical syntax tree for quote, parenthesis
+  and spacing rewrites, so none of the 79 would be generated.
+
+--- twins, dependent call within the two cached files only ---
+  25 / 150 v2 twins have a call in the definition file or the shown caller
+  that the mutation would break (dask 4, scipy 3, datasets 2, sentry 2, mypy 2,
+  airflow 1, ansible 1, conan 1, ...). The pool-wide check in the fixed
+  generator rejects these; the number across the whole pool will be higher.
+
+--- import resolution, strict, re-exports followed only within the two files ---
+  36 / 229 defects and 12 / 150 twins: the caller's import of the name does
+  not resolve to the mutated module. Some may be package re-exports whose
+  __init__.py is outside the two-file cache; the pool-based regeneration
+  settles those.
