@@ -1,4 +1,6 @@
-"""Re-check the frozen v2 benchmark with the fixed generator checks.
+"""Re-check a generated benchmark with the fixed generator checks.
+
+    python experiments/audit_v2.py [defects.jsonl] [twins.jsonl] [--label v3]
 
 For each task: does the caller's import resolve to the mutated module (strict
 resolver, re-exports followed only within the two cached files); does every
@@ -45,7 +47,8 @@ def check(task, is_twin):
     out["defect_last"] = all(ln < d.line for ln, _, _ in hunks(task.diff) if ln != d.line)
     if is_twin:
         fn = next((f for f in _functions(dtree, lines) if f.name == name and f.lineno <= d.line <= getattr(f, "end_lineno", 10**9)), None)
-        detail = _detail(meta["kind"], fn, meta.get("before", ""), meta.get("after", "")) if fn else None
+        raw = RAW.get(task.task_id, {})
+        detail = _detail(meta["kind"], fn, raw.get("before", ""), raw.get("after", "")) if fn else None
         if fn is None or detail is None:
             out["twin_check"] = "no detail"
         else:
@@ -55,7 +58,12 @@ def check(task, is_twin):
     return out
 
 rows = []
-for path, is_twin in (("data/crossfile-v2.jsonl", False), ("data/crossfile-v2-twins.jsonl", True)):
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+label = sys.argv[sys.argv.index("--label") + 1] if "--label" in sys.argv else "v2"
+files = ((args[0] if args else "data/crossfile-v2.jsonl", False),
+         (args[1] if len(args) > 1 else "data/crossfile-v2-twins.jsonl", True))
+for path, is_twin in files:
+    RAW = {json.loads(l)["task_id"]: json.loads(l) for l in open(path) if l.strip()}
     tasks = load_crossfile(path)
     res = [check(t, is_twin) for t in tasks]
     rows += [(path, r) for r in res]
@@ -69,5 +77,5 @@ for path, is_twin in (("data/crossfile-v2.jsonl", False), ("data/crossfile-v2-tw
               " (no detail:", sum(1 for r in res if r.get("twin_check") == "no detail"), ")")
     print("  by kind, import fails:", Counter(r["kind"] for r in res if r.get("import_resolves") is False))
     print("  other statuses:", Counter(r.get("status") for r in res if r.get("status")))
-with open("results/audit/v2-recheck.jsonl", "w") as h:
+with open(f"results/audit/{label}-recheck.jsonl", "w") as h:
     for p, r in rows: h.write(json.dumps({"file": p, **r}) + "\n")

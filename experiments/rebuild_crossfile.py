@@ -72,7 +72,7 @@ def main() -> int:
     return 0
 
 
-if __name__ == "__main__" and "--clone" not in sys.argv and "--trees" not in sys.argv:
+if __name__ == "__main__" and "--clone" not in sys.argv and "--trees" not in sys.argv and "--from-pools" not in sys.argv:
     raise SystemExit(main())
 
 
