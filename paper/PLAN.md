@@ -939,3 +939,68 @@ labelled set may be a real defect the annotation missed. Three categories:
 4. **Every claim states what it does not establish.**
 5. When a measurement contradicts the hypothesis, the measurement wins.
 6. Nothing is published until a qualified human has read it and said yes.
+
+## 10. Pre-registration: the c-CRAB retrieval run after the repair (27 October 2026)
+
+Written and committed before the run. The result is reported whatever it is.
+
+**Why a rerun.** The graph result of 26 October was withdrawn because the
+graph condition alone received the seed's line span (results/WITHDRAWN-ccrab-graph.md).
+The repair of 27 October (commits 0a2b860, cf1134d) changed the pipeline in
+ways that make the earlier A/C/Cx/D numbers non-comparable too: every
+condition now delivers code, not names, and seeds come from the diff. So the
+whole comparison is run once more, under this plan.
+
+**Benchmark.** c-CRAB stage-3 tasks, test-confirmed defects in supported
+source, diff at most 40,000 characters: 195 tasks, 246 defects, 63
+repositories (`experiments/run.py` defaults, `--limit 400`). The analysed set
+is the defects answered in all five conditions; the previous run paired 223
+and a similar count is expected. No task, defect or repository is added or
+removed by hand.
+
+**Conditions.** Every condition receives the same diff and, except A, the
+same seeds: every function or class whose span overlaps a changed hunk, read
+from the new-file side of the diff, in diff order, never from the ground
+truth (`experiments/run.py::seed_queries`). Each retrieved entity is delivered
+as id, name, type, path and its source trimmed to its line range, cut at 40
+lines; no payload carries a line range, metadata, depth or score; the model
+text carries neither the condition letter nor the budget block.
+
+- A: diff only, no tool clause.
+- B: graph walk from the seeds over function and class nodes, both edge
+  directions, depth 3, neighbours in files other than the seeds' ranked first.
+- C: random entities of the same type mix as B's walk, from any file.
+- Cx: random entities of the same type mix as B's walk, from files other than
+  the seeds' only. Produced by running C with the cross-file flag.
+- D: lexical retrieval on the seed names, from any file.
+
+**Held constant.** Budget 3,000 tokens of delivered payload for every
+condition (`--budget 3000`); sparse graph of the diff's files plus 3 import
+hops, at most 60 files (`--hops 3`); candidate cap 80; model
+openai/gpt-4o-mini via OpenRouter, temperature 0.1; random seed 0; the system
+prompt and output contract of `experiments/review.py`, unchanged; graph cache
+key suffix `-v2` so no pre-repair graph is reused.
+
+**Outcome.** A defect is localised when any reported finding is on its file
+within 5 lines of its line (tolerance 5, the run's setting); the exact-line
+rate (tolerance 0) is recomputed from the recorded line distance and reported
+beside it. Findings per task per condition are reported.
+
+**Primary comparison.** B minus Cx on the localised rate, paired by defect,
+percentile bootstrap resampling repositories (6,000 trials, seed 0), with the
+task-resampled interval beside it. Secondary: B minus A, B minus C, B minus D,
+Cx minus A, C minus A, D minus A, same method. The same table at tolerance 0.
+
+**Stop rule.** If the run's recorded cost passes $3.00 it is stopped and the
+partial records are reported as partial.
+
+**Known limitation, stated in advance.** The graph keys a method as
+file::function::name with no class, so two classes in one file with a method
+of the same name share a node and their callers merge. In the validation on
+six repositories outside the task set (results/graph-validation/), 69 of the
+new builder's 84 false-positive caller edges were on methods, consistent with
+this collision. It is not fixed for this run.
+
+**What is and is not changed afterwards.** The withdrawn result and its
+notice stay. No claim in the paper changes until the author has seen the
+numbers; the run is reported in two sentences first.

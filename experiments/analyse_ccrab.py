@@ -20,12 +20,14 @@ PAIRS_CX = [("B", "Cx", "graph − random other files"), ("Cx", "A", "random oth
 TRIALS, SEED = 6000, 0
 
 
-def load(path):
+def load(path, exact=False):
+    """hit per (task, defect); with exact, a hit is a finding on the exact line."""
     out = {}
     for line in Path(path).open():
         if line.strip():
             r = json.loads(line)
-            out[(r["task_id"], r["defect_id"])] = bool(r["hit"])
+            hit = bool(r["hit"]) and (not exact or r.get("line_distance") == 0)
+            out[(r["task_id"], r["defect_id"])] = hit
     return out
 
 
@@ -76,9 +78,10 @@ def section(conds, order, labels, pairs, lines, aug=None, aug_keys=None):
     return keys
 
 
-def main(today="results/ccrab-today", august="results/gpt-4o-mini"):
+def main(today="results/ccrab-today", august="results/gpt-4o-mini", header=None, exact=False):
     today = Path(today)
-    conds = {c: load(today / f"{c}-outcomes.jsonl") for c in ["A", "B", "Bs", "C", "Cx", "D"]
+    exact = str(exact).lower() in ("1", "true", "exact", "yes")
+    conds = {c: load(today / f"{c}-outcomes.jsonl", exact) for c in ["A", "B", "Bs", "C", "Cx", "D"]
              if (today / f"{c}-outcomes.jsonl").exists()}
     aug = None
     if Path(august, "outcomes.jsonl").exists():
@@ -87,8 +90,8 @@ def main(today="results/ccrab-today", august="results/gpt-4o-mini"):
             r = json.loads(line)
             if r["condition"] in AUG:
                 aug[r["condition"]][(r["task_id"], r["defect_id"])] = bool(r["hit"])
-    lines = ["c-CRAB, test-verified real defects, gpt-4o-mini, tolerance 5 lines, budget 1500 tokens",
-             "=== A, B, C, D run on one day ==="]
+    lines = [header or "c-CRAB, test-verified real defects, gpt-4o-mini, tolerance 5 lines, budget 1500 tokens",
+             "=== exact line (tolerance 0) ===" if exact else "=== A, B, C, D run on one day ==="]
     section(conds, ["A", "B", "C", "D"], TODAY, PAIRS, lines, aug)
     if "Cx" in conds:
         lines += ["", "=== with the random-other-files control (Cx) ==="]
