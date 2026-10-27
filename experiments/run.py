@@ -44,7 +44,7 @@ from experiments.llm import Usage, client_from_env, load_env
 from experiments.matcher import DEFAULT_LINE_TOLERANCE, match_review
 from experiments.metrics import compare, summarise_condition, table
 from experiments.repo import RepoError, evict, graph_for
-from experiments.sparse import collect_sources, graph_from_sources
+from experiments.sparse import collect_sources, graph_from_sources, repo_tree
 from experiments.review import review_once
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -74,8 +74,11 @@ def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
             return pickle.load(handle), None
 
     if sparse:
+        from experiments.llm import load_env as _load_env
+        token = token or _load_env().get("GITHUB_TOKEN", "")
+        known = repo_tree(task.repo, task.review_commit, token=token, cache_dir=cache)
         sources = collect_sources(task.repo, task.review_commit, task.diff, token=token,
-                                  max_files=max_files, import_hops=hops)
+                                  max_files=max_files, import_hops=hops, known_paths=known)
         if not sources:
             raise RepoError(f"{task.repo}@{task.review_commit[:8]}: no source files fetched")
         graph = graph_from_sources(sources)

@@ -9,6 +9,7 @@ before it reaches a run.
 import json
 import textwrap
 import unittest
+import urllib.error
 from types import SimpleNamespace
 
 try:
@@ -267,6 +268,29 @@ class ModelTextTests(unittest.TestCase):
             self.assertEqual(meta["condition"], condition)
             self.assertIn("used_tokens", meta["budget"])
             self.assertEqual(shown["neighbors"], json.loads(raw)["neighbors"])
+
+
+class KnownPathsTests(unittest.TestCase):
+    def test_only_listed_paths_are_requested_and_the_files_fetched_are_the_same(self):
+        from experiments.sparse import collect_sources
+        files = {"pkg/a.py": "from pkg.b import f\nfrom pkg.c import g\n", "pkg/b.py": "def f():\n    pass\n"}
+        requested = []
+
+        def opener(url):
+            path = url.split("/", 6)[-1]
+            requested.append(path)
+            if path in files:
+                return files[path]
+            raise urllib.error.HTTPError(url, 404, "nope", {}, None)
+
+        diff = "diff --git a/pkg/a.py b/pkg/a.py\n"
+        guessed = collect_sources("o/r", "c", diff, opener=opener, import_hops=1, workers=1)
+        guessed_requests = list(requested); requested.clear()
+        listed = collect_sources("o/r", "c", diff, opener=opener, import_hops=1, workers=1,
+                                 known_paths=set(files))
+        self.assertEqual(guessed, listed)
+        self.assertEqual(set(requested), set(files))
+        self.assertGreater(len(guessed_requests), len(requested))
 
 
 if __name__ == "__main__":

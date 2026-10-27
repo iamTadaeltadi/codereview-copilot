@@ -135,15 +135,71 @@ def imported_paths(source: str, path: str, roots):
     return list(dict.fromkeys(out))
 
 
+TREES = "https://api.github.com/repos/{repo}/git/trees/{commit}?recursive=1"
+
+
+def repo_tree(repo: str, commit: str, token: str = "", cache_dir=None, attempts: int = 3):
+    """The set of file paths in the repository at the commit, or None.
+
+    One request per task replaces the hundreds of guessed import paths that
+    do not exist: an import like `from a.b import c` yields candidates under
+    every root prefix, and on a slow link each miss costs a full round trip.
+    The result is the same set of files, fetched without the misses. The
+    listing is cached on disk. Without a token the API allows 60 requests an
+    hour, and the call waits for the reset when the quota is spent; a listing
+    the API truncates (very large repositories) is treated as unavailable so
+    the caller falls back to guessing.
+    """
+    import json
+    cache = None
+    if cache_dir is not None:
+        cache = Path(cache_dir) / "trees" / f"{repo.replace('/', '__')}@{commit[:12]}.json"
+        if cache.is_file():
+            data = json.loads(cache.read_text())
+            return set(data) if data is not None else None
+    headers = {"User-Agent": "codereview-copilot-experiments", "Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    result = None
+    for attempt in range(attempts):
+        try:
+            request = urllib.request.Request(TREES.format(repo=repo, commit=commit), headers=headers)
+            with urllib.request.urlopen(request, timeout=90) as response:
+                body = json.load(response)
+            if body.get("truncated"):
+                result = None
+            else:
+                result = sorted(e["path"] for e in body.get("tree", []) if e.get("type") == "blob")
+            break
+        except urllib.error.HTTPError as error:
+            if error.code in (403, 429) and error.headers.get("X-RateLimit-Remaining") == "0":
+                reset = int(error.headers.get("X-RateLimit-Reset") or 0)
+                wait = max(5, min(3700, reset - int(time.time()) + 2))
+                print(f"  github api quota spent; waiting {wait}s for the reset", flush=True)
+                time.sleep(wait)
+                continue
+            if error.code in (401, 404, 422):
+                break
+            time.sleep(min(30, 5 * 2 ** attempt))
+        except Exception:
+            time.sleep(min(30, 5 * 2 ** attempt))
+    if cache is not None and result is not None:
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        cache.write_text(json.dumps(result))
+    return set(result) if result is not None else None
+
+
 def collect_sources(repo: str, commit: str, diff: str, token: str = "",
                     max_files: int = MAX_FILES, import_hops: int = 1, opener=None,
-                    workers: int = DEFAULT_WORKERS):
+                    workers: int = DEFAULT_WORKERS, known_paths=None):
     """Return {relative_path: source} for the diff's files and their imports.
 
     Requests within a hop are issued concurrently. On a link where a single
     file takes seconds, fetching a hop's candidates one at a time is what makes
     a task cost minutes rather than seconds; the requests are independent, and
-    most of the wall time is latency rather than bandwidth.
+    most of the wall time is latency rather than bandwidth. With known_paths
+    (the repository's file listing) candidates that do not exist are never
+    requested; the files fetched are the same.
     """
     sources = {}
     # A path that returned nothing must be remembered too, or the next hop asks
@@ -167,7 +223,10 @@ def collect_sources(repo: str, commit: str, diff: str, token: str = "",
                 )
         return [(p, text) for p, text in zip(wanted, results) if text is not None]
 
-    for path, text in fetch_many(paths_in_diff(diff)[:max_files]):
+    first = paths_in_diff(diff)
+    if known_paths is not None:
+        first = [p for p in first if p in known_paths]
+    for path, text in fetch_many(first[:max_files]):
         sources[path] = text
 
     roots = sorted({p.split("/")[0] for p in sources if "/" in p})
@@ -182,6 +241,7 @@ def collect_sources(repo: str, commit: str, diff: str, token: str = "",
             c
             for c in dict.fromkeys(candidates)
             if c not in attempted and Path(c).suffix in SUPPORTED_EXTENSIONS
+            and (known_paths is None or c in known_paths)
         ][: max(0, max_files - len(sources))]
         frontier = fetch_many(wanted)
         for path, text in frontier:

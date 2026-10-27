@@ -1004,3 +1004,14 @@ this collision. It is not fixed for this run.
 **What is and is not changed afterwards.** The withdrawn result and its
 notice stay. No claim in the paper changes until the author has seen the
 numbers; the run is reported in two sentences first.
+
+**Amendment before the run, 27 October 2026, 23:10.** The first launch under
+this plan was stopped after 5 tasks and discarded (no number from it is
+kept). On this connection a raw file fetch takes 3 to 46 seconds, and the
+sparse collector guessed about 500 import paths per task of which about 20
+exist, so one task took five minutes in misses. The collector now asks the
+GitHub API for the repository's file listing once per task and requests only
+paths that exist (`experiments/sparse.py::repo_tree`, `known_paths`). The
+files fetched for a task are the same set the guessing would have found, up
+to the same cap of 60; no per-call setting, prompt, budget or condition
+changed. The run was restarted from zero under the plan as written.
