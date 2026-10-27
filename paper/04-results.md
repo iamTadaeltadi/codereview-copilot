@@ -23,7 +23,28 @@ Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request chang
 
 ## 4.3 Safe twins
 
-[[TWINS-RESULTS]]
+Twins are the same surface mutation as a defect task, placed where no caller in the sampled repository depends on what changed (3.3). The generator produced 165 from 33 repositories; 158 have an evidence set and were run on both models, and 157 (gpt-4o-mini) and 155 (deepseek-v3.2) are paired across all nine arms. Correct on a twin means not flagging the mutated line; the prompt is the one that presumes a defect (3.6), so every rate is a floor (Figure 3).
+
+| Arm | gpt-4o-mini (n=157) | deepseek-v3.2 (n=155) |
+|---|---|---|
+| 1 diff only | 2.5% | 11.0% |
+| 8 header only | 1.3% | 7.1% |
+| 7 foreign code, same length | 1.9% | 9.0% |
+| 2 tolerant caller shown | 1.9% | 1.9% |
+| 3 caller + bare link | 2.5% | 3.9% |
+| 4 caller + typed link | 2.5% | 2.6% |
+| 5 caller + attributed link | 1.9% | 1.9% |
+| 6 caller + wrong link | 1.9% | 3.2% |
+
+| Comparison on twin clear rate | gpt-4o-mini | deepseek-v3.2 |
+|---|---|---|
+| tolerant caller − diff only | −0.6 [−3.0, +1.4] | **−9.0 [−14.1, −4.8]** |
+| caller + attributed − diff only | −0.6 [−3.0, +1.4] | **−9.0 [−14.3, −4.2]** |
+| foreign code − diff only | −0.6 [−3.0, +1.5] | −1.9 [−7.6, +3.2] |
+| header only − diff only | −1.3 [−3.8, +1.2] | −3.9 [−9.8, +1.8] |
+| bare link − caller alone | +0.6 [0.0, +2.1] | +1.9 [−0.7, +4.9] |
+
+No arm on either model leaves more than 11% of the safe changes unflagged. On gpt-4o-mini every arm sits between 1% and 4%, a floor under which no comparison can be read. On deepseek-v3.2 the diff alone clears 11%; showing the caller that tolerates the change lowers that to 2%, by nine points with an interval that excludes zero, while foreign code of the same length and the header alone leave it within noise of the diff. Stating the link, in any form, moves nothing. The code that should exonerate the change makes the model more certain it is a defect, which is the same direction as the precision signal in 4.7: a relevant caller raises flagging, and a relation statement does not lower it. The twins on this version are safe repository-wide, so the second version's objection, that a caller elsewhere might not be robust, no longer applies within the sampled files.
 
 ## 4.4 Test verification of the generated defects
 
@@ -34,6 +55,10 @@ The syntax-tree verifier accepts many mutations whose breakage no existing test 
 ## 4.5 Real defects: retrieval that reaches the caller
 
 The model throughout is gpt-4o-mini, and the defect set is the 219 paired defects of the 291 that pass the filters in 3.6. The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node rather than the function, walked two hops, and filled its budget with same-file neighbours, so it reached the depended-on caller in 4% of tasks where that caller was available; it is not reported. Three repairs were made and committed on 30 August, before the controlled re-run was designed: query the enclosing function, walk three hops, and rank other-file neighbours ahead of same-file ones before the budget applies. The fault-location oracle scores no better than the diff because it returns the entities spanning the defect line, which the diff already shows; it is an oracle for location, not for evidence.
+
+Three features of the pipeline are common to every retrieval condition and are disclosed here because a reader cannot infer them from the table. First, every retrieval condition (B, C, C′, D and the August oracle F) starts its query from the function whose line range covers the ground-truth defect line, so retrieval begins at the fault location, which a reviewer would not know; the diff-only and whole-file conditions do not retrieve and have no seed. Second, the prompt for B, C, C′ and D carries one sentence saying a retrieval tool is available, and the diff-only prompt does not; no tool is actually callable in any condition, the context is pre-computed and inserted. Third, a hit is any finding within five lines of the defect, so a condition under which the model reports more findings has more chances; at zero tolerance the rates are 2.5% for the diff alone, 9.4% for the graph condition, 3.5% for random and 2.7% for lexical, so the ordering holds when the tolerance is removed.
+
+One feature was specific to the graph condition and is a confound. The graph tool returns the seed function with its `line_range` and `metadata` (its calls and parameters), while the random and lexical tools return the seed with its name, type and path only. The seed covers the defect line, so the graph condition alone was told the span of the function containing the defect. The control is the graph condition with the seed reduced to the entry the other conditions carry, run on the same defects with the same model, budget and tolerance (`--strip-seed`): [[BS-RESULT]]
 
 All retrieval conditions were re-run on the same day (Figure 2) with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across the first four and 218 across all five. The intervals below resample defects and were drawn with an unseeded bootstrap; `experiments/analyse_ccrab.py` redraws them with a fixed seed and prints the repository-resampled interval beside each (`results/ccrab-today/analysis-seeded.txt`): no bound moves by more than half a point and no verdict changes.
 

@@ -85,7 +85,13 @@ def build_retrieve_graph_tool(
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
     prefer_cross_file: bool = False,
+    strip_seed: bool = False,
 ):
+    """With strip_seed, the queried node is reduced to the same entry the random
+    and lexical conditions carry (id, name, type, path): no line_range and no
+    metadata. The seed is the function covering the defect line, so its span is
+    a hint about where the defect is that only this condition received; the
+    stripped variant is the control for that hint."""
     @tool
     def retrieve_graph(node: str) -> str:
         """
@@ -102,6 +108,9 @@ def build_retrieve_graph_tool(
         )
         neighbors = payload.pop("neighbors", [])
         payload["condition"] = CONDITION_GRAPH
+        if strip_seed and payload.get("node"):
+            payload["node"] = {k: payload["node"].get(k) for k in ("id", "name", "type", "relative_path")}
+            payload["seed_stripped"] = True
         return _budgeted(payload, neighbors, budget_tokens)
 
     return retrieve_graph
@@ -392,6 +401,7 @@ def build_tools(
     embed_fn=None,
     oracle_targets=None,
     prefer_cross_file: bool = False,
+    strip_seed: bool = False,
 ):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}, expected one of {CONDITIONS}")
@@ -451,6 +461,7 @@ def build_tools(
             max_neighbors=max_neighbors,
             budget_tokens=budget_tokens,
             prefer_cross_file=prefer_cross_file,
+                strip_seed=strip_seed,
         )
     ]
 

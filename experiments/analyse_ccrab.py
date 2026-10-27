@@ -78,7 +78,7 @@ def section(conds, order, labels, pairs, lines, aug=None, aug_keys=None):
 
 def main(today="results/ccrab-today", august="results/gpt-4o-mini"):
     today = Path(today)
-    conds = {c: load(today / f"{c}-outcomes.jsonl") for c in ["A", "B", "C", "Cx", "D"]
+    conds = {c: load(today / f"{c}-outcomes.jsonl") for c in ["A", "B", "Bs", "C", "Cx", "D"]
              if (today / f"{c}-outcomes.jsonl").exists()}
     aug = None
     if Path(august, "outcomes.jsonl").exists():
@@ -94,6 +94,12 @@ def main(today="results/ccrab-today", august="results/gpt-4o-mini"):
         lines += ["", "=== with the random-other-files control (Cx) ==="]
         labels = dict(TODAY, Cx="random, other files only")
         section(conds, ["A", "C", "Cx", "D", "B"], labels, PAIRS_CX, lines)
+    if "Bs" in conds:
+        lines += ["", "=== graph with the seed node stripped of line_range and metadata (Bs) ==="]
+        labels = dict(TODAY, Cx="random, other files only", Bs="graph, seed stripped")
+        section(conds, ["A", "Cx", "Bs", "B"], labels,
+                [("B", "Bs", "graph - graph seed-stripped"), ("Bs", "A", "graph seed-stripped - diff only"),
+                 ("Bs", "Cx", "graph seed-stripped - random other files")], lines)
     text = "\n".join(lines) + "\n"
     sys.stdout.write(text)
     return text

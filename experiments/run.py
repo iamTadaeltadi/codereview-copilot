@@ -83,7 +83,7 @@ def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
 
 
 def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True,
-                  hops=1, max_files=60, prefer_cross_file=False):
+                  hops=1, max_files=60, prefer_cross_file=False, strip_seed=False):
     """Return the context payload for one condition, or '' when it has none."""
     if condition == CONDITION_NONE:
         return "", None
@@ -120,6 +120,7 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         seed=matrix.seeds[0],
         oracle_targets=oracle_targets(task) if condition == CONDITION_ORACLE else None,
         prefer_cross_file=prefer_cross_file,
+        strip_seed=strip_seed,
     )
     if not tools:
         return "", info
@@ -195,6 +196,9 @@ def main() -> int:
                         help="rank neighbours in other files ahead of the defect's own "
                              "file before the budget applies; without it a file node is a "
                              "hub and the budget fills with same-file code")
+    parser.add_argument("--strip-seed", action="store_true",
+                        help="condition B control: the queried node carries no line_range "
+                             "or metadata, like the random and lexical conditions")
     parser.add_argument("--hops", type=int, default=1,
                         help="import hops when building the graph; the cross-file "
                              "benchmark needs the wider neighbourhood its defects live in")
@@ -253,6 +257,7 @@ def main() -> int:
                     sparse=not args.full_repo,
                     hops=args.hops, max_files=120 if args.crossfile else 60,
                     prefer_cross_file=args.prefer_cross_file,
+                    strip_seed=args.strip_seed,
                 )
             except RepoError as error:
                 print(f"  [{index}/{len(tasks)}] {task.task_id} {condition}: SKIP {error}")
