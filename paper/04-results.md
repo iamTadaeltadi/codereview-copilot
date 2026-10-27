@@ -46,29 +46,53 @@ Twins are the same surface mutation as a defect task, placed where no caller in 
 
 No arm on either model leaves more than 11% of the safe changes unflagged. On gpt-4o-mini every arm sits between 1% and 4%, a floor under which no comparison can be read. On deepseek-v3.2 the diff alone clears 11%; showing the caller that tolerates the change lowers that to 2%, by nine points with an interval that excludes zero, while foreign code of the same length and the header alone leave it within noise of the diff. Stating the link, in any form, moves nothing. The code that should exonerate the change makes the model more certain it is a defect, which is the same direction as the precision signal in 4.7: a relevant caller raises flagging, and a relation statement does not lower it. The twins on this version are safe repository-wide, so the second version's objection, that a caller elsewhere might not be robust, no longer applies within the sampled files.
 
-**Under a neutral prompt.** The same 158 twins were re-run on gpt-4o-mini with the one sentence removed and the output contract stating that an empty list is a correct answer (3.6); every arm is otherwise identical, and there were no parse failures in 1,422 replies (`results/v3twins-neutral-gpt4omini/`).
+**Under a neutral prompt.** The same 158 twins were re-run on both models with the one sentence removed and the output contract stating that an empty list is a correct answer (3.6); every arm is otherwise identical, and there were no parse failures in 1,422 replies on either model (`results/v3twins-neutral-gpt4omini/`, `results/v3twins-neutral-deepseek/`; the deepseek run was made as three interleaved shards of the same file in parallel, with identical per-call settings, because that model reasons three to four times longer under this prompt).
 
-| Arm, neutral prompt, gpt-4o-mini (n=158) | twins left unflagged | findings per twin |
+| Arm, neutral prompt | gpt-4o-mini left unflagged (n=158) | findings per twin | deepseek-v3.2 left unflagged (n=158) | findings per twin |
+|---|---|---|---|---|
+| 1 diff only | 81.6% | 0.19 | 89.2% | 0.11 |
+| 8 header only | 87.3% | 0.14 | 88.0% | 0.14 |
+| 7 foreign code, same length | 81.6% | 0.20 | 90.5% | 0.09 |
+| 2 tolerant caller shown | 54.4% | 0.50 | 86.7% | 0.14 |
+| 3 caller + bare link | 39.9% | 0.64 | 81.0% | 0.20 |
+| 4 caller + typed link | 36.7% | 0.69 | 77.2% | 0.24 |
+| 6 caller + wrong link | 13.9% | 0.96 | 82.3% | 0.20 |
+| 5 caller + attributed link | 10.8% | 0.97 | 79.1% | 0.23 |
+
+| Comparison, neutral prompt (repositories resampled) | gpt-4o-mini | deepseek-v3.2 |
 |---|---|---|
-| 1 diff only | 81.6% | 0.19 |
-| 8 header only | 87.3% | 0.14 |
-| 7 foreign code, same length | 81.6% | 0.20 |
-| 2 tolerant caller shown | 54.4% | 0.50 |
-| 3 caller + bare link | 39.9% | 0.64 |
-| 4 caller + typed link | 36.7% | 0.69 |
-| 6 caller + wrong link | 13.9% | 0.96 |
-| 5 caller + attributed link | 10.8% | 0.97 |
+| tolerant caller − diff only | **−27.2 [−37.7, −16.7]** | −2.5 [−8.5, +3.7] |
+| foreign code − diff only | 0.0 [−4.4, +4.8] | +1.3 [−4.4, +7.2] |
+| header only − diff only | +5.7 [0.0, +11.6] | −1.3 [−5.9, +4.1] |
+| bare link − caller alone | **−14.6 [−20.8, −8.4]** | **−5.7 [−11.3, −0.7]** |
+| wrong link − caller alone | **−40.5 [−49.1, −31.2]** | −4.4 [−10.3, +1.6] |
+| attributed link − diff only | **−70.9 [−77.5, −63.6]** | **−10.1 [−18.1, −2.1]** |
 
-| Comparison, neutral prompt | Difference | 95% interval, repositories resampled |
+Told that an empty answer is acceptable, gpt-4o-mini leaves four in five safe changes alone from the diff, and foreign code of the same length changes nothing. Showing the caller that tolerates the change costs 27 points; stating a bare link between the snippets costs 15 more; naming the relation and its argument takes the clear rate to one in nine, and a link that points to the wrong snippet does nearly the same as the right one. Every unit of dependency metadata moves the model toward flagging a change the metadata itself shows to be safe, in proportion to how much the metadata says. deepseek-v3.2 moves in the same order but by a tenth of the distance: 89% cleared from the diff, 87% with the caller, 81% with the bare link, 79% with the relation named, and only the attributed link against the diff and the bare link against the caller exclude zero. The direction of the effect is shared by the two models; its size is a property of the model. The presuming prompt had hidden all of this at a floor of 2.5%; under it the arms were indistinguishable, and the two-point fall on deepseek was the visible edge of an effect that is twenty-seven points on one model and two on the other.
+
+**The defects under the same prompt, and balanced accuracy.** The 277 third-version defects were run on gpt-4o-mini under the neutral prompt with the same nine arms (`results/v3-neutral-gpt4omini/`; 6 defects had no evidence set, 271 are paired, 0 parse failures in 2,439 replies). The diff alone finds 30% of the mutated lines, not 95%: the ceiling of 4.1 was measured under a prompt that told the model a defect was there, and without that sentence the generated benchmark has headroom. Every unit of metadata fills it, in the same order as it empties the twins.
+
+| Arm, neutral prompt, gpt-4o-mini | defects hit (n=271) | exact line | findings per defect | twins cleared (n=158) | balanced accuracy |
+|---|---|---|---|---|---|
+| 1 diff only | 29.9% | 29.5% | 0.36 | 81.6% | 55.8% |
+| 8 header only | 32.8% | 31.4% | 0.39 | 87.3% | 60.1% |
+| 7 foreign code, same length | 34.7% | 32.8% | 0.45 | 81.6% | 58.2% |
+| 2 tolerant caller shown | 52.4% | 50.9% | 0.65 | 54.4% | 53.4% |
+| 3 caller + bare link | 63.1% | 61.6% | 0.80 | 39.9% | 51.5% |
+| 4 caller + typed link | 64.9% | 61.3% | 0.85 | 36.7% | 50.8% |
+| 6 caller + wrong link | 78.2% | 75.6% | 0.96 | 13.9% | 46.1% |
+| 5 caller + attributed link | 81.5% | 77.9% | 1.05 | 10.8% | 46.2% |
+
+| Comparison, neutral prompt, gpt-4o-mini | defects hit | balanced accuracy |
 |---|---|---|
-| tolerant caller − diff only | −27.2 | [−37.7, −16.7] |
-| foreign code − diff only | 0.0 | [−4.4, +4.8] |
-| header only − diff only | +5.7 | [0.0, +11.6] |
-| bare link − caller alone | −14.6 | [−20.8, −8.4] |
-| wrong link − caller alone | −40.5 | [−49.1, −31.2] |
-| attributed link − diff only | −70.9 | [−77.5, −63.6] |
+| tolerant caller − diff only | **+22.5 [+14.9, +30.5]** | −2.4 [−9.7, +5.1] |
+| foreign code − diff only | +4.8 [+0.4, +9.0] | +2.4 [−1.0, +5.8] |
+| header only − diff only | +3.0 [−1.1, +7.0] | +4.3 [+0.9, +7.8] |
+| bare link − caller alone | **+10.7 [+5.1, +16.3]** | −1.9 [−6.3, +2.1] |
+| wrong link − caller alone | **+25.8 [+19.7, +32.0]** | **−7.3 [−12.5, −2.3]** |
+| attributed link − diff only | **+51.7 [+43.9, +59.3]** | **−9.6 [−14.9, −3.8]** |
 
-Told that an empty answer is acceptable, the model leaves four in five safe changes alone from the diff, and foreign code of the same length changes nothing. Showing the caller that tolerates the change costs 27 points; stating a bare link between the snippets costs 15 more; naming the relation and its argument takes the clear rate to one in nine, and a link that points to the wrong snippet does nearly the same as the right one. Every unit of dependency metadata moves the model toward flagging a change the metadata itself shows to be safe, in proportion to how much the metadata says. The presuming prompt had hidden all of this at a floor of 2.5%; under it the arms were indistinguishable, and the two-point fall on deepseek was the visible edge of a twenty-seven-point effect. This is the one judge-free result in the paper in which the description of structure, and not only the code, moves the model, and it moves it the wrong way.
+Balanced accuracy is the mean of the hit rate on defects and the clear rate on twins; defects and twins are different tasks, so the bootstrap pairs them by repository, drawing repositories with replacement and scoring both arms and both halves on the same draw (`analysis-balanced-with-twins.txt`). Each arm's gain on the defects is matched by its loss on the safe changes, almost point for point: the caller gains 22 and loses 27, the attributed link gains 52 and loses 71, and a link to the wrong snippet raises detection by 26 points over the caller alone, nearly as much as the right one. Balanced accuracy is 55.8% for the diff alone, within noise of that for the caller, for foreign code and for the bare link, four points above it for the header alone, and ten points below it for the attributed link. No arm that carries evidence beats the diff. Under a prompt that lets the model say nothing, the generated benchmark measures how much the context makes the model flag; it does not show the context helping the model tell a defect from a safe change. The defects were not run on deepseek-v3.2 under the neutral prompt.
 
 ## 4.4 Test verification of the generated defects
 
