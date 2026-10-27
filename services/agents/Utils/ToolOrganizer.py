@@ -1,3 +1,13 @@
+"""One retrieval tool per condition, one payload shape for every condition.
+
+Every condition's tool takes the same seeds (one query per line), returns the
+same JSON fields, and delivers each retrieved entity the same way: its id, name,
+type, path and its source trimmed to its line range. Only the selection of
+entities differs between conditions. No payload carries a line range or
+metadata of any entity, seed or neighbour; an earlier version let the graph
+condition alone carry the seed's span, and that result was withdrawn.
+"""
+
 import json
 import logging
 import os
@@ -7,9 +17,16 @@ from collections import Counter
 
 from langchain.tools import tool
 
-from codecontext.retriever import retrieve_node_context, _find_target_node
+from codecontext.retriever import (
+    _find_target_node,
+    entity_source,
+    find_seed_nodes,
+    retrieve_node_context,
+    split_queries,
+    stripped_entry,
+)
 
-from .ContextBudget import ContextBudget, DEFAULT_BUDGET_TOKENS, estimate_tokens
+from .ContextBudget import DEFAULT_BUDGET_TOKENS, estimate_tokens
 
 logger = logging.getLogger(__name__)
 
@@ -33,30 +50,37 @@ CONDITIONS = (
 
 DEFAULT_MAX_DEPTH = 2
 DEFAULT_MAX_NEIGHBORS = 12
+DEFAULT_ENTITY_LINES = 40
+
+ENTRY_FIELDS = ("id", "name", "type", "relative_path", "source")
+PAYLOAD_FIELDS = ("query", "found", "node", "seeds", "condition", "neighbors", "budget")
 
 
-def _node_entry(graph, node_id, depth=None):
-    data = graph.nodes[node_id]
-    entry = {
-        "id": node_id,
-        "name": data.get("name"),
-        "type": data.get("type"),
-        "relative_path": data.get("relative_path"),
-    }
-    if depth is not None:
-        entry["depth"] = depth
+def _node_entry(graph, node_id, max_lines=DEFAULT_ENTITY_LINES):
+    """id, name, type, path and the entity's source: the one entry shape."""
+    entry = stripped_entry(graph, node_id)
+    entry["source"] = entity_source(graph, node_id, max_lines)
     return entry
+
+
+def _payload(graph, condition, node_query):
+    seed_ids = [s for s in find_seed_nodes(graph, node_query) if s is not None]
+    seeds = [stripped_entry(graph, s) for s in seed_ids]
+    return {
+        "query": node_query,
+        "found": bool(seed_ids),
+        "node": seeds[0] if seeds else None,
+        "seeds": seeds,
+        "condition": condition,
+    }, seed_ids
 
 
 def _budgeted(payload, entries, budget_tokens):
     """Fit the *delivered string* inside the budget, not the entries inside it.
 
-    Budgeting the entry list alone is not budget parity: each condition wraps
-    its entries in a different envelope and B's entries carry extra fields, so
-    an identical entry budget still delivered B roughly twice the text of G.
-    That is precisely the confound this study exists to remove, so the cap is
-    applied to the serialised payload the model actually receives, and entries
-    are dropped from the end until the whole string fits.
+    Each condition wraps its entries in the same envelope now, but the cap is
+    still applied to the serialised payload the model actually receives, and
+    entries are dropped from the end until the whole string fits.
     """
     kept = list(entries)
     while True:
@@ -72,10 +96,15 @@ def _budgeted(payload, entries, budget_tokens):
             payload["budget"]["used_tokens"] = used
             payload["budget"]["entries_rejected"] = len(entries) - len(kept)
             return json.dumps(payload)
-        # drop proportionally when far over, one at a time when close
         overshoot = used - budget_tokens
         step = max(1, int(len(kept) * overshoot / max(used, 1)))
         kept = kept[: max(0, len(kept) - step)]
+
+
+def _pool(graph, seed_ids, entity_types):
+    seeds = set(seed_ids)
+    return [n for n in graph.nodes
+            if n not in seeds and (not entity_types or graph.nodes[n].get("type") in entity_types)]
 
 
 def build_retrieve_graph_tool(
@@ -85,13 +114,12 @@ def build_retrieve_graph_tool(
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
     prefer_cross_file: bool = False,
-    strip_seed: bool = False,
+    strip_seed: bool = True,
+    entity_types=None,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
-    """With strip_seed, the queried node is reduced to the same entry the random
-    and lexical conditions carry (id, name, type, path): no line_range and no
-    metadata. The seed is the function covering the defect line, so its span is
-    a hint about where the defect is that only this condition received; the
-    stripped variant is the control for that hint."""
+    """Condition B. `strip_seed` is accepted for the old command line and
+    ignored: the seed is always reduced to id, name, type and path."""
     @tool
     def retrieve_graph(node: str) -> str:
         """
@@ -102,16 +130,22 @@ def build_retrieve_graph_tool(
         """
         logger.debug("Retrieving graph context for %s", node)
         graph_path = os.path.join(graph_folder_path, "graph.pkl")
-        payload = retrieve_node_context(
+        walk = retrieve_node_context(
             graph, graph_path, node, max_neighbors=max_neighbors, max_depth=max_depth,
-            prefer_cross_file=prefer_cross_file,
+            prefer_cross_file=prefer_cross_file, entity_types=entity_types,
         )
-        neighbors = payload.pop("neighbors", [])
-        payload["condition"] = CONDITION_GRAPH
-        if strip_seed and payload.get("node"):
-            payload["node"] = {k: payload["node"].get(k) for k in ("id", "name", "type", "relative_path")}
-            payload["seed_stripped"] = True
-        return _budgeted(payload, neighbors, budget_tokens)
+        seeds = walk.get("seeds")
+        if seeds is None:
+            seeds = [walk["node"]] if walk.get("node") else []
+        payload = {
+            "query": node,
+            "found": bool(walk.get("found")),
+            "node": seeds[0] if seeds else None,
+            "seeds": seeds,
+            "condition": CONDITION_GRAPH,
+        }
+        entries = [_node_entry(graph, n["id"], max_entity_lines) for n in walk.get("neighbors", [])]
+        return _budgeted(payload, entries, budget_tokens)
 
     return retrieve_graph
 
@@ -124,11 +158,14 @@ def build_random_context_tool(
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
     match_types: bool = True,
     other_files_only: bool = False,
+    max_depth: int = DEFAULT_MAX_DEPTH,
+    prefer_cross_file: bool = False,
+    entity_types=None,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
-    """Random type-matched nodes; with other_files_only, drawn from files other
-    than the queried node's. The graph condition is the only one that ranks
-    other-file neighbours first, so a comparison against this arm separates
-    "found through the graph" from "from another file"."""
+    """Random type-matched entities; with other_files_only, drawn from files
+    other than the seeds'. The type mix is taken from the graph condition's own
+    walk with the same parameters, so the two differ only in which entities."""
     @tool
     def retrieve_graph(node: str) -> str:
         """
@@ -138,25 +175,20 @@ def build_random_context_tool(
             "relative_file_path::identifier::name"
         """
         logger.debug("Retrieving random context for %s", node)
-        node_id = _find_target_node(graph, node)
-        payload = {
-            "query": node,
-            "found": node_id is not None,
-            "condition": CONDITION_RANDOM,
-            "node": _node_entry(graph, node_id) if node_id is not None else None,
-        }
-        if node_id is None:
+        payload, seed_ids = _payload(graph, CONDITION_RANDOM, node)
+        if not seed_ids:
             return _budgeted(payload, [], budget_tokens)
 
         rng = random.Random(f"{seed}:{node}")
-        pool = [n for n in graph.nodes if n != node_id]
+        pool = _pool(graph, seed_ids, entity_types)
         if other_files_only:
-            home = graph.nodes[node_id].get("relative_path")
-            pool = [n for n in pool if graph.nodes[n].get("relative_path") != home] or pool
+            homes = {graph.nodes[s].get("relative_path") for s in seed_ids}
+            pool = [n for n in pool if graph.nodes[n].get("relative_path") not in homes] or pool
 
         if match_types:
             reference = retrieve_node_context(
-                graph, "", node, max_neighbors=max_neighbors, max_depth=DEFAULT_MAX_DEPTH
+                graph, "", node, max_neighbors=max_neighbors, max_depth=max_depth,
+                prefer_cross_file=prefer_cross_file, entity_types=entity_types,
             )
             wanted = Counter(n.get("type") for n in reference["neighbors"])
             by_type = {}
@@ -172,17 +204,17 @@ def build_random_context_tool(
             rng.shuffle(pool)
             picked = pool[:max_neighbors]
 
-        return _budgeted(payload, [_node_entry(graph, n) for n in picked], budget_tokens)
+        return _budgeted(payload, [_node_entry(graph, n, max_entity_lines) for n in picked], budget_tokens)
 
     return retrieve_graph
 
 
 def _tokenize_query(node_query: str):
-    tail = node_query.split("::")[-1]
-    parts = re.split(r"[^A-Za-z0-9]+", tail)
     words = []
-    for part in parts:
-        words.extend(re.findall(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])", part))
+    for query in split_queries(node_query) or [node_query]:
+        tail = query.split("::")[-1]
+        for part in re.split(r"[^A-Za-z0-9]+", tail):
+            words.extend(re.findall(r"[A-Z]?[a-z0-9]+|[A-Z]+(?![a-z])", part))
     return [w.lower() for w in words if w]
 
 
@@ -191,6 +223,8 @@ def build_lexical_context_tool(
     graph_folder_path,
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+    entity_types=None,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
     @tool
     def retrieve_graph(node: str) -> str:
@@ -201,34 +235,25 @@ def build_lexical_context_tool(
             "relative_file_path::identifier::name"
         """
         logger.debug("Retrieving lexical context for %s", node)
-        node_id = _find_target_node(graph, node)
-        payload = {
-            "query": node,
-            "found": node_id is not None,
-            "condition": CONDITION_LEXICAL,
-            "node": _node_entry(graph, node_id) if node_id is not None else None,
-        }
+        payload, seed_ids = _payload(graph, CONDITION_LEXICAL, node)
         terms = _tokenize_query(node)
         if not terms:
             return _budgeted(payload, [], budget_tokens)
 
         scored = []
-        for candidate in graph.nodes:
-            if candidate == node_id:
-                continue
+        for candidate in _pool(graph, seed_ids, entity_types):
             name = (graph.nodes[candidate].get("name") or "").lower()
             if not name:
                 continue
             score = sum(1 for term in terms if term in name)
             if score:
-                scored.append((score, len(name), candidate))
-        scored.sort(key=lambda row: (-row[0], row[1], str(row[2])))
+                scored.append((score, len(name), str(candidate), candidate))
+        scored.sort(key=lambda row: (-row[0], row[1], row[2]))
 
-        entries = [_node_entry(graph, candidate) for _, _, candidate in scored[:max_neighbors]]
+        entries = [_node_entry(graph, c, max_entity_lines) for _, _, _, c in scored[:max_neighbors]]
         return _budgeted(payload, entries, budget_tokens)
 
     return retrieve_graph
-
 
 
 def _node_document(graph, node_id) -> str:
@@ -271,6 +296,8 @@ def build_dense_context_tool(
     embed_fn=None,
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+    entity_types=None,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
     embed = embed_fn or hashing_embedder
 
@@ -283,31 +310,17 @@ def build_dense_context_tool(
             "relative_file_path::identifier::name"
         """
         logger.debug("Retrieving dense context for %s", node)
-        node_id = _find_target_node(graph, node)
-        payload = {
-            "query": node,
-            "found": node_id is not None,
-            "condition": CONDITION_DENSE,
-            "node": _node_entry(graph, node_id) if node_id is not None else None,
-        }
-
+        payload, seed_ids = _payload(graph, CONDITION_DENSE, node)
         query_vector = embed(" ".join(_tokenize_query(node)) or node)
         scored = []
-        for candidate in graph.nodes:
-            if candidate == node_id:
-                continue
+        for candidate in _pool(graph, seed_ids, entity_types):
             document = _node_document(graph, candidate)
             if not document:
                 continue
             score = _cosine(query_vector, embed(document))
             scored.append((score, str(candidate), candidate))
         scored.sort(key=lambda row: (-row[0], row[1]))
-
-        entries = []
-        for score, _, candidate in scored[:max_neighbors]:
-            entry = _node_entry(graph, candidate)
-            entry["score"] = round(score, 6)
-            entries.append(entry)
+        entries = [_node_entry(graph, c, max_entity_lines) for _, _, c in scored[:max_neighbors]]
         return _budgeted(payload, entries, budget_tokens)
 
     return retrieve_graph
@@ -330,25 +343,14 @@ def build_oracle_context_tool(
     tolerance: int = 0,
     max_neighbors: int = DEFAULT_MAX_NEIGHBORS,
     budget_tokens: int = DEFAULT_BUDGET_TOKENS,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
     """Condition F: the FAULT-LOCATION oracle.
 
     It returns the graph entities whose line range spans the ground-truth
-    defect line — the class, the function, the variables *at the fault site*.
-
-    That is not an evidence oracle and must not be described as one. A defect on
-    a changed line can still require another file to recognise: the fault is the
-    changed `raise ValueError`, the evidence is the `except TypeError` in a file
-    this condition never returns. Supplying more of the fault site supplies more
-    of what the model could already see, so this condition performing like no
-    context at all says only that enlarging the visible fault site does not help.
-    It says nothing about whether useful repository context exists.
-
-    A real evidence oracle supplies the minimal external code that proves the
-    change is wrong. That is a separate condition and is not implemented here.
-
-    Nothing that reads `targets` may ever run in a condition being compared
-    honestly.
+    defect line. That is not an evidence oracle and must not be described as
+    one; it is a reference condition, never a competitor. Nothing that reads
+    `targets` may ever run in a condition being compared honestly.
     """
     targets = list(targets or [])
 
@@ -361,19 +363,12 @@ def build_oracle_context_tool(
             "relative_file_path::identifier::name"
         """
         logger.debug("Retrieving oracle context for %s", node)
-        node_id = _find_target_node(graph, node)
-        payload = {
-            "query": node,
-            "found": node_id is not None,
-            "condition": CONDITION_ORACLE,
-            "node": _node_entry(graph, node_id) if node_id is not None else None,
-            "oracle_targets": len(targets),
-        }
-
+        payload, seed_ids = _payload(graph, CONDITION_ORACLE, node)
+        payload["oracle_targets"] = len(targets)
         entries = []
-        seen = set()
+        seen = set(seed_ids)
         for candidate in graph.nodes:
-            if candidate == node_id or candidate in seen:
+            if candidate in seen:
                 continue
             data = graph.nodes[candidate]
             for target in targets:
@@ -381,7 +376,7 @@ def build_oracle_context_tool(
                     continue
                 if _spans_overlap(data.get("line_range"), target.get("line"), tolerance):
                     seen.add(candidate)
-                    entries.append(_node_entry(graph, candidate))
+                    entries.append(_node_entry(graph, candidate, max_entity_lines))
                     break
             if len(entries) >= max_neighbors:
                 break
@@ -401,7 +396,9 @@ def build_tools(
     embed_fn=None,
     oracle_targets=None,
     prefer_cross_file: bool = False,
-    strip_seed: bool = False,
+    strip_seed: bool = True,
+    entity_types=None,
+    max_entity_lines: int = DEFAULT_ENTITY_LINES,
 ):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}, expected one of {CONDITIONS}")
@@ -412,56 +409,44 @@ def build_tools(
     if condition == CONDITION_RANDOM:
         return [
             build_random_context_tool(
-                graph,
-                graph_folder_path,
-                seed=seed,
-                max_neighbors=max_neighbors,
-                budget_tokens=budget_tokens,
-                other_files_only=prefer_cross_file,
+                graph, graph_folder_path, seed=seed, max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens, other_files_only=prefer_cross_file,
+                max_depth=max_depth, prefer_cross_file=prefer_cross_file,
+                entity_types=entity_types, max_entity_lines=max_entity_lines,
             )
         ]
 
     if condition == CONDITION_DENSE:
         return [
             build_dense_context_tool(
-                graph,
-                graph_folder_path,
-                embed_fn=embed_fn,
-                max_neighbors=max_neighbors,
-                budget_tokens=budget_tokens,
+                graph, graph_folder_path, embed_fn=embed_fn, max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens, entity_types=entity_types,
+                max_entity_lines=max_entity_lines,
             )
         ]
 
     if condition == CONDITION_ORACLE:
         return [
             build_oracle_context_tool(
-                graph,
-                graph_folder_path,
-                targets=oracle_targets,
-                max_neighbors=max_neighbors,
-                budget_tokens=budget_tokens,
+                graph, graph_folder_path, targets=oracle_targets, max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens, max_entity_lines=max_entity_lines,
             )
         ]
 
     if condition == CONDITION_LEXICAL:
         return [
             build_lexical_context_tool(
-                graph,
-                graph_folder_path,
-                max_neighbors=max_neighbors,
-                budget_tokens=budget_tokens,
+                graph, graph_folder_path, max_neighbors=max_neighbors,
+                budget_tokens=budget_tokens, entity_types=entity_types,
+                max_entity_lines=max_entity_lines,
             )
         ]
 
     return [
         build_retrieve_graph_tool(
-            graph,
-            graph_folder_path,
-            max_depth=max_depth,
-            max_neighbors=max_neighbors,
-            budget_tokens=budget_tokens,
-            prefer_cross_file=prefer_cross_file,
-                strip_seed=strip_seed,
+            graph, graph_folder_path, max_depth=max_depth, max_neighbors=max_neighbors,
+            budget_tokens=budget_tokens, prefer_cross_file=prefer_cross_file,
+            strip_seed=strip_seed, entity_types=entity_types, max_entity_lines=max_entity_lines,
         )
     ]
 

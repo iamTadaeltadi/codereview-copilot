@@ -32,6 +32,7 @@ class ToolOrganizerTests(unittest.TestCase):
             max_neighbors=ToolOrganizerModule.DEFAULT_MAX_NEIGHBORS,
             max_depth=ToolOrganizerModule.DEFAULT_MAX_DEPTH,
             prefer_cross_file=False,
+            entity_types=None,
         )
 
     def test_the_tool_reports_its_budget_alongside_the_payload(self):

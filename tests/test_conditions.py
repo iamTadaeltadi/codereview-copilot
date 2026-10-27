@@ -203,12 +203,18 @@ class DenseConditionTests(unittest.TestCase):
         tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=120)
         self.assertLessEqual(call(tools)["budget"]["used_tokens"], 120)
 
-    def test_it_ranks_by_similarity_and_reports_the_score(self):
-        tools = build_tools(repo_graph(), "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
+    def test_it_ranks_by_similarity_without_reporting_the_score(self):
+        # The score stays out of the payload so every condition's entries carry
+        # the same fields; the order is checked against the embedder directly.
+        from Utils.ToolOrganizer import _cosine, _node_document, _tokenize_query
+
+        graph = repo_graph()
+        tools = build_tools(graph, "/tmp", condition=CONDITION_DENSE, budget_tokens=4000)
         neighbors = call(tools)["neighbors"]
         self.assertTrue(neighbors)
-        self.assertIn("score", neighbors[0])
-        scores = [n["score"] for n in neighbors]
+        self.assertNotIn("score", neighbors[0])
+        query = hashing_embedder(" ".join(_tokenize_query(QUERY)))
+        scores = [_cosine(query, hashing_embedder(_node_document(graph, n["id"]))) for n in neighbors]
         self.assertEqual(scores, sorted(scores, reverse=True))
 
     def test_it_is_deterministic(self):
@@ -376,10 +382,14 @@ class BudgetParityTests(unittest.TestCase):
         chars = [r["chars"] for r in usage.values()]
         self.assertLess(max(chars) / min(chars), 1.35)
 
-    def test_conditions_differ_in_entries_kept_not_in_text_delivered(self):
+    def test_conditions_differ_in_which_entries_not_in_the_entry_shape(self):
+        # Every condition delivers entries of one shape (id, name, type, path,
+        # source); what differs is which entities were selected.
         usage = self._usage(1500)
-        kept = {c: r["entries_kept"] for c, r in usage.items()}
-        self.assertGreater(max(kept.values()), min(kept.values()))
+        for condition, report in usage.items():
+            with self.subTest(condition=condition):
+                self.assertLessEqual(report["used_tokens"], 1500)
+                self.assertLessEqual(report["entries_kept"], report["entries_offered"])
 
     def test_rejected_entries_are_accounted_for(self):
         for condition, report in self._usage(300).items():

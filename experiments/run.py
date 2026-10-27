@@ -14,6 +14,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 
@@ -51,6 +52,8 @@ DEFAULT_DATA = ROOT / "data" / "stage3_testgen_verified.jsonl"
 DEFAULT_ARCHIVE = ROOT / "data" / "testgen_combined.zip"
 
 NEEDS_GRAPH = {"B", "C", "D", "G"}
+GRAPH_VERSION = "-v2"
+ENTITY_TYPES = ("function", "class")
 
 
 def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
@@ -62,6 +65,9 @@ def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
     key = f"{task.repo.replace('/', '__')}@{task.review_commit[:12]}"
     if sparse:
         key += f"-sparse-h{hops}"
+    # Graphs built by the repaired builder carry file sources and resolved
+    # call edges; the earlier pickles stay under their old names for audit.
+    key += GRAPH_VERSION
     cached = cache / f"{key}.pkl"
     if cached.is_file():
         with cached.open("rb") as handle:
@@ -121,47 +127,68 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         oracle_targets=oracle_targets(task) if condition == CONDITION_ORACLE else None,
         prefer_cross_file=prefer_cross_file,
         strip_seed=strip_seed,
+        entity_types=ENTITY_TYPES,
+        max_entity_lines=matrix.entity_lines,
     )
     if not tools:
         return "", info
 
-    # Query the defect's function node, not its file.
-    #
-    # Passing a bare file path resolves to the file node, whose neighbourhood is
-    # that file's own contents, so retrieval returned same-file code and reached
-    # the depended-upon caller in 1 of 28 cases where the caller was available.
-    # A "graph retrieval" arm that cannot leave the file is not graph retrieval.
-    return tools[0].invoke({"node": _seed_query(task, graph)}), info
+    # The same seeds for every condition, chosen from the diff and never from
+    # the ground truth: an earlier version seeded from the function covering
+    # the defect line, which no reviewer could know.
+    seeds = seed_queries(task, graph)
+    if not seeds:
+        return "", info
+    return tools[0].invoke({"node": "\n".join(seeds)}), info
 
 
-def _seed_query(task, graph):
-    """The most specific node the graph holds for this defect."""
-    defect = task.defects[0] if task.defects else None
-    if defect is None or not defect.path:
-        return ""
+HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", re.M)
+DIFF_FILE = re.compile(r"^diff --git a/(\S+) b/(\S+)$", re.M)
+
+
+def changed_ranges(diff: str) -> dict:
+    """{path: [(first, last)]} of new-file line ranges the diff's hunks cover."""
+    out = {}
+    for block in re.split(r"(?=^diff --git )", diff or "", flags=re.M):
+        header = DIFF_FILE.match(block)
+        if not header:
+            continue
+        path = header.group(2)
+        if path == "/dev/null":
+            continue
+        for start, count in HUNK.findall(block):
+            start = int(start)
+            count = int(count) if count else 1
+            out.setdefault(path, []).append((start, max(start, start + count - 1)))
+    return out
+
+
+def seed_queries(task, graph) -> list:
+    """Every function or class in the graph whose span overlaps a changed hunk,
+    in diff order; a changed file with no such entity contributes its file node.
+    Does not read task.defects."""
+    ranges = changed_ranges(task.diff)
     if graph is None:
-        return defect.path
-
-    # The function or class whose line range covers the defect.
-    best, best_span = None, None
-    for node_id, data in graph.nodes(data=True):
-        if data.get("relative_path") != defect.path:
-            continue
-        if data.get("type") not in ("function", "class"):
-            continue
-        span = data.get("line_range") or []
-        try:
-            lo, hi = int(span[0]), int(span[1])
-        except (TypeError, ValueError, IndexError):
-            continue
-        if defect.line is not None and lo <= defect.line <= hi:
-            width = hi - lo
-            if best_span is None or width < best_span:
-                best, best_span = data, width
-
-    if best is not None:
-        return f"{defect.path}::{best.get('type')}::{best.get('name')}"
-    return defect.path
+        return list(ranges)
+    seeds = []
+    for path, spans in ranges.items():
+        hits = []
+        for node_id, data in graph.nodes(data=True):
+            if data.get("relative_path") != path or data.get("type") not in ENTITY_TYPES:
+                continue
+            span = data.get("line_range") or []
+            try:
+                lo, hi = int(span[0]), int(span[1])
+            except (TypeError, ValueError, IndexError):
+                continue
+            if any(lo <= last and hi >= first for first, last in spans):
+                hits.append((lo, hi - lo, f"{path}::{data.get('type')}::{data.get('name')}"))
+        if hits:
+            # Innermost entities first at each position: a method before its class.
+            seeds.extend(q for _, _, q in sorted(hits))
+        elif graph.has_node(path):
+            seeds.append(path)
+    return list(dict.fromkeys(seeds))
 
 
 def already_done(path):
@@ -197,8 +224,8 @@ def main() -> int:
                              "file before the budget applies; without it a file node is a "
                              "hub and the budget fills with same-file code")
     parser.add_argument("--strip-seed", action="store_true",
-                        help="condition B control: the queried node carries no line_range "
-                             "or metadata, like the random and lexical conditions")
+                        help="kept for the recorded control command; the seed is now always "
+                             "stripped in every condition, so the flag changes nothing")
     parser.add_argument("--hops", type=int, default=1,
                         help="import hops when building the graph; the cross-file "
                              "benchmark needs the wider neighbourhood its defects live in")

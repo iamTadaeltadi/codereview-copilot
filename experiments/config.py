@@ -108,6 +108,10 @@ class RunMatrix:
     # offer enough entries to reach it. The token budget does the limiting; this
     # only stops a pathological neighbourhood from being serialised in full.
     candidate_cap: int = 80
+    # Every retrieved entity is delivered as its source trimmed to its line
+    # range, and a long function is cut at this many lines so one entity cannot
+    # take the whole budget. The same cap applies in every condition.
+    entity_lines: int = 40
     temperature: float = 0.1
     seeds: tuple = (0,)
     tasks: int = 339

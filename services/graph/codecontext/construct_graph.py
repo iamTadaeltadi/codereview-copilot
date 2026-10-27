@@ -10,6 +10,21 @@ from tree_sitter import Language, Parser
 from codecontext.utils import create_structure
 import pickle
 import json
+import ast
+
+# Names that resolve to the language runtime, never to a repository function.
+# A call to one of these is not an edge, and it never creates a node.
+PY_BUILTINS = frozenset("""
+abs all any ascii bin bool bytearray bytes callable chr classmethod compile complex delattr dict dir divmod
+enumerate eval exec filter float format frozenset getattr globals hasattr hash help hex id input int isinstance
+issubclass iter len list locals map max memoryview min next object oct open ord pow print property range repr
+reversed round set setattr slice sorted staticmethod str sum super tuple type vars zip
+append extend insert remove pop clear index count sort reverse copy keys values items get update setdefault
+popitem add discard union intersection difference join split rsplit strip lstrip rstrip replace startswith
+endswith lower upper title capitalize encode decode find rfind isdigit isalpha isalnum isspace zfill ljust rjust
+center read write readline readlines writelines close flush seek tell exists mkdir deepcopy now today utcnow
+strftime strptime isoformat timestamp total_seconds group groups match search sub findall finditer
+""".split())
 
 # Load the tree-sitter parsers using standard packages
 try:
@@ -106,6 +121,38 @@ class CodeGraph:
         import_tags = self.extract_imports(tree.root_node, file_extension, rel_fname)
         return def_tags + import_tags
 
+    @staticmethod
+    def _callee_of(node):
+        """(callee name, receiver text or None) for a call node.
+
+        The first version took the first `identifier` child of the call, which
+        is only the bare form `f()`. Python calls are mostly `obj.m()`,
+        `self.m()` and `pkg.mod.f()`, whose callee is an `attribute` node, so
+        every method call and every module-qualified call was dropped before
+        resolution began. The receiver is kept so that resolution can use it.
+        """
+        if node.type == "method_invocation":  # Java
+            name = node.child_by_field_name("name")
+            obj = node.child_by_field_name("object")
+            return (name.text.decode("utf-8") if name is not None else None,
+                    obj.text.decode("utf-8") if obj is not None else None)
+        fn = node.child_by_field_name("function")
+        if fn is None:
+            return None, None
+        if fn.type == "identifier":
+            return fn.text.decode("utf-8"), None
+        if fn.type == "attribute":  # Python
+            attr = fn.child_by_field_name("attribute")
+            obj = fn.child_by_field_name("object")
+            return (attr.text.decode("utf-8") if attr is not None else None,
+                    obj.text.decode("utf-8") if obj is not None else None)
+        if fn.type == "member_expression":  # JavaScript
+            prop = fn.child_by_field_name("property")
+            obj = fn.child_by_field_name("object")
+            return (prop.text.decode("utf-8") if prop is not None else None,
+                    obj.text.decode("utf-8") if obj is not None else None)
+        return None, None
+
     def extract_function_calls(self, node, rel_fname, current_function):
         """
         Recursively extract function call tags within a function/method node.
@@ -113,9 +160,8 @@ class CodeGraph:
         """
         calls = []
         if node.type in ("call", "call_expression", "method_invocation"):
-            func_name_node = next((c for c in node.children if c.type == "identifier"), None)
-            if func_name_node:
-                callee_name = func_name_node.text.decode("utf-8")
+            callee_name, receiver = self._callee_of(node)
+            if callee_name:
                 calls.append(Tag(
                     rel_fname=rel_fname,
                     fname=current_function,  # The caller’s function name
@@ -123,7 +169,7 @@ class CodeGraph:
                     name=callee_name,        # The callee name
                     kind="call",
                     category="function_call",
-                    info={}
+                    info={"receiver": receiver}
                 ))
 
         for child in node.children:
@@ -428,6 +474,128 @@ class CodeGraph:
         code_graph = self.tag_to_graph(tags)
         return tags, code_graph
 
+    # ------------------------------------------------------------ imports
+    def _relative(self, path: str) -> str:
+        path = str(path).replace(os.sep, "/")
+        root = str(self.root).replace(os.sep, "/").rstrip("/") + "/"
+        if path.startswith(root):
+            path = path[len(root):]
+        return path.lstrip("./") if path.startswith("./") else path
+
+    def _module_file(self, module: str, level: int, importing_file: str):
+        """The repository file a Python module reference names, or None.
+
+        `import a.b.c` -> a/b/c.py or a/b/c/__init__.py, also under any root
+        prefix the repository uses (src/a/b/c.py). `from ..x import y` resolves
+        against the importing file's directory. The first version compared the
+        first dotted segment with file basenames, so `from pkg.sub import f`
+        looked for a file called pkg.py and found nothing.
+        """
+        files = self._rel_files
+        parts = [p for p in (module or "").split(".") if p]
+        if level:
+            base = Path(importing_file).parent
+            for _ in range(level - 1):
+                base = base.parent
+            stem = "/".join([*[p for p in base.parts if p not in (".", "")], *parts])
+            for candidate in (f"{stem}.py", f"{stem}/__init__.py"):
+                if candidate in files:
+                    return candidate
+            return None
+        if not parts:
+            return None
+        stem = "/".join(parts)
+        best = None
+        for candidate in (f"{stem}.py", f"{stem}/__init__.py"):
+            if candidate in files:
+                return candidate
+            suffix = "/" + candidate
+            for path in files:
+                if path.endswith(suffix) and (best is None or len(path) < len(best)):
+                    best = path
+        return best
+
+    def _build_import_table(self, tags):
+        """{file: {"files": [imported files], "names": {local name: (file, name|None)}}}
+
+        `names` maps what a file calls a thing to where the thing is defined:
+        `import a.b as x` gives x -> (a/b.py, None); `from a.b import f as g`
+        gives g -> (a/b.py, "f"); `from . import m` gives m -> (dir/m.py, None).
+        A name that an imported file itself re-exports is followed at
+        resolution time, one hop at a time.
+        """
+        table = {}
+        for tag in tags:
+            if tag.category != "import" or not tag.rel_fname.endswith(".py"):
+                continue
+            entry = table.setdefault(tag.rel_fname, {"files": [], "names": {}})
+            try:
+                tree = ast.parse(tag.name)
+            except SyntaxError:
+                continue
+            for stmt in tree.body:
+                if isinstance(stmt, ast.Import):
+                    for alias in stmt.names:
+                        target = self._module_file(alias.name, 0, tag.rel_fname)
+                        if target is None:
+                            continue
+                        entry["names"][alias.asname or alias.name] = (target, None)
+                        if target not in entry["files"]:
+                            entry["files"].append(target)
+                elif isinstance(stmt, ast.ImportFrom):
+                    package = self._module_file(stmt.module or "", stmt.level, tag.rel_fname)
+                    for alias in stmt.names:
+                        if alias.name == "*":
+                            if package and package not in entry["files"]:
+                                entry["files"].append(package)
+                            continue
+                        # `from pkg import mod` names a submodule as often as a symbol.
+                        sub = self._module_file(
+                            ((stmt.module + ".") if stmt.module else "") + alias.name, stmt.level, tag.rel_fname
+                        )
+                        if sub is not None:
+                            entry["names"][alias.asname or alias.name] = (sub, None)
+                            if sub not in entry["files"]:
+                                entry["files"].append(sub)
+                        elif package is not None:
+                            entry["names"][alias.asname or alias.name] = (package, alias.name)
+                            if package not in entry["files"]:
+                                entry["files"].append(package)
+        return table
+
+    def _definition_in(self, G, file, name, kind):
+        key = f"{file}::{kind}::{name}"
+        return key if key in self._defined and G.has_node(key) else None
+
+    def _via_file(self, G, file, name, kind, hops: int = 4):
+        """A definition of `name` in `file`, or wherever `file` imports it from."""
+        if file is None:
+            return None
+        found = self._definition_in(G, file, name, kind)
+        if found is not None or hops == 0:
+            return found
+        target = self._imports.get(file, {}).get("names", {}).get(name)
+        if target is not None:
+            tfile, tname = target
+            if tname is None:
+                # `from . import mod`: the name is a module, not a definition.
+                return None
+            return self._via_file(G, tfile, tname, kind, hops - 1)
+        return None
+
+    def _parent_files(self, G, class_key, seen=None):
+        """Files of the classes this class inherits from, nearest first."""
+        seen = seen if seen is not None else set()
+        out = []
+        if class_key is None or class_key in seen or not G.has_node(class_key):
+            return out
+        seen.add(class_key)
+        for parent in G.nodes[class_key].get("metadata", {}).get("parent_classes", []) or []:
+            if G.has_node(parent):
+                out.append(G.nodes[parent].get("relative_path"))
+                out.extend(self._parent_files(G, parent, seen))
+        return out
+
     def is_local_import(self, imported_module: str) -> bool:
         """
         Check if this 'imported_module' is local vs. built-in/external.
@@ -466,9 +634,26 @@ class CodeGraph:
         produce the final metadata structure.
         """
         G = nx.MultiDiGraph()
+        self._rel_files = {self._relative(p) for p in (self.all_source_files or [])}
+        self._rel_files |= {t.rel_fname for t in tags}
+        self._imports = self._build_import_table(tags)
+        self._defined = {self._get_node_key(t) for t in tags
+                         if t.kind in ("def", "method") and t.category in ("class", "function")}
+        self._defined_classes_by_file = {}
+        for t in tags:
+            if t.kind == "def" and t.category == "class":
+                self._defined_classes_by_file.setdefault(t.rel_fname, {})[t.name] = True
 
-        # 1) Create a node for each file we see in tags
+        # 1) Create a node for each file we see in tags, and keep its text so a
+        #    retrieved entity can be delivered as code trimmed to its line range.
+        G.graph["sources"] = {}
         all_files = set(t.rel_fname for t in tags)
+        for f in all_files:
+            try:
+                with open(os.path.join(self.root, f), "r", encoding="utf-8", errors="ignore") as handle:
+                    G.graph["sources"][f] = handle.read()
+            except OSError:
+                pass
         for f in all_files:
             abs_path = os.path.join(self.root, f)
             file_name = os.path.basename(abs_path)
@@ -595,8 +780,8 @@ class CodeGraph:
                 importing_file_node = tag.rel_fname
                 imported_module_string = tag.name
 
-                # Skip external
-                if not self.is_local_import(imported_module_string):
+                # Skip external (Python is decided by the import table below)
+                if not importing_file_node.endswith(".py") and not self.is_local_import(imported_module_string):
                     continue
 
                 # For C #include "...":
@@ -610,8 +795,13 @@ class CodeGraph:
                                 if base == local_header_basename:
                                     G.add_edge(importing_file_node, f, label='imports')
                                     G.nodes[importing_file_node]["metadata"]["dependencies"].append(f)
+                elif importing_file_node.endswith(".py"):
+                    for dep in self._imports.get(importing_file_node, {}).get("files", []):
+                        if G.has_node(dep) and dep not in G.nodes[importing_file_node]["metadata"]["dependencies"]:
+                            G.add_edge(importing_file_node, dep, label='imports')
+                            G.nodes[importing_file_node]["metadata"]["dependencies"].append(dep)
                 else:
-                    # Python/JS/Java
+                    # JS/Java
                     base_match = re.match(
                         r'(?:from\s+([\w\.]+)\s+import)|(?:import\s+([\w\.]+))',
                         imported_module_string
@@ -626,19 +816,29 @@ class CodeGraph:
                                     G.add_edge(importing_file_node, f, label='imports')
                                     G.nodes[importing_file_node]["metadata"]["dependencies"].append(f)
 
-        # 6) function->function edges from calls
+        # 6) class inheritance edges (before calls, so `self.m()` can look in parents)
+        for tag in tags:
+            if tag.kind == 'inherits' and tag.category == 'class_inheritance':
+                child_cls = tag.info.get("child_class")
+                parent_cls = tag.info.get("parent_class")
+                if not child_cls or not parent_cls:
+                    continue
+                child_key = self._get_class_node_key(tag.rel_fname, child_cls)
+                parent_key = self._resolve_class(G, tag.rel_fname, parent_cls)
+                if parent_key is None or not G.has_node(child_key) or parent_key == child_key:
+                    continue
+                G.add_edge(child_key, parent_key, label='inherits_from')
+                G.nodes[child_key]["metadata"]["parent_classes"].append(parent_key)
+
+        # 7) function->function edges from calls
         for tag in tags:
             if tag.kind == 'call' and tag.category == 'function_call':
                 caller = tag.fname
                 callee = tag.name
                 if not caller or not callee:
                     continue
-
+                receiver = (tag.info or {}).get("receiver") if isinstance(tag.info, dict) else None
                 caller_node_key = self._get_func_node_key(tag.rel_fname, caller)
-                callee_node_key = self._resolve_callee(G, tag.rel_fname, callee)
-
-
-                # Ensure we have a node for caller
                 if not G.has_node(caller_node_key):
                     G.add_node(
                         caller_node_key,
@@ -647,79 +847,17 @@ class CodeGraph:
                         name=caller,
                         type="function",
                         line_range=[tag.line[0], tag.line[1]],
-                        metadata={
-                            "parameters": [],
-                            "parent_class": None,
-                            "calls": [],
-                            "reads": [],
-                            "writes": [],
-                        }
+                        metadata={"parameters": [], "parent_class": None, "calls": [], "reads": [], "writes": []},
                     )
-                # Ensure we have a node for callee
-                if not G.has_node(callee_node_key):
-                    G.add_node(
-                        callee_node_key,
-                        relative_path=tag.rel_fname,
-                        file_name=os.path.basename(tag.rel_fname),
-                        name=callee,
-                        type="function",
-                        line_range=[tag.line[0], tag.line[1]],
-                        metadata={
-                            "parameters": [],
-                            "parent_class": None,
-                            "calls": [],
-                            "reads": [],
-                            "writes": [],
-                        }
-                    )
-
-                # Add edge
-                G.add_edge(caller_node_key, callee_node_key, label='calls')
-                # Record in caller’s metadata
-                G.nodes[caller_node_key]["metadata"]["calls"].append(callee_node_key)
-
-        # 7) class inheritance edges
-        for tag in tags:
-            if tag.kind == 'inherits' and tag.category == 'class_inheritance':
-                child_cls = tag.info.get("child_class")
-                parent_cls = tag.info.get("parent_class")
-                if not child_cls or not parent_cls:
+                parent_class = G.nodes[caller_node_key]["metadata"].get("parent_class")
+                caller_class = self._get_class_node_key(tag.rel_fname, parent_class) if parent_class else None
+                callee_node_key = self._resolve_callee(G, tag.rel_fname, callee, receiver, caller_class)
+                if callee_node_key is None or callee_node_key == caller_node_key:
+                    G.nodes[caller_node_key]["metadata"].setdefault("unresolved_calls", []).append(
+                        f"{receiver}.{callee}" if receiver else callee)
                     continue
-
-                child_key = self._get_class_node_key(tag.rel_fname, child_cls)
-                parent_key = self._resolve_class(G, tag.rel_fname, parent_cls)
-
-                if not G.has_node(child_key):
-                    G.add_node(
-                        child_key,
-                        relative_path=tag.rel_fname,
-                        file_name=os.path.basename(tag.rel_fname),
-                        name=child_cls,
-                        type="class",
-                        line_range=[tag.line[0], tag.line[1]],
-                        metadata={
-                            "parent_classes": [],
-                            "methods": [],
-                            "variables": [],
-                        }
-                    )
-                if not G.has_node(parent_key):
-                    G.add_node(
-                        parent_key,
-                        relative_path=tag.rel_fname,
-                        file_name=os.path.basename(tag.rel_fname),
-                        name=parent_cls,
-                        type="class",
-                        line_range=[tag.line[0], tag.line[1]],
-                        metadata={
-                            "parent_classes": [],
-                            "methods": [],
-                            "variables": [],
-                        }
-                    )
-
-                G.add_edge(child_key, parent_key, label='inherits_from')
-                G.nodes[child_key]["metadata"]["parent_classes"].append(parent_key)
+                G.add_edge(caller_node_key, callee_node_key, label='calls')
+                G.nodes[caller_node_key]["metadata"]["calls"].append(callee_node_key)
 
         # 8) var dependencies: function->variable
         for tag in tags:
@@ -798,7 +936,7 @@ class CodeGraph:
     def _get_func_node_key(self, rel_fname, func_name):
         return f"{rel_fname}::function::{func_name}"
 
-    def _resolve_definition(self, G, rel_fname, name, kind):
+    def _resolve_definition(self, G, rel_fname, name, kind, receiver=None, caller_class=None):
         """Find where `name` is actually defined, which is often another file.
 
         Keys are namespaced by file, so looking a callee up in the caller's own
@@ -807,35 +945,82 @@ class CodeGraph:
         repository graph with no edges between files cannot supply the
         cross-file context it exists to supply.
 
-        Resolution order, most specific first: the caller's own file, then the
-        files it imports, then a definition that is unique across the graph.
-        Ambiguous names outside the import set are left unresolved rather than
-        guessed, because a wrong edge is worse than a missing one.
+        Resolution order, most specific first: what the receiver names (an
+        imported module or class), the alias the file imported the name under,
+        the caller's own file, the parent classes for `self.m()`, the files
+        the caller imports, then a definition that is unique across the graph.
+        Re-exports are followed through `__init__` files. Names of the Python
+        runtime and ambiguous names outside the import set are left unresolved
+        rather than guessed, and an unresolved call creates no node: the first
+        version made a phantom function node in the caller's own file for
+        every miss, a quarter of all function nodes in the cached graphs.
         """
-        local = f"{rel_fname}::{kind}::{name}"
-        if G.has_node(local):
+        names = self._imports.get(rel_fname, {}).get("names", {})
+        deps = list(self._imports.get(rel_fname, {}).get("files", []))
+        if G.has_node(rel_fname):
+            for dep in G.nodes[rel_fname].get("metadata", {}).get("dependencies", []) or []:
+                if dep not in deps:
+                    deps.append(dep)
+
+        receiver = (receiver or "").strip() or None
+        if receiver is not None:
+            # `pkg.mod.f()` / `alias.f()` / `Cls.m()`: a receiver that names an
+            # imported module or class pins the file.
+            head = receiver.split("(")[0].split("[")[0]
+            target = names.get(head)
+            if target is not None:
+                tfile, tname = target
+                found = (self._via_file(G, tfile, name, kind) if tname is None
+                         else None)
+                if found is None and tname is not None:
+                    # receiver is an imported class: look for its method
+                    cls = self._via_file(G, tfile, tname, "class")
+                    if cls is not None:
+                        found = self._via_file(G, G.nodes[cls]["relative_path"], name, kind)
+                if found is not None:
+                    return found
+            if head in self._defined_classes_by_file.get(rel_fname, {}):
+                # `LocalClass.m()`
+                found = self._definition_in(G, rel_fname, name, kind)
+                if found is not None:
+                    return found
+        local = self._definition_in(G, rel_fname, name, kind)
+        if local is not None and receiver in (None, "self", "cls", "super()"):
             return local
 
-        imported = []
-        if G.has_node(rel_fname):
-            imported = G.nodes[rel_fname].get("metadata", {}).get("dependencies", []) or []
-        for dependency in imported:
-            candidate = f"{dependency}::{kind}::{name}"
-            if G.has_node(candidate):
-                return candidate
+        if receiver is None:
+            target = names.get(name)
+            if target is not None:
+                tfile, tname = target
+                found = self._via_file(G, tfile, tname or name, kind)
+                if found is not None:
+                    return found
 
-        matches = [
-            node
-            for node, data in G.nodes(data=True)
-            if data.get("type") == kind and data.get("name") == name
-        ]
+        if receiver in ("self", "cls", "super()") and caller_class is not None:
+            for pfile in self._parent_files(G, caller_class):
+                found = self._via_file(G, pfile, name, kind)
+                if found is not None:
+                    return found
+
+        if local is not None:
+            return local
+
+        for dependency in deps:
+            found = self._via_file(G, dependency, name, kind)
+            if found is not None:
+                return found
+
+        if name in PY_BUILTINS and rel_fname.endswith(".py"):
+            return None
+
+        matches = [key for key in self._defined
+                   if key.split("::")[-2] == kind and key.split("::")[-1] == name and G.has_node(key)]
         if len(matches) == 1:
             return matches[0]
+        return None
 
-        return local
-
-    def _resolve_callee(self, G, rel_fname, name):
-        return self._resolve_definition(G, rel_fname, name, "function")
+    def _resolve_callee(self, G, rel_fname, name, receiver=None, caller_class=None):
+        return self._resolve_definition(G, rel_fname, name, "function", receiver, caller_class)
 
     def _resolve_class(self, G, rel_fname, name):
         return self._resolve_definition(G, rel_fname, name, "class")
