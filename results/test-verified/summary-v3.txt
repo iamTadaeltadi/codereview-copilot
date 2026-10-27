@@ -1,0 +1,62 @@
+Test-verification of v3 defects (data/crossfile-v3.jsonl) against each repository's own test suite
+
+ 159  install failed
+  46  no passing tests before mutation
+  32  test-verified
+  27  not caught by selected tests
+   7  no tests selected
+   4  error (other)
+   2  timeout
+ 277  total attempted
+
+verdict reached (test-verified + not caught): 59; test-verified share of those: 54%
+
+test-verified by kind:
+   16  default_flip
+   15  tuple_order
+    1  none_sentinel
+
+test-verified by repo:
+    7  dask/dask
+    6  conan-io/conan
+    6  networkx/networkx
+    3  deepset-ai/haystack
+    3  gradio-app/gradio
+    3  tobymao/sqlglot
+    2  python/mypy
+    1  huggingface/datasets
+    1  sqlfluff/sqlfluff
+
+test-verified task_ids:
+  xf::conan-io__conan::conan/internal/model/conanconfig.py::loadconanconfig_yml::tuple_order::36
+  xf::conan-io__conan::conan/internal/loader.py::load_python_file::tuple_order::330
+  xf::conan-io__conan::conan/internal/util/files.py::gather_files::tuple_order::293
+  xf::conan-io__conan::conan/internal/util/runners.py::conan_run::default_flip::35
+  xf::conan-io__conan::conan/internal/util/runners.py::detect_runner::tuple_order::79
+  xf::conan-io__conan::conan/internal/api/export.py::cmd_export::tuple_order::107
+  xf::dask__dask::dask/base.py::collections_to_expr::default_flip::430
+  xf::dask__dask::dask/base.py::unpack_collections::tuple_order::596
+  xf::dask__dask::dask/core.py::keys_in_tasks::default_flip::111
+  xf::dask__dask::dask/core.py::get_dependencies::default_flip::217
+  xf::dask__dask::dask/core.py::get_deps::tuple_order::272
+  xf::dask__dask::dask/delayed.py::unpack_collections::default_flip::115
+  xf::dask__dask::dask/delayed.py::delayed::default_flip::414
+  xf::deepset-ai__haystack::haystack/core/pipeline/descriptions.py::find_pipeline_inputs::default_flip::12
+  xf::deepset-ai__haystack::haystack/core/pipeline/descriptions.py::find_pipeline_outputs::default_flip::39
+  xf::deepset-ai__haystack::haystack/core/pipeline/utils.py::parse_connect_string::tuple_order::75
+  xf::gradio-app__gradio::gradio/caching.py::resolve_generator::tuple_order::116
+  xf::gradio-app__gradio::gradio/external_utils.py::get_model_info::tuple_order::35
+  xf::gradio-app__gradio::gradio/external_utils.py::cols_to_rows::tuple_order::88
+  xf::huggingface__datasets::src/datasets/utils/py_utils.py::string_to_dict::none_sentinel::185
+  xf::networkx__networkx::networkx/algorithms/chordal.py::complete_to_chordal_graph::tuple_order::420
+  xf::networkx__networkx::networkx/algorithms/distance_measures.py::diameter::default_flip::350
+  xf::networkx__networkx::networkx/algorithms/approximation/ramsey.py::ramsey_R2::tuple_order::53
+  xf::networkx__networkx::networkx/readwrite/graph6.py::data_to_n::tuple_order::392
+  xf::networkx__networkx::networkx/convert.py::to_networkx_graph::default_flip::34
+  xf::networkx__networkx::networkx/relabel.py::relabel_nodes::default_flip::9
+  xf::python__mypy::mypy/find_sources.py::create_source_list::default_flip::31
+  xf::python__mypy::mypy/join.py::normalize_callables::tuple_order::752
+  xf::sqlfluff__sqlfluff::src/sqlfluff/core/parser/match_algorithms.py::greedy_match::default_flip::558
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::array_append_sql::default_flip::1415
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::encode_decode_sql::default_flip::1837
+  xf::tobymao__sqlglot::sqlglot/dialects/dialect.py::date_delta_sql::default_flip::2060
