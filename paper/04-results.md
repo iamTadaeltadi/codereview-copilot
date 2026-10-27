@@ -23,7 +23,7 @@ Of 291 test-verified c-CRAB defects, 291 anchor in a file the pull request chang
 
 ## 4.3 Safe twins
 
-Twins are the same surface mutation as a defect task, placed where no caller in the sampled repository depends on what changed (3.3). The generator produced 165 from 33 repositories; 158 have an evidence set and were run on both models, and 157 (gpt-4o-mini) and 155 (deepseek-v3.2) are paired across all nine arms. Correct on a twin means not flagging the mutated line; the prompt is the one that presumes a defect (3.6), so every rate is a floor (Figure 3).
+Twins are the same surface mutation as a defect task, placed where no caller in the sampled repository depends on what changed (3.3). The generator produced 165 from 33 repositories; 158 have an evidence set and were run on both models, and 157 (gpt-4o-mini) and 155 (deepseek-v3.2) are paired across all nine arms. Correct on a twin means not flagging the mutated line. Both runs used the system prompt of 3.6, which tells the model that human reviewers found real problems in the diff and to assume there is something to find; every clear rate below is therefore a floor, and a neutral-prompt run that drops that sentence and states that an empty list is a correct answer is reported at the end of this section (Figure 3).
 
 | Arm | gpt-4o-mini (n=157) | deepseek-v3.2 (n=155) |
 |---|---|---|
@@ -45,6 +45,30 @@ Twins are the same surface mutation as a defect task, placed where no caller in 
 | bare link − caller alone | +0.6 [0.0, +2.1] | +1.9 [−0.7, +4.9] |
 
 No arm on either model leaves more than 11% of the safe changes unflagged. On gpt-4o-mini every arm sits between 1% and 4%, a floor under which no comparison can be read. On deepseek-v3.2 the diff alone clears 11%; showing the caller that tolerates the change lowers that to 2%, by nine points with an interval that excludes zero, while foreign code of the same length and the header alone leave it within noise of the diff. Stating the link, in any form, moves nothing. The code that should exonerate the change makes the model more certain it is a defect, which is the same direction as the precision signal in 4.7: a relevant caller raises flagging, and a relation statement does not lower it. The twins on this version are safe repository-wide, so the second version's objection, that a caller elsewhere might not be robust, no longer applies within the sampled files.
+
+**Under a neutral prompt.** The same 158 twins were re-run on gpt-4o-mini with the one sentence removed and the output contract stating that an empty list is a correct answer (3.6); every arm is otherwise identical, and there were no parse failures in 1,422 replies (`results/v3twins-neutral-gpt4omini/`).
+
+| Arm, neutral prompt, gpt-4o-mini (n=158) | twins left unflagged | findings per twin |
+|---|---|---|
+| 1 diff only | 81.6% | 0.19 |
+| 8 header only | 87.3% | 0.14 |
+| 7 foreign code, same length | 81.6% | 0.20 |
+| 2 tolerant caller shown | 54.4% | 0.50 |
+| 3 caller + bare link | 39.9% | 0.64 |
+| 4 caller + typed link | 36.7% | 0.69 |
+| 6 caller + wrong link | 13.9% | 0.96 |
+| 5 caller + attributed link | 10.8% | 0.97 |
+
+| Comparison, neutral prompt | Difference | 95% interval, repositories resampled |
+|---|---|---|
+| tolerant caller − diff only | −27.2 | [−37.7, −16.7] |
+| foreign code − diff only | 0.0 | [−4.4, +4.8] |
+| header only − diff only | +5.7 | [0.0, +11.6] |
+| bare link − caller alone | −14.6 | [−20.8, −8.4] |
+| wrong link − caller alone | −40.5 | [−49.1, −31.2] |
+| attributed link − diff only | −70.9 | [−77.5, −63.6] |
+
+Told that an empty answer is acceptable, the model leaves four in five safe changes alone from the diff, and foreign code of the same length changes nothing. Showing the caller that tolerates the change costs 27 points; stating a bare link between the snippets costs 15 more; naming the relation and its argument takes the clear rate to one in nine, and a link that points to the wrong snippet does nearly the same as the right one. Every unit of dependency metadata moves the model toward flagging a change the metadata itself shows to be safe, in proportion to how much the metadata says. The presuming prompt had hidden all of this at a floor of 2.5%; under it the arms were indistinguishable, and the two-point fall on deepseek was the visible edge of a twenty-seven-point effect. This is the one judge-free result in the paper in which the description of structure, and not only the code, moves the model, and it moves it the wrong way.
 
 ## 4.4 Test verification of the generated defects
 

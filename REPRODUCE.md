@@ -38,7 +38,7 @@ PYTHONPATH=.:services/api:services/agents:services/graph .venv/bin/python -m pyt
 | 4.1 ceiling, third version | `results/v3-ceiling/structure-gpt4omini-tag-partial.jsonl` | `results/v3-ceiling/README.md` lists the per-arm table; `scripts/reproduce.py` recomputes it |
 | 4.1 ceiling, real defects | `results/ccrab-today/A-outcomes.jsonl` | `experiments/analyse_ccrab.py` |
 | 4.2 anchor vs evidence | `results/evidence-scope.txt` | `experiments/evidence_scope.py` |
-| 4.3 safe twins | `results/v3twins-*/analysis-correct.txt` | `experiments/analyse_structure.py <run>/structure.jsonl --metric correct` |
+| 4.3 safe twins, both prompts | `results/v3twins-*/analysis-correct.txt` | `experiments/analyse_structure.py <run>/structure.jsonl --metric correct` |
 | 4.4 test verification | `results/test-verified/verify.jsonl`, `summary.txt` | `experiments/verify_by_tests.py` (hours; needs network) |
 | 4.5 real defects | `results/ccrab-today/*-outcomes.jsonl` | `experiments/analyse_ccrab.py` |
 | 4.6 search trigger | `results/search-trigger/` | `experiments/run_search_trigger.py` |

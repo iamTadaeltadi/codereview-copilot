@@ -62,14 +62,14 @@ ax.set_xticks(range(len(order))); ax.set_xticklabels(order, fontsize=8, rotation
 fig.tight_layout(); fig.savefig(OUT / "fig2-ccrab.pdf"); fig.savefig(OUT / "fig2-ccrab.png", dpi=180); plt.close(fig)
 
 # Figure 3: safe twins on the third benchmark (drawn only once both runs are frozen)
-runs = [("v3twins-tag-gpt4omini", "gpt-4o-mini"), ("v3twins-tag-deepseek", "deepseek-v3.2")]
+runs = [("v3twins-tag-gpt4omini", "gpt-4o-mini"), ("v3twins-tag-deepseek", "deepseek-v3.2"), ("v3twins-neutral-gpt4omini", "gpt-4o-mini, neutral prompt")]
 if all((ROOT / "results" / r / "analysis-correct.txt").exists() for r, _ in runs):
     fig, ax = plt.subplots(figsize=(6.6, 3.0))
-    arms = ["1-diff", "8-header", "7-random", "2-evidence", "3-topology", "5-attributed", "6-corrupted"]
-    w = 0.38
+    arms = ["1-diff", "8-header", "7-random", "2-evidence", "3-topology", "4-typed", "6-corrupted", "5-attributed"]
+    w = 0.27
     for i, (run, lab) in enumerate(runs):
         v = arms_from_analysis(ROOT / "results" / run / "analysis-correct.txt")
-        ax.bar([j + (i - 0.5) * w for j in range(len(arms))], [v.get(a, 0) * 100 for a in arms], width=w, label=lab, color=["#0E6B63", "#5EC2B6"][i])
+        ax.bar([j + (i - 0.5) * w for j in range(len(arms))], [v.get(a, 0) * 100 for a in arms], width=w, label=lab, color=["#0E6B63", "#5EC2B6", "#A4381F"][i])
     ax.set_xticks(range(len(arms))); ax.set_xticklabels([LABEL[a] for a in arms], fontsize=7.5, rotation=15)
     ax.set_ylabel("% of safe twins left unflagged"); ax.set_ylim(0, 100); ax.legend(frameon=False, fontsize=7.5)
     fig.tight_layout(); fig.savefig(OUT / "fig3-twins.pdf"); fig.savefig(OUT / "fig3-twins.png", dpi=180); plt.close(fig)
