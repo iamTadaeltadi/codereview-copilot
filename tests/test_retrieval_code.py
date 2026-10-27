@@ -17,7 +17,7 @@ try:
     from Utils.ToolOrganizer import (
         CONDITION_GRAPH, CONDITION_LEXICAL, CONDITION_RANDOM, ENTRY_FIELDS, PAYLOAD_FIELDS, build_tools,
     )
-    from experiments.run import ENTITY_TYPES, changed_ranges, seed_queries
+    from experiments.run import ENTITY_TYPES, changed_ranges, seed_queries, split_payload
 
     _AVAILABLE = True
 except Exception:  # pragma: no cover
@@ -251,6 +251,22 @@ class DiffSeedTests(unittest.TestCase):
             tools = build_tools(graph, "/tmp", condition=condition, budget_tokens=4000, entity_types=ENTITY_TYPES)
             found.add(json.dumps(json.loads(tools[0].invoke({"node": seeds}))["seeds"]))
         self.assertEqual(len(found), 1)
+
+
+@unittest.skipUnless(_AVAILABLE, "graph service deps not installed")
+class ModelTextTests(unittest.TestCase):
+    def test_the_model_never_sees_the_condition_or_the_budget(self):
+        graph = graph_from_sources(REPO)
+        for condition in (CONDITION_GRAPH, CONDITION_RANDOM, CONDITION_LEXICAL):
+            tools = build_tools(graph, "/tmp", condition=condition, budget_tokens=4000, entity_types=ENTITY_TYPES)
+            raw = tools[0].invoke({"node": "pkg/engine.py::function::run"})
+            text, meta = split_payload(raw)
+            shown = json.loads(text)
+            self.assertNotIn("condition", shown)
+            self.assertNotIn("budget", shown)
+            self.assertEqual(meta["condition"], condition)
+            self.assertIn("used_tokens", meta["budget"])
+            self.assertEqual(shown["neighbors"], json.loads(raw)["neighbors"])
 
 
 if __name__ == "__main__":

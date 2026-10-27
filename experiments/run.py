@@ -88,11 +88,30 @@ def graph_cache_get(task, graph_cache, token, sparse, hops=1, max_files=60):
     return graph, info
 
 
+MODEL_HIDDEN_FIELDS = ("condition", "budget")
+
+
+def split_payload(raw: str):
+    """(text the model sees, fields kept for the log).
+
+    The condition letter and the budget accounting are bookkeeping; the model
+    is shown the seeds and the retrieved code only. Both halves are recorded.
+    """
+    try:
+        payload = json.loads(raw)
+    except (TypeError, ValueError):
+        return raw, {}
+    if not isinstance(payload, dict):
+        return raw, {}
+    meta = {k: payload.pop(k) for k in MODEL_HIDDEN_FIELDS if k in payload}
+    return json.dumps(payload), meta
+
+
 def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True,
                   hops=1, max_files=60, prefer_cross_file=False, strip_seed=False):
-    """Return the context payload for one condition, or '' when it has none."""
+    """Return (context text for the model, graph info, retrieval log fields)."""
     if condition == CONDITION_NONE:
-        return "", None
+        return "", None, {}
 
     if condition == CONDITION_WHOLE_FILE:
         # The reference arm for what practitioners actually do: hand over the
@@ -107,7 +126,7 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         rendered = "\n\n".join(
             f"### {path}\n{text}" for path, text in sorted(sources.items())
         )
-        return rendered, len(sources)
+        return rendered, len(sources), {}
 
     from Utils.ToolOrganizer import build_tools
 
@@ -131,15 +150,17 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         max_entity_lines=matrix.entity_lines,
     )
     if not tools:
-        return "", info
+        return "", info, {}
 
     # The same seeds for every condition, chosen from the diff and never from
     # the ground truth: an earlier version seeded from the function covering
     # the defect line, which no reviewer could know.
     seeds = seed_queries(task, graph)
     if not seeds:
-        return "", info
-    return tools[0].invoke({"node": "\n".join(seeds)}), info
+        return "", info, {"seeds": []}
+    text, meta = split_payload(tools[0].invoke({"node": "\n".join(seeds)}))
+    meta["seed_queries"] = seeds
+    return text, info, meta
 
 
 HUNK = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@", re.M)
@@ -279,7 +300,7 @@ def main() -> int:
                 continue
             t0 = time.time()
             try:
-                context, info = build_context(
+                context, info, retrieval = build_context(
                     task, condition, matrix, args.graph_cache, token, args.depth,
                     sparse=not args.full_repo,
                     hops=args.hops, max_files=120 if args.crossfile else 60,
@@ -313,6 +334,7 @@ def main() -> int:
                             "condition": condition,
                             "model": model,
                             "context_chars": len(context),
+                            "retrieval": retrieval,
                             "findings": [asdict(f) for f in result.findings],
                             "parse_failed": result.parse_failed,
                             "usage": result.usage.as_dict(),
