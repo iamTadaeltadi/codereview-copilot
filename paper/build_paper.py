@@ -16,7 +16,7 @@ EMAIL = "tadaelshewaregagebre30@gmail.com"
 FIGS = {  # anchor substring in a heading -> (file, caption)
     "4.1 The partial-input ceiling": [("fig1-ceiling.png", "Figure 1. The partial-input ceiling: share of defect lines a model finds from the diff alone (gpt-4o-mini, exact line) on the second and third generated benchmarks and on the real c-CRAB defects. The third version was stopped under the pre-set 95% rule.")],
     "4.3 Safe twins": [("fig3-twins.png", "Figure 3. Safe twins on the third benchmark: the share of changes every sampled caller tolerates that the model leaves unflagged, by arm, on two models under the presuming prompt and on gpt-4o-mini under the neutral prompt.")],
-    "4.5 Real defects": [("fig2-ccrab.png", "Figure 2. c-CRAB: real test-verified defects, five conditions run on one day with one pipeline, model and budget; 219 defects for the first four conditions and 218 for the random-other-files control.")],
+    "4.5 Real defects": [("fig2-ccrab.png", "Figure 2. c-CRAB: real test-verified defects, one pipeline, model and budget, 5-line tolerance. The graph condition as first reported (red) carried the line span of the defect's function; with the span removed it sits with every other condition.")],
 }
 
 refs = {}

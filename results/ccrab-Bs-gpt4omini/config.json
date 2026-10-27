@@ -1,0 +1,39 @@
+{
+  "model": "openai/gpt-4o-mini",
+  "conditions": [
+    "B"
+  ],
+  "depth": 3,
+  "budget_tokens": 1500,
+  "tolerance": 5,
+  "tasks": 195,
+  "matrix": {
+    "conditions": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "G",
+      "F",
+      "E"
+    ],
+    "models": [
+      "primary",
+      "secondary"
+    ],
+    "budget_tokens": 1500,
+    "depths": [
+      1,
+      2,
+      3
+    ],
+    "candidate_cap": 80,
+    "temperature": 0.1,
+    "seeds": [
+      0
+    ],
+    "tasks": 339,
+    "prompt_version": "v1",
+    "embedder": "hashing-baseline"
+  }
+}

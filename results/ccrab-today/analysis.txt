@@ -1,28 +1,39 @@
 c-CRAB, test-verified real defects, gpt-4o-mini, tolerance 5 lines, budget 1500 tokens
-paired defects across A, B, C, D run today: 219
+=== A, B, C, D run on one day ===
+paired defects: 219
+  A  diff only (today)                  32.9%
+  B  graph, repaired retrieval          48.4%
+  C  random nodes, same budget          34.7%
+  D  lexical, same budget               35.6%
+  E  whole changed files (Aug)          36.1%   (n=205)
+  F  fault-location oracle (Aug)        34.2%   (n=219)
+  A  diff only (Aug)                    33.8%   (n=219)
 
-condition                          localised
-  A  diff only (today)                 32.9%
-  B  graph, repaired retrieval         48.4%
-  C  random nodes, same budget         34.7%
-  D  lexical, same budget              35.6%
-  E  whole changed files (Aug)         36.1%   (n=205)
-  F  fault-location oracle (Aug)       34.2%   (n=219)
-  A  diff only (Aug)                   33.8%   (n=219)
-
-  graph − diff only      +15.5%  [+10.0%, +21.0%]  excludes zero
-  graph − random         +13.7%  [+8.7%, +19.2%]  excludes zero
-  graph − lexical        +12.8%  [+7.8%, +17.8%]  excludes zero
-  lexical − diff only    +2.7%  [-0.9%, +6.4%]  spans zero
-  random − diff only     +1.8%  [-1.4%, +5.0%]  spans zero
+  graph − diff only               +15.5%  repo-clustered [+11.4%, +20.1%]  task-clustered [+10.0%, +21.0%]  excludes zero
+  graph − random                  +13.7%  repo-clustered [+9.6%, +17.4%]  task-clustered [+8.7%, +19.2%]  excludes zero
+  graph − lexical                 +12.8%  repo-clustered [+8.0%, +17.4%]  task-clustered [+7.8%, +18.3%]  excludes zero
+  lexical − diff only              +2.7%  repo-clustered [-1.2%, +7.3%]  task-clustered [-0.9%, +6.8%]  spans zero
+  random − diff only               +1.8%  repo-clustered [-1.4%, +5.7%]  task-clustered [-1.4%, +5.5%]  spans zero
 
 === with the random-other-files control (Cx) ===
 paired defects: 218
-  diff only                     33.0%
-  random, any file              34.9%
-  random, other files only      33.5%
-  lexical                       35.8%
-  graph, repaired               48.6%
-  graph − random other files     +15.1%  [+9.6%, +21.1%]  excludes zero
-  random other files − diff      +0.5%  [-3.2%, +4.1%]  spans zero
-  random other files − random any -1.4%  [-4.6%, +1.4%]  spans zero
+  A  diff only (today)                  33.0%
+  C  random nodes, same budget          34.9%
+  Cx random, other files only           33.5%
+  D  lexical, same budget               35.8%
+  B  graph, repaired retrieval          48.6%
+
+  graph − random other files      +15.1%  repo-clustered [+9.7%, +20.0%]  task-clustered [+9.6%, +21.1%]  excludes zero
+  random other files − diff        +0.5%  repo-clustered [-3.7%, +5.5%]  task-clustered [-3.2%, +4.1%]  spans zero
+  random other files − random any  -1.4%  repo-clustered [-4.5%, +1.9%]  task-clustered [-4.1%, +1.4%]  spans zero
+
+=== graph with the seed node stripped of line_range and metadata (Bs) ===
+paired defects: 223
+  A  diff only (today)                  33.2%
+  Cx random, other files only           33.2%
+  Bs graph, seed stripped               34.1%
+  B  graph, repaired retrieval          48.4%
+
+  graph - graph seed-stripped     +14.3%  repo-clustered [+8.8%, +19.8%]  task-clustered [+9.0%, +19.7%]  excludes zero
+  graph seed-stripped - diff only  +0.9%  repo-clustered [-3.1%, +5.1%]  task-clustered [-2.2%, +4.0%]  spans zero
+  graph seed-stripped - random other files +0.9%  repo-clustered [-2.9%, +4.9%]  task-clustered [-2.2%, +4.0%]  spans zero

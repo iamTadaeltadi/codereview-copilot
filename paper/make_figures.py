@@ -51,14 +51,16 @@ fig.tight_layout(); fig.savefig(OUT / "fig1-ceiling.pdf"); fig.savefig(OUT / "fi
 t = (ROOT / "results" / "ccrab-today" / "analysis.txt").read_text()
 rates = {}
 for lab, key in (("diff only", "A  diff only (today)"), ("random, any file", "C  random nodes, same budget"), ("lexical", "D  lexical, same budget"),
-                 ("graph, repaired", "B  graph, repaired retrieval"), ("random, other files only", "random, other files only")):
+                 ("graph, as reported\n(withdrawn)", "B  graph, repaired retrieval"), ("random, other files only", "random, other files only"),
+                 ("graph, seed span removed", "Bs graph, seed stripped")):
     m = re.search(re.escape(key) + r"\s+([0-9.]+)%", t)
     if m: rates[lab] = float(m.group(1))
-order = ["diff only", "random, any file", "random, other files only", "lexical", "graph, repaired"]
+order = ["diff only", "random, any file", "random, other files only", "lexical", "graph, seed span removed", "graph, as reported\n(withdrawn)"]
+order = [o for o in order if o in rates]
 fig, ax = plt.subplots(figsize=(7.4, 3.2))
-ax.bar(range(len(order)), [rates[o] for o in order], color=["#8A939D", "#8A939D", "#8A939D", "#8A939D", "#0E6B63"])
+ax.bar(range(len(order)), [rates[o] for o in order], color=["#8A939D"] * (len(order) - 1) + ["#A4381F"])
 for i, o in enumerate(order): ax.text(i, rates[o] + 1, f"{rates[o]:.1f}", ha="center", fontsize=8.5)
-ax.set_xticks(range(len(order))); ax.set_xticklabels(order, fontsize=8, rotation=12); ax.set_ylim(0, 60); ax.set_ylabel("% of real defects localised")
+ax.set_xticks(range(len(order))); ax.set_xticklabels(order, fontsize=7.5, rotation=12); ax.set_ylim(0, 60); ax.set_ylabel("% of real defects localised, 5-line tolerance")
 fig.tight_layout(); fig.savefig(OUT / "fig2-ccrab.pdf"); fig.savefig(OUT / "fig2-ccrab.png", dpi=180); plt.close(fig)
 
 # Figure 3: safe twins on the third benchmark (drawn only once both runs are frozen)

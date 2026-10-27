@@ -40,7 +40,7 @@ PYTHONPATH=.:services/api:services/agents:services/graph .venv/bin/python -m pyt
 | 4.2 anchor vs evidence | `results/evidence-scope.txt` | `experiments/evidence_scope.py` |
 | 4.3 safe twins, both prompts | `results/v3twins-*/analysis-correct.txt` | `experiments/analyse_structure.py <run>/structure.jsonl --metric correct` |
 | 4.4 test verification | `results/test-verified/verify.jsonl`, `summary.txt` | `experiments/verify_by_tests.py` (hours; needs network) |
-| 4.5 real defects | `results/ccrab-today/*-outcomes.jsonl` | `experiments/analyse_ccrab.py` |
+| 4.5 real defects, incl. the seed-stripped control | `results/ccrab-today/*-outcomes.jsonl` | `experiments/analyse_ccrab.py` |
 | 4.6 search trigger | `results/search-trigger/` | `experiments/run_search_trigger.py` |
 | 3.2 audit of the released benchmark | `results/audit/v3-recheck.txt` | `experiments/audit_v2.py data/crossfile-v3.jsonl data/crossfile-v3-twins.jsonl --label v3` |
 | withdrawn second-version runs (not reported) | `results/v2-*/analysis-*.txt`, `results/WITHDRAWN-v2-structure.md` | as above, kept for audit |

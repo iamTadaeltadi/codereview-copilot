@@ -15,7 +15,7 @@ A model given nothing but the diff finds the mutated line almost always, on ever
 
 The third version was run under the stop rule of 3.4 and stopped at 201 defects when the rate was clearly above 95%; there were no parse failures in 1,802 replies. By kind the rate is 104 of 107 default flips, 58 of 61 tuple reorderings, 19 of 21 `None` sentinels, 6 of 6 exception types and 5 of 6 empty-to-`None`. The reason is not that the model reads the defect: it reports 2.66 findings per task on average against four hunks, and 1.58 of those findings are on the three harmless rewrites. A semantic change among three cosmetic ones is always among the lines it flags. Precision, the rate at which the mutated line is the only line flagged, is 24.4%.
 
-Repairing the second version's leaks changed the ceiling by two points. Balanced position, function-name labels, mixed syntax-tree-neutral distractors and a strict resolver remove the ways a model could find the line without reading the change; they do not remove the fact that a flipped default or a swapped return among quote rewrites looks like the only thing worth saying. Detection rate on a mutation benchmark of this shape measures whether the mutated line looks odd, and it does. The same check on the real defects gives 32.9%: given only the diff, gpt-4o-mini localises 72 of the 219 paired c-CRAB defects. That set leaves room for context where the generated sets do not, and it is the set on which 4.5 reports a retrieval result.
+Repairing the second version's leaks changed the ceiling by two points. Balanced position, function-name labels, mixed syntax-tree-neutral distractors and a strict resolver remove the ways a model could find the line without reading the change; they do not remove the fact that a flipped default or a swapped return among quote rewrites looks like the only thing worth saying. Detection rate on a mutation benchmark of this shape measures whether the mutated line looks odd, and it does. The same check on the real defects gives 32.9%: given only the diff, gpt-4o-mini localises 72 of the 219 paired c-CRAB defects. That set leaves room for context where the generated sets do not; 4.5 reports what retrieval did with the room, once a hint the graph condition had been given is removed.
 
 ## 4.2 Anchor versus evidence, on real comments
 
@@ -76,38 +76,30 @@ Of the second version's defects, 86 were run against their repositories' own tes
 
 The syntax-tree verifier accepts many mutations whose breakage no existing test observes. That does not make them harmless: a flipped default on a public function that no test pins is the kind of change a reviewer exists to catch. It does mean that a reader who counts only test-verified defects should treat the generated benchmark as resting on an unverified majority, and that a benchmark of this kind should report the fraction.
 
-## 4.5 Real defects: retrieval that reaches the caller
+## 4.5 Real defects: the retrieval result and the control that withdrew it
 
-The model throughout is gpt-4o-mini, and the defect set is the 219 paired defects of the 291 that pass the filters in 3.6. The c-CRAB runs from August stand for the conditions that do not retrieve: on the 219 test-verified defects shared with the re-run below, no context, whole changed files and the fault-location oracle all localise 33 to 36%. The graph condition in those runs queried the file node rather than the function, walked two hops, and filled its budget with same-file neighbours, so it reached the depended-on caller in 4% of tasks where that caller was available; it is not reported. Three repairs were made and committed on 30 August, before the controlled re-run was designed: query the enclosing function, walk three hops, and rank other-file neighbours ahead of same-file ones before the budget applies. The fault-location oracle scores no better than the diff because it returns the entities spanning the defect line, which the diff already shows; it is an oracle for location, not for evidence.
+The model throughout is gpt-4o-mini, and the defect set is the 291 defects of 3.6 that pass the filters, of which 219 were paired across the four conditions run in August and re-run on one day in October (diff only, graph, random, lexical), 218 across five with the random-other-files control, and 223 across the four that matter here once the stripped control is added. Every condition shares the pipeline, the budget (1,500 tokens) and the tolerance (5 lines). The c-CRAB runs from August stand for the conditions that do not retrieve: on the test-verified defects they share with the re-run, no context, whole changed files and the fault-location oracle all localise 33 to 36%.
 
-Three features of the pipeline are common to every retrieval condition and are disclosed here because a reader cannot infer them from the table. First, every retrieval condition (B, C, C′, D and the August oracle F) starts its query from the function whose line range covers the ground-truth defect line, so retrieval begins at the fault location, which a reviewer would not know; the diff-only and whole-file conditions do not retrieve and have no seed. Second, the prompt for B, C, C′ and D carries one sentence saying a retrieval tool is available, and the diff-only prompt does not; no tool is actually callable in any condition, the context is pre-computed and inserted. Third, a hit is any finding within five lines of the defect, so a condition under which the model reports more findings has more chances; at zero tolerance the rates are 2.5% for the diff alone, 9.4% for the graph condition, 3.5% for random and 2.7% for lexical, so the ordering holds when the tolerance is removed.
+Three features of the pipeline are common to every retrieval condition and are disclosed here because a reader cannot infer them from the table. First, every retrieval condition (graph, random, random-other-files, lexical and the August oracle) starts its query from the function whose line range covers the ground-truth defect line, so retrieval begins at the fault location, which a reviewer would not know; the diff-only and whole-file conditions do not retrieve and have no seed. Second, the prompt for the retrieval conditions carries one sentence saying a retrieval tool is available, and the diff-only prompt does not; no tool is actually callable in any condition, the context is pre-computed and inserted. Third, a hit is any finding within five lines of the defect, so a condition under which the model reports more findings has more chances.
 
-One feature was specific to the graph condition and is a confound. The graph tool returns the seed function with its `line_range` and `metadata` (its calls and parameters), while the random and lexical tools return the seed with its name, type and path only. The seed covers the defect line, so the graph condition alone was told the span of the function containing the defect. The control is the graph condition with the seed reduced to the entry the other conditions carry, run on the same defects with the same model, budget and tolerance (`--strip-seed`): [[BS-RESULT]]
+One feature was specific to the graph condition, and it is the reason this section reports a withdrawal. The graph tool returned the seed function with its `line_range` and `metadata` (its calls and parameters), while the random and lexical tools returned the seed with its name, type and path only. The seed covers the defect line, so the graph condition alone was told the span of the function containing the defect. An external reviewer found this on 27 October 2026. The control is the graph condition with the seed reduced to the entry the other conditions carry, on the same defects with the same model, budget and tolerance (`experiments/run.py --conditions B --strip-seed`, `results/ccrab-Bs-gpt4omini/`), re-run with the same repaired retrieval (Figure 2):
 
-All retrieval conditions were re-run on the same day (Figure 2) with the same pipeline, model, budget (1,500 tokens) and tolerance (5 lines), on 219 defects paired across the first four and 218 across all five. The intervals below resample defects and were drawn with an unseeded bootstrap; `experiments/analyse_ccrab.py` redraws them with a fixed seed and prints the repository-resampled interval beside each (`results/ccrab-today/analysis-seeded.txt`): no bound moves by more than half a point and no verdict changes.
-
-| Condition | Localised |
-|---|---|
-| A diff only | 32.9% |
-| C random nodes, any file, same budget | 34.7% |
-| C′ random nodes, other files only, same budget | 33.5% |
-| D lexical retrieval, same budget | 35.6% |
-| **B graph retrieval, repaired** | **48.4%** |
-| E whole changed files (August, n=205) | 36.1% |
-| F fault-location oracle (August) | 34.2% |
-
-| Comparison | Difference | 95% interval |
+| Condition | Localised, 223 paired | at zero tolerance |
 |---|---|---|
-| graph − diff only | +15.5 | [+10.0, +21.0] |
-| graph − random, any file | +13.7 | [+8.7, +19.2] |
-| graph − random, other files only | +15.1 | [+9.6, +21.1] |
-| graph − lexical | +12.8 | [+7.8, +17.8] |
-| lexical − diff only | +2.7 | [−0.9, +6.4] |
-| random − diff only | +1.8 | [−1.4, +5.0] |
+| A diff only | 33.2% | 2.5% |
+| C′ random nodes, other files only, same budget | 33.2% | |
+| **B′ graph retrieval, seed span removed** | **34.1%** | 2.9% |
+| B graph retrieval, as first reported (withdrawn) | 48.4% | 9.4% |
 
-On real, test-verified defects, retrieval that reaches the caller through the dependency graph localises thirteen to fifteen points more than random or lexical retrieval at the same budget, which do no better than the diff alone. The August diff-only run on these defects gave 33.8%, so the baseline has not moved. This is the result the withdrawn comparison in August claimed to refute; it refuted nothing, because its graph arm never left the file.
+| Comparison | Difference | 95% interval, repositories resampled |
+|---|---|---|
+| graph as reported − graph, span removed | +14.3 | [+8.8, +19.8] |
+| graph, span removed − diff only | +0.9 | [−3.1, +5.1] |
+| graph, span removed − random, other files | +0.9 | [−2.9, +4.9] |
 
-The graph condition is the only one that ranks neighbours in other files ahead of the defect's own file, so a control that draws random nodes from other files only (C′, 218 paired defects) separates "found through the graph" from "from another file". It localises 33.5%, within noise of the diff alone, and the graph condition is +15.1 [+9.6, +21.1] over it. What helps is reaching the code that depends on the change, not code from elsewhere. One caution remains: this is one model and one run per condition, on a benchmark where 73% of defects anchor on a changed line and all on a changed file, so what the caller contributes is understanding of how the changed function is used, not a dependency the diff cannot show.
+The fourteen-point gain was the span. With it removed, graph retrieval that reaches the depended-on caller localises the same share of real defects as the diff alone and as random code from other files, and the ordering at zero tolerance says the same. The graph condition's neighbours are the right ones, the control in C′ is the right one, and the number is a null. Every figure from the graph condition in `results/ccrab-today/B-outcomes.jsonl` is withdrawn (`results/WITHDRAWN-ccrab-graph.md`); the file is kept so the withdrawal can be checked. The rates that stand are those of the conditions that never carried the span, run on one day with one pipeline (`experiments/analyse_ccrab.py`, `results/ccrab-today/analysis.txt`): diff only 32.9%, random nodes 34.7%, random from other files 33.5%, lexical 35.6% on the 219 paired defects, whole changed files 36.1% and the fault-location oracle 34.2% from August, and the stripped graph condition 34.1%. None differs from the diff alone by an interval that excludes zero.
+
+On real defects, then, this project has no positive retrieval result. The diff alone, whole files, random nodes from anywhere or from other files only, lexical retrieval, graph retrieval through the dependency graph, and a fault-location oracle all localise a third of the test-verified c-CRAB defects at a 1,500-token budget on gpt-4o-mini. The anchor-versus-evidence measurement says a third to a half of these defects are justified by code outside the diff, so the room is there; a 25-line caller window at this budget, selected by any of the methods tried, does not fill it for this model. Whether a frontier model or a larger budget would is not measured here.
 
 ## 4.6 The search-trigger test
 
