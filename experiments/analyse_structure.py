@@ -6,6 +6,12 @@
     python experiments/analyse_structure.py runs/<name>/structure.jsonl \\
         --primary 3-topology 2-evidence --secondary 6-corrupted 2-evidence \\
         --pair 4-typed 2-evidence --pair 7-random 2-evidence
+    python experiments/analyse_structure.py defects.jsonl twins.jsonl --metric correct
+
+Several files are read as one dataset. When it holds both defects and safe
+twins (`is_defect` true and false), balanced accuracy — the mean of the
+defect rate and the twin clear rate — is reported per arm and for every
+comparison, with the same repository-clustered paired bootstrap.
 
 The file holds one JSON object per (task, arm). Re-runs after a resume append
 duplicate (task_id, arm) rows; the first occurrence wins and the count of
@@ -67,13 +73,14 @@ def _read_rows(path: Path) -> Iterable[dict]:
 
 
 def load(path) -> Dataset:
-    """Read a structure.jsonl file, dedupe on (task_id, arm) keeping the first row,
-    and keep only tasks present in every arm that appears in the file."""
-    path = Path(path)
+    """Read one structure.jsonl file, or several as one dataset; dedupe on
+    (task_id, arm) keeping the first row, and keep only tasks present in every
+    arm that appears in the file."""
+    paths = [Path(p) for p in (path if isinstance(path, (list, tuple)) else [path])]
     first: Dict[str, Dict[str, dict]] = collections.OrderedDict()
     arms_seen: List[str] = []
     duplicates = 0
-    for row in _read_rows(path):
+    for row in (r for q in paths for r in _read_rows(q)):
         task_id, arm = row["task_id"], row["arm"]
         if arm not in arms_seen:
             arms_seen.append(arm)
@@ -94,7 +101,7 @@ def load(path) -> Dataset:
     data.arms = arms
     data.dropped_duplicates = duplicates
     data.dropped_incomplete = incomplete
-    data.path = path
+    data.path = paths[0] if len(paths) == 1 else " ".join(str(q) for q in paths)
     return data
 
 
@@ -193,6 +200,68 @@ def paired_bootstrap(
         estimates.append(total / n)
     estimates.sort()
     return point, _quantile(estimates, 0.025), _quantile(estimates, 0.975)
+
+
+def balanced_bootstrap(
+    data: Dataset,
+    arm_a: str,
+    arm_b: str,
+    metric: str,
+    trials: int = DEFAULT_TRIALS,
+    seed: int = DEFAULT_SEED,
+) -> dict:
+    """Balanced accuracy of each arm — (rate on defects + rate on twins) / 2 —
+    and their difference, each with a repository-clustered paired bootstrap.
+
+    Defects and twins are different tasks, so they are not paired row by row;
+    they are paired by repository: every trial draws repositories with
+    replacement and scores both arms on the same draw, so the two halves and
+    the two arms move together. Rows without the metric are left out."""
+    per_repo: Dict[str, List[int]] = collections.defaultdict(lambda: [0, 0, 0, 0, 0, 0])
+    # [defect hits a, defect n, twin clears a, twin n, defect hits b, twin clears b]
+    for task_id in data.tasks:
+        per_task = data[task_id]
+        if arm_a not in per_task or arm_b not in per_task:
+            continue
+        va = metric_value(per_task[arm_a], metric)
+        vb = metric_value(per_task[arm_b], metric)
+        if va is None or vb is None:
+            continue
+        g = per_repo[repo_of(task_id)]
+        if per_task[arm_a].get("is_defect", True):
+            g[0] += int(va); g[1] += 1; g[4] += int(vb)
+        else:
+            g[2] += int(va); g[3] += 1; g[5] += int(vb)
+    keys = sorted(per_repo)
+    cells = [per_repo[k] for k in keys]
+
+    def estimate(sel: Sequence[List[int]]) -> Tuple[float, float]:
+        ha = sum(c[0] for c in sel); nd = sum(c[1] for c in sel)
+        ca = sum(c[2] for c in sel); nt = sum(c[3] for c in sel)
+        hb = sum(c[4] for c in sel); cb = sum(c[5] for c in sel)
+        if not nd or not nt:
+            return float("nan"), float("nan")
+        return (ha / nd + ca / nt) / 2, (hb / nd + cb / nt) / 2
+
+    point_a, point_b = estimate(cells)
+    rng = random.Random(seed)
+    k = len(cells)
+    est_a: List[float] = []; est_b: List[float] = []; est_d: List[float] = []
+    for _ in range(trials):
+        draw = [cells[rng.randrange(k)] for _ in range(k)]
+        a, b = estimate(draw)
+        if math.isnan(a):
+            continue
+        est_a.append(a); est_b.append(b); est_d.append(a - b)
+    for e in (est_a, est_b, est_d):
+        e.sort()
+    q = lambda e: (_quantile(e, 0.025), _quantile(e, 0.975)) if e else (float("nan"), float("nan"))
+    return {"arm_a": arm_a, "arm_b": arm_b, "metric": metric,
+            "n_defect": sum(c[1] for c in cells), "n_twin": sum(c[3] for c in cells),
+            "repos": k, "balanced_a": point_a, "balanced_b": point_b,
+            "ci_a": q(est_a), "ci_b": q(est_b),
+            "point": point_a - point_b, "repo_ci": q(est_d),
+            "repo_excludes_zero": _excludes_zero(*q(est_d))}
 
 
 # ------------------------------------------------------------------------ mcnemar
@@ -443,6 +512,20 @@ def report(
     for (label, _), c in zip(present, cells):
         lines.extend(_describe_cell(c, label))
         lines.append("")
+
+    if any(v["n_twin"] for v in bal.values()) and any(v["n_defect"] for v in bal.values()):
+        lines.append("balanced accuracy: (rate on defects + clear rate on twins) / 2, "
+                     "repository-clustered paired bootstrap")
+        lines.append("")
+        for (label, p) in present:
+            b = balanced_bootstrap(data, p[0], p[1], metric, trials, seed)
+            lines.append(f"{label}: {b['arm_a']} minus {b['arm_b']}  (balanced {metric}, "
+                         f"defects={b['n_defect']}, twins={b['n_twin']}, repos={b['repos']})")
+            lines.append(f"  balanced {b['arm_a']} {_fmt(b['balanced_a'])} [{_fmt(b['ci_a'][0])}, {_fmt(b['ci_a'][1])}]   "
+                         f"{b['arm_b']} {_fmt(b['balanced_b'])} [{_fmt(b['ci_b'][0])}, {_fmt(b['ci_b'][1])}]")
+            lines.append(f"  balanced difference {_fmt(b['point'])}   repo-clustered 95% CI "
+                         f"[{_fmt(b['repo_ci'][0])}, {_fmt(b['repo_ci'][1])}]   {_zero_phrase(b['repo_excludes_zero'])}")
+            lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -451,7 +534,7 @@ def report(
 
 def _parse_args(argv: Optional[Sequence[str]]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("path", help="runs/<name>/structure.jsonl")
+    parser.add_argument("path", nargs="+", help="runs/<name>/structure.jsonl; several files are read as one dataset")
     parser.add_argument("--missing-as-false", action="store_true",
                         help="treat a null metric as False: a miss cannot state the mechanism, so a judge "
                              "verdict that exists only for hits must count misses as failures or arms are "
@@ -469,7 +552,7 @@ def _parse_args(argv: Optional[Sequence[str]]) -> argparse.Namespace:
 def main(argv: Optional[Sequence[str]] = None) -> str:
     args = _parse_args(argv)
     text = report(
-        args.path,
+        args.path if len(args.path) > 1 else args.path[0],
         metric=args.metric,
         primary=tuple(args.primary),
         secondary=tuple(args.secondary),

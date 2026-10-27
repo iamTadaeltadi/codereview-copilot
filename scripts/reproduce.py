@@ -25,7 +25,7 @@ def key_lines(text):
     """The per-arm table rows and the difference rows: the numbers the paper uses."""
     out = []
     for line in text.splitlines():
-        if re.match(r"^[1-8]\S* +\d", line) or line.startswith("  difference") or line.startswith("  McNemar"):
+        if re.match(r"^[1-8]\S* +\d", line) or line.startswith(("  difference", "  McNemar", "  balanced")):
             out.append(re.sub(r"\s+", " ", line.strip()))
     return out
 
@@ -41,7 +41,8 @@ def reproduce(path):
     extra = [(a, b) for l, a, b in pairs if l not in ("primary", "secondary")]
     want = key_lines(frozen)
     for missing in (False, True):
-        got = report(ROOT / head["file"], metric=head["metric"], primary=primary, secondary=secondary,
+        src = [ROOT / f for f in head["file"].split()]
+        got = report(src if len(src) > 1 else src[0], metric=head["metric"], primary=primary, secondary=secondary,
                      extra_pairs=extra, missing_as_false=missing)
         if key_lines(got) == want:
             return "MATCH" + (" (missing-as-false)" if missing else "")
@@ -49,7 +50,7 @@ def reproduce(path):
 
 
 def main(argv):
-    files = sorted(ROOT.glob("results/v2*/analysis-*.txt")) + sorted(ROOT.glob("results/v3twins-*/analysis-*.txt")) + sorted(ROOT.glob("results/v3-ceiling/analysis-*.txt"))
+    files = sorted(ROOT.glob("results/v2*/analysis-*.txt")) + sorted(ROOT.glob("results/v3twins-*/analysis-*.txt")) + sorted(ROOT.glob("results/v3-neutral-*/analysis-*.txt")) + sorted(ROOT.glob("results/v3-ceiling/analysis-*.txt"))
     bad = 0
     for f in files:
         status = reproduce(f)

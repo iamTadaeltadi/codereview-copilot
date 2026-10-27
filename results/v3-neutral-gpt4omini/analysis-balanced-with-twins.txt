@@ -1,0 +1,90 @@
+file:                 results/v3-neutral-gpt4omini/structure.jsonl results/v3twins-neutral-gpt4omini/structure.jsonl
+model:                openai/gpt-4o-mini
+encoding:             tag
+metric:               correct
+arms:                 1-diff, 2-evidence, 2b-snippets, 3-topology, 4-typed, 5-attributed, 6-corrupted, 7-random, 8-header
+tasks compared:       429
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   0  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------
+1-diff          429       429         0.490      0.30      0.01           0          1091     0.00008
+2-evidence      429       429         0.531      0.59      0.04           0          4186     0.00020
+2b-snippets     429       429         0.552      0.69      0.07           0          3861     0.00016
+3-topology      429       429         0.545      0.74      0.03           0          4154     0.00018
+4-typed         429       429         0.545      0.79      0.06           0          4163     0.00017
+5-attributed    429       429         0.555      1.02      0.08           0          4186     0.00018
+6-corrupted     429       429         0.545      0.96      0.06           0          4185     0.00017
+7-random        429       429         0.520      0.36      0.03           0          3746     0.00017
+8-header        429       429         0.529      0.30      0.02           0          1416     0.00009
+
+arm            n_defect n_twin  on defects  on twins  balanced
+1-diff              271    158       0.299     0.816     0.558
+2-evidence          271    158       0.524     0.544     0.534
+2b-snippets         271    158       0.587     0.494     0.540
+3-topology          271    158       0.631     0.399     0.515
+4-typed             271    158       0.649     0.367     0.508
+5-attributed        271    158       0.815     0.108     0.462
+6-corrupted         271    158       0.782     0.139     0.461
+7-random            271    158       0.347     0.816     0.582
+8-header            271    158       0.328     0.873     0.601
+
+comparisons (6 in the Holm family)
+
+primary: 2-evidence minus 1-diff  (metric=correct, n=429, skipped=0)
+  difference   0.042   repo-clustered 95% CI [ -0.037,   0.125]   task-clustered 95% CI [ -0.012,   0.093]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=74 (a right, b wrong)  c=56 (a wrong, b right)  exact p=0.1357  Holm-adjusted p=0.4882
+
+secondary: 5-attributed minus 1-diff  (metric=correct, n=429, skipped=0)
+  difference   0.065   repo-clustered 95% CI [ -0.024,   0.164]   task-clustered 95% CI [ -0.009,   0.140]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=147 (a right, b wrong)  c=119 (a wrong, b right)  exact p=0.0976  Holm-adjusted p=0.4882
+
+extra 1: 7-random minus 1-diff  (metric=correct, n=429, skipped=0)
+  difference   0.030   repo-clustered 95% CI [ -0.004,   0.065]   task-clustered 95% CI [ -0.002,   0.065]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=34 (a right, b wrong)  c=21 (a wrong, b right)  exact p=0.1048  Holm-adjusted p=0.4882
+
+extra 2: 8-header minus 1-diff  (metric=correct, n=429, skipped=0)
+  difference   0.040   repo-clustered 95% CI [  0.007,   0.072]   task-clustered 95% CI [  0.007,   0.072]
+  repo-clustered: interval excludes zero; task-clustered: interval excludes zero
+  McNemar b=37 (a right, b wrong)  c=20 (a wrong, b right)  exact p=0.0331  Holm-adjusted p=0.1989
+
+extra 3: 3-topology minus 2-evidence  (metric=correct, n=429, skipped=0)
+  difference   0.014   repo-clustered 95% CI [ -0.029,   0.056]   task-clustered 95% CI [ -0.028,   0.056]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=44 (a right, b wrong)  c=38 (a wrong, b right)  exact p=0.5811  Holm-adjusted p=1.0000
+
+extra 4: 6-corrupted minus 2-evidence  (metric=correct, n=429, skipped=0)
+  difference   0.014   repo-clustered 95% CI [ -0.039,   0.071]   task-clustered 95% CI [ -0.042,   0.070]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=78 (a right, b wrong)  c=72 (a wrong, b right)  exact p=0.6832  Holm-adjusted p=1.0000
+
+balanced accuracy: (rate on defects + clear rate on twins) / 2, repository-clustered paired bootstrap
+
+primary: 2-evidence minus 1-diff  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 2-evidence   0.534 [  0.476,   0.591]   1-diff   0.558 [  0.508,   0.605]
+  balanced difference  -0.024   repo-clustered 95% CI [ -0.097,   0.051]   interval spans zero
+
+secondary: 5-attributed minus 1-diff  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 5-attributed   0.462 [  0.430,   0.495]   1-diff   0.558 [  0.508,   0.605]
+  balanced difference  -0.096   repo-clustered 95% CI [ -0.149,  -0.038]   interval excludes zero
+
+extra 1: 7-random minus 1-diff  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 7-random   0.582 [  0.541,   0.621]   1-diff   0.558 [  0.508,   0.605]
+  balanced difference   0.024   repo-clustered 95% CI [ -0.010,   0.058]   interval spans zero
+
+extra 2: 8-header minus 1-diff  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 8-header   0.601 [  0.563,   0.638]   1-diff   0.558 [  0.508,   0.605]
+  balanced difference   0.043   repo-clustered 95% CI [  0.009,   0.078]   interval excludes zero
+
+extra 3: 3-topology minus 2-evidence  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 3-topology   0.515 [  0.463,   0.565]   2-evidence   0.534 [  0.476,   0.591]
+  balanced difference  -0.019   repo-clustered 95% CI [ -0.063,   0.021]   interval spans zero
+
+extra 4: 6-corrupted minus 2-evidence  (balanced correct, defects=271, twins=158, repos=37)
+  balanced 6-corrupted   0.461 [  0.428,   0.495]   2-evidence   0.534 [  0.476,   0.591]
+  balanced difference  -0.073   repo-clustered 95% CI [ -0.125,  -0.023]   interval excludes zero

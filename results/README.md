@@ -35,4 +35,5 @@ review found five instrument defects; see `WITHDRAWN-v2-structure.md` and
 | `v3-ceiling/` | the diff-only ceiling run, stopped at 201 of 277 defects under the pre-set 95% rule; all nine arms kept, arm comparisons not reported |
 | `v3twins-tag-gpt4omini/`, `v3twins-tag-deepseek/` | safe twins, nine arms, two models, presuming prompt; `analysis-correct.txt` is the clear rate per arm |
 | `v3twins-neutral-gpt4omini/` | the same twins under the neutral prompt (`--neutral-prompt`), gpt-4o-mini |
+| `v3-neutral-gpt4omini/` | the 277 defects under the neutral prompt, gpt-4o-mini; `analysis-balanced-with-twins.txt` combines it with the neutral twins into balanced accuracy |
 | `test-verified/` | each repository's own tests run before and after each mutation; `summary.txt` has the funnel |
