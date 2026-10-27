@@ -49,7 +49,7 @@ def reproduce(path):
 
 
 def main(argv):
-    files = sorted(ROOT.glob("results/v2*/analysis-*.txt")) + sorted(ROOT.glob("results/v3twins-*/analysis-*.txt"))
+    files = sorted(ROOT.glob("results/v2*/analysis-*.txt")) + sorted(ROOT.glob("results/v3twins-*/analysis-*.txt")) + sorted(ROOT.glob("results/v3-ceiling/analysis-*.txt"))
     bad = 0
     for f in files:
         status = reproduce(f)

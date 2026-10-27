@@ -67,3 +67,16 @@ One model (gemini-2.5-flash), the same two tools, the same repository and the sa
 ## 4.7 The withdrawn and stopped runs
 
 The held-constant experiment of 3.5 was run in full on the second benchmark: four base runs across three model families and two serialisations, two twin runs, a hidden-evidence and a noise variant, and an authoritative-callers variant, each judged by two models. Every number from those runs is withdrawn with the benchmark, for the five instrument defects listed in 3.2; the raw records, the analyses and the judge labels are kept under `results/` with a notice (`results/WITHDRAWN-v2-structure.md`) so that the withdrawal can be checked, and so that a reader can see what the effects looked like on a leaking instrument. On the third benchmark one base run was started and stopped under the pre-set rule at 201 defects; its nine arms are kept whole in `results/v3-ceiling/` and its arm-level numbers are not reported as results, because a comparison between arms on a benchmark where the diff alone scores 95.5% is a comparison of what the model does with the other 4.5%.
+
+One number from that run is reported, as a signal and not as a result of the experiment, because it is judge-free, because it answers a question the twins also answer, and because it does not depend on detection: precision, whether the mutated line is the only line flagged. On the 200 defects paired across all nine arms (`results/v3-ceiling/analysis-precise-partial.txt`; one model, one serialisation, stopped run):
+
+| Comparison on precision | Difference | 95% interval, repositories resampled |
+|---|---|---|
+| real caller shown (evidence) − diff only | −14.0 | [−20.7, −7.9] |
+| real caller + attributed relation − diff only | −11.5 | [−17.6, −5.6] |
+| foreign code, same length − diff only | +6.0 | [+1.7, +10.1] |
+| header only − diff only | −3.0 | [−7.5, +1.1] |
+| bare link − scrambled control | 0.0 | [−3.2, +3.0] |
+| attributed relation − scrambled control | +2.5 | [−0.9, +6.2] |
+
+Showing the model the caller that depends on the change makes it flag more of the harmless lines, by fourteen points against the diff alone, while foreign code of the same length makes it flag slightly fewer. Stating the link between the snippets recovers none of the loss: the bare link against the scrambled control is 0.0 with an interval of three points either side. The withdrawn second-version runs had reported a ten-to-fourteen-point precision gain for the bare link on all four runs; on the repaired benchmark, where labels no longer carry line numbers, that gain is absent on the one run made. The second version's structure effect on precision is therefore best read as the line-number leak, and the twins in 4.3 are the direct measurement of what the caller does to false alarms.

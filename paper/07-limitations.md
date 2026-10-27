@@ -6,7 +6,7 @@
 
 **The ceiling is measured on one model.** The diff-only rate is reported for gpt-4o-mini on every version. The second version's runs, withdrawn, put llama-3.3-70b and deepseek-v3.2 at the same ceiling, so we do not expect a cheaper model to lower it, but on the third version it is one model.
 
-**The stop rule stopped a run that could have measured precision.** The third version's base run was halted at 201 of 277 defects because the diff-only rate exceeded the pre-set threshold. Precision, which the ceiling does not saturate, could have been compared across arms on a completed run. We chose to honour the rule as written rather than redefine the outcome after seeing the data; the stopped run is released whole, and a reader may compute from it what we do not report.
+**The precision signal comes from a stopped run.** The third version's base run was halted at 201 of 277 defects because the diff-only rate exceeded the pre-set threshold, and the rule said to report only the ceiling. We report one more number from it, the precision comparison in 4.7, because it is judge-free and because the twins measure the same thing directly; it is one model, one serialisation and 200 paired defects, it was not pre-registered on this version, and a reader should weigh it as a signal that the twins either confirm or do not.
 
 **Python only.** The generator, the import resolution and the verifiers are written against Python's `ast`. The project's graph builder parses four languages; the benchmark exercises one.
 
