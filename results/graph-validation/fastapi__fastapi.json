@@ -1,0 +1,2459 @@
+{
+ "summary": {
+  "repo": "fastapi/fastapi",
+  "commit": "79cab5bed28b24d92c185d236feb33f5783dfeb3",
+  "prefix": "fastapi/",
+  "files": 50,
+  "definitions": 189,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 26,
+  "unique_name_targets": 48,
+  "old": {
+   "calls_edges": 1419,
+   "cross_file_calls": 938,
+   "function_nodes": 341,
+   "phantom_function_nodes": 117,
+   "jedi": {
+    "tp": 85,
+    "fp": 0,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 85,
+    "fp": 0,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 442,
+   "cross_file_calls": 166,
+   "function_nodes": 224,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 85,
+    "fp": 1,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 0.9883720930232558
+   },
+   "loose_unique": {
+    "tp": 84,
+    "fp": 0,
+    "fn": 7,
+    "recall": 0.9230769230769231,
+    "precision": 1.0
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_get_form_models",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_apply_form_body_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_body_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_should_embed_body_fields"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_apply_form_body_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_body_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_should_embed_body_fields"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_apply_form_body_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_body_field"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_should_embed_body_fields"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_apply_form_body_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_body_field"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_should_embed_body_fields"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/telemetry/_api.py",
+   "name": "_traced_operation",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/telemetry/_api.py",
+     "_operation"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/telemetry/_api.py",
+     "_operation"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_api.py",
+      "_operation"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_api.py",
+      "_operation"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/utils.py",
+   "name": "get_path_param_names",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "get_dependant"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "get_dependant"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "get_dependant"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "get_dependant"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/telemetry/_asgi.py",
+   "name": "_instruments",
+   "class": "NativeTelemetry",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/telemetry/_asgi.py",
+     "__call__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/telemetry/_asgi.py",
+     "__call__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_asgi.py",
+      "__call__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/telemetry/_runtime.py",
+   "name": "_registration_provider",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/telemetry/_runtime.py",
+     "_configure_from_environment"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/telemetry/_runtime.py",
+     "_configure_from_environment"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_runtime.py",
+      "_configure_from_environment"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_runtime.py",
+      "_configure_from_environment"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_flat_models_from_annotation",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_annotation"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_annotation"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_annotation"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_field"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "is_scalar_field",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_should_embed_body_fields",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_extract_form_items",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_body"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_normalize_form_model"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_body"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_normalize_form_model"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_body"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_normalize_form_model"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_body"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_normalize_form_model"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_missing_field_error",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_validate_value_with_model_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_validate_value_with_model_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_validate_value_with_model_field"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_validate_value_with_model_field"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_get_form_model",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_body_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_body_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_body_field"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_body_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/models.py",
+   "name": "_get_security_scheme",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_security_definitions"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_security_definitions"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_security_definitions"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_security_definitions"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "is_pydantic_v1_model_class",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "annotation_is_pydantic_v1"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "annotation_is_pydantic_v1"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "asdict",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "__post_init__"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "copy_field_info"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "__post_init__"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "copy_field_info"
+    ],
+    [
+     "fastapi/encoders.py",
+     "jsonable_encoder"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "__post_init__"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "copy_field_info"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "__post_init__"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "copy_field_info"
+     ],
+     [
+      "fastapi/encoders.py",
+      "jsonable_encoder"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/security/api_key.py",
+   "name": "make_not_authenticated_error",
+   "class": "APIKeyBase",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "fastapi/security/api_key.py",
+     "check_api_key"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/security/api_key.py",
+      "check_api_key"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/models.py",
+   "name": "_is_gen_callable_cached",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_is_gen_callable"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_is_gen_callable"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_is_gen_callable"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_is_gen_callable"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_solve_generator",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/openapi/utils.py",
+   "name": "get_openapi_operation_request_body",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/telemetry/_asgi.py",
+   "name": "_exception",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/telemetry/_asgi.py",
+     "__call__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/telemetry/_asgi.py",
+     "__call__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_asgi.py",
+      "__call__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/telemetry/_asgi.py",
+      "__call__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_default",
+   "class": "ModelField",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "default"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "default"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_default"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "default"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/exceptions.py",
+   "name": "_format_endpoint_context",
+   "class": "ValidationException",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/exceptions.py",
+     "__str__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/exceptions.py",
+     "__str__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/exceptions.py",
+      "__str__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/models.py",
+   "name": "_get_oauth_scopes",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_get_cache_key"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_dependency_data"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_get_cache_key"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_dependency_data"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_get_cache_key"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_dependency_data"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_get_cache_key"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_dependency_data"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/utils.py",
+   "name": "is_body_allowed_for_status_code",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/exception_handlers.py",
+     "http_exception_handler"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/exception_handlers.py",
+     "http_exception_handler"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/exception_handlers.py",
+      "http_exception_handler"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/exception_handlers.py",
+      "http_exception_handler"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "field_annotation_is_complex",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_complex"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_complex"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_complex"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_get_multidict_value",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_items"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_request_param_model_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_items"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_request_param_model_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_items"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_request_param_model_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_items"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_request_param_model_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/utils.py",
+   "name": "deep_dict_update",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ],
+    [
+     "fastapi/utils.py",
+     "deep_dict_update"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ],
+    [
+     "fastapi/utils.py",
+     "deep_dict_update"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ],
+     [
+      "fastapi/utils.py",
+      "deep_dict_update"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "is_pydantic_v1_model_instance",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/encoders.py",
+     "jsonable_encoder"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/encoders.py",
+     "jsonable_encoder"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/encoders.py",
+      "jsonable_encoder"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/encoders.py",
+      "jsonable_encoder"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "field_annotation_is_scalar_sequence",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar_sequence"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "_annotation_is_sequence",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "_annotation_is_complex"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_sequence"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "_annotation_is_complex"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_sequence"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "_annotation_is_complex"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_sequence"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "_annotation_is_complex"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_sequence"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "request_params_to_args",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_flat_models_from_model",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_annotation"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_annotation"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_annotation"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_field"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_annotation"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/models.py",
+   "name": "_get_computed_scope",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_get_cache_key"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "get_dependant"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_get_cache_key"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "get_dependant"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_get_cache_key"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "get_dependant"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_get_cache_key"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "get_dependant"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_get_param_aliases",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_apply_form_body_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_items"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_is_form_model_supplied"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_request_param_model_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_operation_parameters"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_apply_form_body_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_items"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_is_form_model_supplied"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_request_param_model_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_operation_parameters"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_apply_form_body_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_items"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_is_form_model_supplied"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_request_param_model_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_operation_parameters"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_apply_form_body_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_items"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_is_form_model_supplied"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_request_param_model_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_operation_parameters"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "is_uploadfile_or_nonable_uploadfile_annotation",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "is_uploadfile_sequence_annotation"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "is_uploadfile_sequence_annotation"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "is_uploadfile_sequence_annotation"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "is_uploadfile_sequence_annotation"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "field_annotation_is_scalar",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "is_scalar_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "is_scalar_field"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "analyze_param"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar_sequence"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar_sequence"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "is_scalar_field"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "analyze_param"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/security/http.py",
+   "name": "make_not_authenticated_error",
+   "class": "HTTPBase",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "fastapi/security/http.py",
+     "__call__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/security/http.py",
+      "__call__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "get_validation_alias",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_param_aliases"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_form_model_schema"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_param_aliases"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_param_aliases"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_form_model_schema"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_param_aliases"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_extract_form_model",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_body_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_body_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_definitions",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_get_flat_fields_from_params",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "get_flat_params"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_operation_parameters"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "get_flat_params"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "_get_openapi_operation_parameters"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "get_flat_params"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_operation_parameters"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "get_flat_params"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "_get_openapi_operation_parameters"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_model_fields",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_cached_model_fields"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_model"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_cached_model_fields"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_model"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_cached_model_fields"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_model"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_cached_model_fields"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_model"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "field_annotation_is_sequence",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_sequence"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "is_bytes_sequence_annotation"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "is_uploadfile_sequence_annotation"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_multidict_value"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_scalar_sequence"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "field_annotation_is_sequence"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "is_bytes_sequence_annotation"
+    ],
+    [
+     "fastapi/_compat/shared.py",
+     "is_uploadfile_sequence_annotation"
+    ],
+    [
+     "fastapi/dependencies/utils.py",
+     "_get_multidict_value"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "annotation_is_pydantic_v1"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar_sequence"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_sequence"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "is_bytes_sequence_annotation"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "is_uploadfile_sequence_annotation"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_multidict_value"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "annotation_is_pydantic_v1"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "field_annotation_is_scalar_sequence"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "is_bytes_sequence_annotation"
+     ],
+     [
+      "fastapi/_compat/shared.py",
+      "is_uploadfile_sequence_annotation"
+     ],
+     [
+      "fastapi/dependencies/utils.py",
+      "_get_multidict_value"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "serialize_sequence_value",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_body"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_extract_form_body"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_body"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_extract_form_body"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "request_body_to_args",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "solve_dependencies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "solve_dependencies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/openapi/utils.py",
+   "name": "_get_openapi_security_definitions",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi_path"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi_path"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/shared.py",
+   "name": "annotation_is_pydantic_v1",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ],
+    [
+     "fastapi/utils.py",
+     "create_model_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/shared.py",
+     "annotation_is_pydantic_v1"
+    ],
+    [
+     "fastapi/utils.py",
+     "create_model_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/shared.py",
+      "annotation_is_pydantic_v1"
+     ],
+     [
+      "fastapi/utils.py",
+      "create_model_field"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/utils.py",
+      "create_model_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/_compat/v2.py",
+   "name": "get_flat_models_from_fields",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_definitions"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_model"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/_compat/v2.py",
+     "get_definitions"
+    ],
+    [
+     "fastapi/_compat/v2.py",
+     "get_flat_models_from_model"
+    ],
+    [
+     "fastapi/openapi/utils.py",
+     "get_openapi"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_definitions"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_model"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/_compat/v2.py",
+      "get_definitions"
+     ],
+     [
+      "fastapi/_compat/v2.py",
+      "get_flat_models_from_model"
+     ],
+     [
+      "fastapi/openapi/utils.py",
+      "get_openapi"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/utils.py",
+   "name": "_request_param_model_to_args",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "request_params_to_args"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "request_params_to_args"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/concurrency.py",
+   "name": "contextmanager_in_threadpool",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_solve_generator"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/utils.py",
+     "_solve_generator"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_solve_generator"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/utils.py",
+      "_solve_generator"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "fastapi/dependencies/models.py",
+   "name": "_is_coroutine_callable_cached",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_is_coroutine_callable"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "fastapi/dependencies/models.py",
+     "_is_coroutine_callable"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_is_coroutine_callable"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "fastapi/dependencies/models.py",
+      "_is_coroutine_callable"
+     ]
+    ]
+   }
+  }
+ ]
+}

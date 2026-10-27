@@ -1,0 +1,2404 @@
+{
+ "summary": {
+  "repo": "PostHog/posthog",
+  "commit": "9d5f0a9acb0ebc381c358c3d0bc9fb7f380d0236",
+  "prefix": "posthog/hogql/",
+  "files": 80,
+  "definitions": 713,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 85,
+  "unique_name_targets": 35,
+  "old": {
+   "calls_edges": 2514,
+   "cross_file_calls": 1462,
+   "function_nodes": 794,
+   "phantom_function_nodes": 201,
+   "jedi": {
+    "tp": 39,
+    "fp": 0,
+    "fn": 92,
+    "recall": 0.29770992366412213,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 36,
+    "fp": 0,
+    "fn": 16,
+    "recall": 0.6923076923076923,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 1404,
+   "cross_file_calls": 232,
+   "function_nodes": 593,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 112,
+    "fp": 13,
+    "fn": 19,
+    "recall": 0.8549618320610687,
+    "precision": 0.896
+   },
+   "loose_unique": {
+    "tp": 50,
+    "fp": 1,
+    "fn": 2,
+    "recall": 0.9615384615384616,
+    "precision": 0.9803921568627451
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "resolve_database_table",
+   "class": "CTETableType",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "has_child"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_column_constant_type"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_database_table"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "get_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "has_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_column_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_database_field"
+     ],
+     [
+      "posthog/hogql/database/schema/metrics.py",
+      "_outer_metrics_column"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/exchange_rate.py",
+   "name": "currency_expression_for_events",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/exchange_rate.py",
+     "revenue_comparison_and_value_exprs_for_events"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/exchange_rate.py",
+     "revenue_comparison_and_value_exprs_for_events"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/exchange_rate.py",
+      "revenue_comparison_and_value_exprs_for_events"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/exchange_rate.py",
+      "revenue_comparison_and_value_exprs_for_events"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/session_replay_events.py",
+   "name": "select_from_session_replay_events_table",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/session_replay_events.py",
+     "lazy_select"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/session_replay_events.py",
+     "lazy_select"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/session_replay_events.py",
+      "lazy_select"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/session_replay_events.py",
+      "lazy_select"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/direct_trino_table.py",
+   "name": "_canonical_field_key",
+   "class": "DirectTrinoTable",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/direct_trino_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_trino_table.py",
+     "has_field"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/direct_trino_table.py",
+      "get_field"
+     ],
+     [
+      "posthog/hogql/database/direct_trino_table.py",
+      "has_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/compiler/javascript.py",
+   "name": "_visit_hog_ast",
+   "class": "JavaScriptCompiler",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "_visit_select_query"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "_visit_select_query"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/sessions_v1.py",
+   "name": "select_session_property_values",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/sessions_v1.py",
+     "get_lazy_session_table_values_v1"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v2.py",
+     "get_lazy_session_table_values_v2"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v3.py",
+     "get_lazy_session_table_values_v3"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/sessions_v1.py",
+     "get_lazy_session_table_values_v1"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v2.py",
+     "get_lazy_session_table_values_v2"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v3.py",
+     "get_lazy_session_table_values_v3"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/sessions_v1.py",
+      "get_lazy_session_table_values_v1"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v2.py",
+      "get_lazy_session_table_values_v2"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v3.py",
+      "get_lazy_session_table_values_v3"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/sessions_v1.py",
+      "get_lazy_session_table_values_v1"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v2.py",
+      "get_lazy_session_table_values_v2"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v3.py",
+      "get_lazy_session_table_values_v3"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "resolve_database_table",
+   "class": "BaseTableType",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "get_child"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "has_child"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_constant_type"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_database_field"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "get_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "has_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_column_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_database_field"
+     ],
+     [
+      "posthog/hogql/database/schema/metrics.py",
+      "_outer_metrics_column"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/s3_table.py",
+   "name": "_reads_brotli_files",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/s3_table.py",
+     "build_function_call"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/s3_table.py",
+     "build_function_call"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/s3_table.py",
+      "build_function_call"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/s3_table.py",
+      "build_function_call"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/metrics.py",
+   "name": "_is_column_free",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/metrics.py",
+     "_is_column_free"
+    ],
+    [
+     "posthog/hogql/database/schema/metrics.py",
+     "_series_pushdown_where"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/metrics.py",
+     "_is_column_free"
+    ],
+    [
+     "posthog/hogql/database/schema/metrics.py",
+     "_series_pushdown_where"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/metrics.py",
+      "_is_column_free"
+     ],
+     [
+      "posthog/hogql/database/schema/metrics.py",
+      "_series_pushdown_where"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/metrics.py",
+      "_series_pushdown_where"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/postgres_utils.py",
+   "name": "_find_inferred_foreign_key",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "add_postgres_foreign_key_lazy_joins"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "add_postgres_foreign_key_lazy_joins"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "add_postgres_foreign_key_lazy_joins"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "add_postgres_foreign_key_lazy_joins"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "resolve_column_constant_type",
+   "class": "CTETableType",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "resolve_column_constant_type"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "resolve_constant_type"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "get_table",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_select_fields"
+    ],
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_table"
+    ],
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_tables_aliases"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_select_fields"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_table"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_tables_aliases"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_select_fields"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_tables_aliases"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "_suggest_from_schema",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_hogql_autocomplete"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_hogql_autocomplete"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_hogql_autocomplete"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_hogql_autocomplete"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/compiler/bytecode.py",
+   "name": "_visit_hogqlx_value",
+   "class": "BytecodeCompiler",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_visit_hog_ast"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_visit_hogqlx_value"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_hogqlx_tag"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "_visit_hog_ast"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_hogqlx_tag"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/catalog_traversal.py",
+   "name": "_resolve_field_target",
+   "class": "_TraversalCatalogBuilder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_relation_for_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_relation_for_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_relation_for_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/context.py",
+   "name": "add_error",
+   "class": "HogQLContext",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_check_call_arity"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_check_declared_call"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_call"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_expr_call"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_check_call_arity"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "_check_declared_call"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_call"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_expr_call"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "_check_call_arity"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "_check_declared_call"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_call"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_expr_call"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/document_embeddings.py",
+   "name": "extract_model_name_from_where",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "extract_model_name_from_where"
+    ],
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "lazy_select"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "extract_model_name_from_where"
+    ],
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "lazy_select"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/document_embeddings.py",
+      "extract_model_name_from_where"
+     ],
+     [
+      "posthog/hogql/database/schema/document_embeddings.py",
+      "lazy_select"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/document_embeddings.py",
+      "lazy_select"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "_display_runtime_type",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "convert_field_or_table_to_type_string"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "convert_field_or_table_to_type_string"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "convert_field_or_table_to_type_string"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "convert_field_or_table_to_type_string"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/catalog_traversal.py",
+   "name": "_target_property_namespace",
+   "class": "_TraversalCatalogBuilder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_property_overrides"
+    ],
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_property_overrides"
+    ],
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_property_overrides"
+     ],
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_virtual_relation"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/compiler/bytecode.py",
+   "name": "create_bytecode",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "execute_hog"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "to_bytecode"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "execute_hog"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "to_bytecode"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "execute_hog"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "to_bytecode"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "execute_hog"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "to_bytecode"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/document_embeddings.py",
+   "name": "get_field_val_pair",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "extract_model_name_from_where"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/document_embeddings.py",
+     "extract_model_name_from_where"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/document_embeddings.py",
+      "extract_model_name_from_where"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/document_embeddings.py",
+      "extract_model_name_from_where"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/models.py",
+   "name": "_slim_pickle_getstate",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/models.py",
+     "__getstate__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/models.py",
+     "__getstate__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/models.py",
+      "__getstate__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/models.py",
+      "__getstate__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/compiler/javascript.py",
+   "name": "visit",
+   "class": "JavaScriptCompiler",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "_visit_hogqlx_value"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "build_nested_if"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "to_js_expr"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "to_js_program"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_and"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_arithmetic_operation"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_array"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_array_access"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_between_expr"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_block"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_call"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_compare_operation"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_dict"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_expr_call"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_expr_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_for_in_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_for_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_function"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_if_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_lambda"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_not"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_or"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_placeholder"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_program"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_return_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_throw_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_try_catch_statement"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_tuple"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_tuple_access"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_variable_assignment"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_variable_declaration"
+    ],
+    [
+     "posthog/hogql/compiler/javascript.py",
+     "visit_while_statement"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "_visit_hogqlx_value"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "build_nested_if"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "to_js_expr"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "to_js_program"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_and"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_arithmetic_operation"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_array"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_array_access"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_between_expr"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_block"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_call"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_compare_operation"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_dict"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_expr_call"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_expr_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_for_in_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_for_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_function"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_if_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_lambda"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_not"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_or"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_placeholder"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_program"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_return_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_throw_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_try_catch_statement"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_tuple"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_tuple_access"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_variable_assignment"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_variable_declaration"
+     ],
+     [
+      "posthog/hogql/compiler/javascript.py",
+      "visit_while_statement"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "visit",
+   "class": "GetNodeAtPositionTraverser",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "__init__"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "gather_hog_variables_in_scope"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/channel_type.py",
+   "name": "create_channel_type_expr",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/channel_type.py",
+     "create_initial_channel_type"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v1.py",
+     "select_from_sessions_table_v1"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v2.py",
+     "select_from_sessions_table_v2"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v3.py",
+     "select_from_sessions_table_v3"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/channel_type.py",
+     "create_initial_channel_type"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v1.py",
+     "select_from_sessions_table_v1"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v2.py",
+     "select_from_sessions_table_v2"
+    ],
+    [
+     "posthog/hogql/database/schema/sessions_v3.py",
+     "select_from_sessions_table_v3"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/channel_type.py",
+      "create_initial_channel_type"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v1.py",
+      "select_from_sessions_table_v1"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v2.py",
+      "select_from_sessions_table_v2"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v3.py",
+      "select_from_sessions_table_v3"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/channel_type.py",
+      "create_initial_channel_type"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v1.py",
+      "select_from_sessions_table_v1"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v2.py",
+      "select_from_sessions_table_v2"
+     ],
+     [
+      "posthog/hogql/database/schema/sessions_v3.py",
+      "select_from_sessions_table_v3"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/groups.py",
+   "name": "_outer_prefilter",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/groups.py",
+     "join_with_group_n_table"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/groups.py",
+     "join_with_group_n_table"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/groups.py",
+      "join_with_group_n_table"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/groups.py",
+      "join_with_group_n_table"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "create_from_queries",
+   "class": "SelectSetQuery",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/error_tracking_fingerprint_issue_state.py",
+     "_build_union_with_pending_updates"
+    ],
+    [
+     "posthog/hogql/database/schema/groups_revenue_analytics.py",
+     "select_from_groups_revenue_analytics_table"
+    ],
+    [
+     "posthog/hogql/database/schema/persons_revenue_analytics.py",
+     "_select_from_persons_revenue_analytics_table"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/error_tracking_fingerprint_issue_state.py",
+     "_build_union_with_pending_updates"
+    ],
+    [
+     "posthog/hogql/database/schema/groups_revenue_analytics.py",
+     "select_from_groups_revenue_analytics_table"
+    ],
+    [
+     "posthog/hogql/database/schema/persons_revenue_analytics.py",
+     "_select_from_persons_revenue_analytics_table"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/error_tracking_fingerprint_issue_state.py",
+      "_build_union_with_pending_updates"
+     ],
+     [
+      "posthog/hogql/database/schema/groups_revenue_analytics.py",
+      "select_from_groups_revenue_analytics_table"
+     ],
+     [
+      "posthog/hogql/database/schema/persons_revenue_analytics.py",
+      "_select_from_persons_revenue_analytics_table"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/event_sessions.py",
+   "name": "_is_field_on_table",
+   "class": "WhereClauseExtractor",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/event_sessions.py",
+     "should_add"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/event_sessions.py",
+     "should_add"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/event_sessions.py",
+      "run"
+     ],
+     [
+      "posthog/hogql/database/schema/event_sessions.py",
+      "should_add"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/models.py",
+   "name": "has_field",
+   "class": "Table",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "has_child"
+    ],
+    [
+     "posthog/hogql/database/direct_motherduck_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_motherduck_table.py",
+     "has_field"
+    ],
+    [
+     "posthog/hogql/database/direct_snowflake_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_snowflake_table.py",
+     "has_field"
+    ],
+    [
+     "posthog/hogql/database/direct_trino_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_trino_table.py",
+     "has_field"
+    ],
+    [
+     "posthog/hogql/database/models.py",
+     "get_field"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "has_child"
+     ],
+     [
+      "posthog/hogql/database/models.py",
+      "get_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/persons.py",
+   "name": "_is_relative_sample",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/persons.py",
+     "build_person_id_pushdown_predicate"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/persons.py",
+     "build_person_id_pushdown_predicate"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/persons.py",
+      "build_person_id_pushdown_predicate"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/persons.py",
+      "build_person_id_pushdown_predicate"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "resolve_constant_type",
+   "class": "SelectSetQueryType",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "resolve_constant_type"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "get_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_column_constant_type"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "convert_field_or_table_to_type_string"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "expected_type_at_position"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "_property_definition_type",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_property_names"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_property_names"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_property_names"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_property_names"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/postgres_utils.py",
+   "name": "_find_inferred_target_column",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "_find_inferred_foreign_key"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "_find_inferred_foreign_key"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "_find_inferred_foreign_key"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "_find_inferred_foreign_key"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/channel_type.py",
+   "name": "custom_rule_to_expr",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/channel_type.py",
+     "create_channel_type_expr"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/channel_type.py",
+     "create_channel_type_expr"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/channel_type.py",
+      "create_channel_type_expr"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/channel_type.py",
+      "create_channel_type_expr"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/catalog_traversal.py",
+   "name": "_virtual_relation",
+   "class": "_TraversalCatalogBuilder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_relation_for_field"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_relation_for_field"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_relation_for_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/catalog_traversal.py",
+   "name": "_new_relation_name",
+   "class": "_TraversalCatalogBuilder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_table_relation"
+    ],
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_table_relation"
+    ],
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_table_relation"
+     ],
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_virtual_relation"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/models.py",
+   "name": "get_field",
+   "class": "Table",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "get_child"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "has_child"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_column_constant_type"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_constant_type"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_database_field"
+    ],
+    [
+     "posthog/hogql/database/direct_motherduck_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_snowflake_table.py",
+     "get_field"
+    ],
+    [
+     "posthog/hogql/database/direct_trino_table.py",
+     "get_field"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "get_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "has_child"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_column_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_constant_type"
+     ],
+     [
+      "posthog/hogql/ast.py",
+      "resolve_database_field"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/catalog_traversal.py",
+   "name": "_uses_parent",
+   "class": "_TraversalCatalogBuilder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/catalog_traversal.py",
+     "_virtual_relation"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/catalog_traversal.py",
+      "_virtual_relation"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "_parse_source_query",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_hogql_autocomplete"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "get_hogql_autocomplete"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_hogql_autocomplete"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "get_hogql_autocomplete"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/sessions_v3.py",
+   "name": "session_id_to_uint128_as_uuid_expr",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/session_replay_events.py",
+     "join_replay_table_to_sessions_table_v3"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/session_replay_events.py",
+     "join_replay_table_to_sessions_table_v3"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/session_replay_events.py",
+      "join_replay_table_to_sessions_table_v3"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/session_replay_events.py",
+      "join_replay_table_to_sessions_table_v3"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "_group_type_index_key",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_property_names"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_property_names"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_property_names"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_property_names"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/postgres_utils.py",
+   "name": "_get_foreign_keys",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "_get_foreign_keys_from_schemas"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/postgres_utils.py",
+     "_get_foreign_keys_from_schemas"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "_get_foreign_keys_from_schemas"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/postgres_utils.py",
+      "_get_foreign_keys_from_schemas"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/base.py",
+   "name": "get_child",
+   "class": "Type",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "get_child"
+    ],
+    [
+     "posthog/hogql/base.py",
+     "has_child"
+    ],
+    [
+     "posthog/hogql/database/schema/event_sessions.py",
+     "_is_field_on_table"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/base.py",
+      "has_child"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+   "name": "select_from_person_distinct_id_overrides_table",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+     "join_with_person_distinct_id_overrides_table"
+    ],
+    [
+     "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+     "lazy_select"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+     "join_with_person_distinct_id_overrides_table"
+    ],
+    [
+     "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+     "lazy_select"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+      "join_with_person_distinct_id_overrides_table"
+     ],
+     [
+      "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+      "lazy_select"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+      "join_with_person_distinct_id_overrides_table"
+     ],
+     [
+      "posthog/hogql/database/schema/person_distinct_id_overrides.py",
+      "lazy_select"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/models.py",
+   "name": "merge_with",
+   "class": "TableNode",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/models.py",
+     "add_child"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/models.py",
+     "add_child"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/models.py",
+      "add_child"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "expected_type_at_position",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "append_table_field_to_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "append_table_field_to_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "append_table_field_to_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "append_table_field_to_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/database/schema/groups.py",
+   "name": "_bare_limit_key_count",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/database/schema/groups.py",
+     "lazy_select"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/database/schema/groups.py",
+     "lazy_select"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/groups.py",
+      "lazy_select"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/database/schema/groups.py",
+      "lazy_select"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/ast.py",
+   "name": "resolve_column_constant_type",
+   "class": "SelectSetQueryType",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/ast.py",
+     "resolve_column_constant_type"
+    ],
+    [
+     "posthog/hogql/ast.py",
+     "resolve_constant_type"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/ast.py",
+      "resolve_constant_type"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/compiler/bytecode.py",
+   "name": "_start_scope",
+   "class": "BytecodeCompiler",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_between_expr"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_block"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_for_in_statement"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_for_statement"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_program"
+    ],
+    [
+     "posthog/hogql/compiler/bytecode.py",
+     "visit_try_catch_statement"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_between_expr"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_block"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_for_in_statement"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_for_statement"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_program"
+     ],
+     [
+      "posthog/hogql/compiler/bytecode.py",
+      "visit_try_catch_statement"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "posthog/hogql/autocomplete.py",
+   "name": "append_function_suggestions",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_select_fields"
+    ],
+    [
+     "posthog/hogql/autocomplete.py",
+     "append_table_field_to_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "posthog/hogql/autocomplete.py",
+     "_suggest_select_fields"
+    ],
+    [
+     "posthog/hogql/autocomplete.py",
+     "append_table_field_to_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_select_fields"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "append_table_field_to_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "posthog/hogql/autocomplete.py",
+      "_suggest_select_fields"
+     ],
+     [
+      "posthog/hogql/autocomplete.py",
+      "append_table_field_to_response"
+     ]
+    ]
+   }
+  }
+ ]
+}

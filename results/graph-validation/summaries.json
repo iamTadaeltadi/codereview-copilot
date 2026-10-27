@@ -1,0 +1,302 @@
+[
+ {
+  "repo": "PostHog/posthog",
+  "commit": "9d5f0a9acb0ebc381c358c3d0bc9fb7f380d0236",
+  "prefix": "posthog/hogql/",
+  "files": 80,
+  "definitions": 713,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 85,
+  "unique_name_targets": 35,
+  "old": {
+   "calls_edges": 2514,
+   "cross_file_calls": 1462,
+   "function_nodes": 794,
+   "phantom_function_nodes": 201,
+   "jedi": {
+    "tp": 39,
+    "fp": 0,
+    "fn": 92,
+    "recall": 0.29770992366412213,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 36,
+    "fp": 0,
+    "fn": 16,
+    "recall": 0.6923076923076923,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 1404,
+   "cross_file_calls": 232,
+   "function_nodes": 593,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 112,
+    "fp": 13,
+    "fn": 19,
+    "recall": 0.8549618320610687,
+    "precision": 0.896
+   },
+   "loose_unique": {
+    "tp": 50,
+    "fp": 1,
+    "fn": 2,
+    "recall": 0.9615384615384616,
+    "precision": 0.9803921568627451
+   }
+  }
+ },
+ {
+  "repo": "psf/requests",
+  "commit": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+  "prefix": "src/requests/",
+  "files": 19,
+  "definitions": 197,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 64,
+  "unique_name_targets": 42,
+  "old": {
+   "calls_edges": 850,
+   "cross_file_calls": 501,
+   "function_nodes": 325,
+   "phantom_function_nodes": 97,
+   "jedi": {
+    "tp": 19,
+    "fp": 7,
+    "fn": 52,
+    "recall": 0.2676056338028169,
+    "precision": 0.7307692307692307
+   },
+   "loose_unique": {
+    "tp": 20,
+    "fp": 0,
+    "fn": 49,
+    "recall": 0.2898550724637681,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 498,
+   "cross_file_calls": 239,
+   "function_nodes": 228,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 69,
+    "fp": 17,
+    "fn": 2,
+    "recall": 0.971830985915493,
+    "precision": 0.8023255813953488
+   },
+   "loose_unique": {
+    "tp": 66,
+    "fp": 0,
+    "fn": 3,
+    "recall": 0.9565217391304348,
+    "precision": 1.0
+   }
+  }
+ },
+ {
+  "repo": "pallets/flask",
+  "commit": "d086db856be187255b8ec61ef409357393020f32",
+  "prefix": "src/flask/",
+  "files": 24,
+  "definitions": 311,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 65,
+  "unique_name_targets": 32,
+  "old": {
+   "calls_edges": 762,
+   "cross_file_calls": 432,
+   "function_nodes": 407,
+   "phantom_function_nodes": 96,
+   "jedi": {
+    "tp": 24,
+    "fp": 2,
+    "fn": 48,
+    "recall": 0.3333333333333333,
+    "precision": 0.9230769230769231
+   },
+   "loose_unique": {
+    "tp": 21,
+    "fp": 0,
+    "fn": 34,
+    "recall": 0.38181818181818183,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 555,
+   "cross_file_calls": 220,
+   "function_nodes": 311,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 65,
+    "fp": 8,
+    "fn": 7,
+    "recall": 0.9027777777777778,
+    "precision": 0.8904109589041096
+   },
+   "loose_unique": {
+    "tp": 51,
+    "fp": 1,
+    "fn": 4,
+    "recall": 0.9272727272727272,
+    "precision": 0.9807692307692307
+   }
+  }
+ },
+ {
+  "repo": "encode/httpx",
+  "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+  "prefix": "httpx/",
+  "files": 23,
+  "definitions": 309,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 44,
+  "unique_name_targets": 28,
+  "old": {
+   "calls_edges": 1145,
+   "cross_file_calls": 679,
+   "function_nodes": 409,
+   "phantom_function_nodes": 94,
+   "jedi": {
+    "tp": 26,
+    "fp": 0,
+    "fn": 58,
+    "recall": 0.30952380952380953,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 26,
+    "fp": 0,
+    "fn": 14,
+    "recall": 0.65,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 786,
+   "cross_file_calls": 350,
+   "function_nodes": 315,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 79,
+    "fp": 30,
+    "fn": 5,
+    "recall": 0.9404761904761905,
+    "precision": 0.7247706422018348
+   },
+   "loose_unique": {
+    "tp": 40,
+    "fp": 0,
+    "fn": 0,
+    "recall": 1.0,
+    "precision": 1.0
+   }
+  }
+ },
+ {
+  "repo": "Textualize/rich",
+  "commit": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+  "prefix": "rich/",
+  "files": 80,
+  "definitions": 351,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 53,
+  "unique_name_targets": 37,
+  "old": {
+   "calls_edges": 1992,
+   "cross_file_calls": 1195,
+   "function_nodes": 615,
+   "phantom_function_nodes": 200,
+   "jedi": {
+    "tp": 20,
+    "fp": 18,
+    "fn": 61,
+    "recall": 0.24691358024691357,
+    "precision": 0.5263157894736842
+   },
+   "loose_unique": {
+    "tp": 21,
+    "fp": 4,
+    "fn": 45,
+    "recall": 0.3181818181818182,
+    "precision": 0.84
+   }
+  },
+  "new": {
+   "calls_edges": 742,
+   "cross_file_calls": 291,
+   "function_nodes": 415,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 78,
+    "fp": 15,
+    "fn": 3,
+    "recall": 0.9629629629629629,
+    "precision": 0.8387096774193549
+   },
+   "loose_unique": {
+    "tp": 65,
+    "fp": 4,
+    "fn": 1,
+    "recall": 0.9848484848484849,
+    "precision": 0.9420289855072463
+   }
+  }
+ },
+ {
+  "repo": "fastapi/fastapi",
+  "commit": "79cab5bed28b24d92c185d236feb33f5783dfeb3",
+  "prefix": "fastapi/",
+  "files": 50,
+  "definitions": 189,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 26,
+  "unique_name_targets": 48,
+  "old": {
+   "calls_edges": 1419,
+   "cross_file_calls": 938,
+   "function_nodes": 341,
+   "phantom_function_nodes": 117,
+   "jedi": {
+    "tp": 85,
+    "fp": 0,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 85,
+    "fp": 0,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 442,
+   "cross_file_calls": 166,
+   "function_nodes": 224,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 85,
+    "fp": 1,
+    "fn": 6,
+    "recall": 0.9340659340659341,
+    "precision": 0.9883720930232558
+   },
+   "loose_unique": {
+    "tp": 84,
+    "fp": 0,
+    "fn": 7,
+    "recall": 0.9230769230769231,
+    "precision": 1.0
+   }
+  }
+ }
+]

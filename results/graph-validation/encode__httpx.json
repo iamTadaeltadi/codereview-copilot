@@ -1,0 +1,2036 @@
+{
+ "summary": {
+  "repo": "encode/httpx",
+  "commit": "b5addb64f0161ff6bfe94c124ef76f6a1fba5254",
+  "prefix": "httpx/",
+  "files": 23,
+  "definitions": 309,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 44,
+  "unique_name_targets": 28,
+  "old": {
+   "calls_edges": 1145,
+   "cross_file_calls": 679,
+   "function_nodes": 409,
+   "phantom_function_nodes": 94,
+   "jedi": {
+    "tp": 26,
+    "fp": 0,
+    "fn": 58,
+    "recall": 0.30952380952380953,
+    "precision": 1.0
+   },
+   "loose_unique": {
+    "tp": 26,
+    "fp": 0,
+    "fn": 14,
+    "recall": 0.65,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 786,
+   "cross_file_calls": 350,
+   "function_nodes": 315,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 79,
+    "fp": 30,
+    "fn": 5,
+    "recall": 0.9404761904761905,
+    "precision": 0.7247706422018348
+   },
+   "loose_unique": {
+    "tp": 40,
+    "fp": 0,
+    "fn": 0,
+    "recall": 1.0,
+    "precision": 1.0
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "httpx/_main.py",
+   "name": "format_request_headers",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "print_request_headers"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_main.py",
+     "print_request_headers"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "print_request_headers"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "print_request_headers"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_utils.py",
+   "name": "is_ipv4_hostname",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_utils.py",
+     "get_environment_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_utils.py",
+     "get_environment_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_utils.py",
+      "get_environment_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_utils.py",
+      "get_environment_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_urls.py",
+   "name": "merge",
+   "class": "QueryParams",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_merge_queryparams"
+    ],
+    [
+     "httpx/_urls.py",
+     "copy_merge_params"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_client.py",
+     "_merge_queryparams"
+    ],
+    [
+     "httpx/_urls.py",
+     "copy_merge_params"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_merge_queryparams"
+     ],
+     [
+      "httpx/_urls.py",
+      "copy_merge_params"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "aiter_text",
+   "class": "Response",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_lines"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_lines"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "aiter_lines"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_status_codes.py",
+   "name": "is_informational",
+   "class": "codes",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "is_informational"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "is_informational"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_content.py",
+   "name": "encode_text",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "close",
+   "class": "Response",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_send_handling_auth"
+    ],
+    [
+     "httpx/_client.py",
+     "_send_handling_redirects"
+    ],
+    [
+     "httpx/_client.py",
+     "send"
+    ],
+    [
+     "httpx/_client.py",
+     "stream"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_raw"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "iter_raw"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_multipart.py",
+   "name": "get_multipart_boundary_from_content_type",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "iter_text",
+   "class": "Response",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "iter_lines"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "iter_lines"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "iter_lines"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "request",
+   "class": "AsyncClient",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "delete"
+    ],
+    [
+     "httpx/_client.py",
+     "get"
+    ],
+    [
+     "httpx/_client.py",
+     "head"
+    ],
+    [
+     "httpx/_client.py",
+     "options"
+    ],
+    [
+     "httpx/_client.py",
+     "patch"
+    ],
+    [
+     "httpx/_client.py",
+     "post"
+    ],
+    [
+     "httpx/_client.py",
+     "put"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "delete"
+     ],
+     [
+      "httpx/_client.py",
+      "get"
+     ],
+     [
+      "httpx/_client.py",
+      "head"
+     ],
+     [
+      "httpx/_client.py",
+      "options"
+     ],
+     [
+      "httpx/_client.py",
+      "patch"
+     ],
+     [
+      "httpx/_client.py",
+      "post"
+     ],
+     [
+      "httpx/_client.py",
+      "put"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "json",
+   "class": "Response",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "print_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_main.py",
+     "print_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "print_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_content.py",
+   "name": "encode_content",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_content.py",
+     "encode_request"
+    ],
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_content.py",
+     "encode_request"
+    ],
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_request"
+     ],
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_request"
+     ],
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_urlparse.py",
+   "name": "encode_host",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_urlparse.py",
+     "urlparse"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_urlparse.py",
+     "urlparse"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_urlparse.py",
+      "urlparse"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_urlparse.py",
+      "urlparse"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_content.py",
+   "name": "encode_request",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "stream",
+   "class": "Client",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "main"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "main"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_utils.py",
+   "name": "to_bytes_or_str",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "_obfuscate_sensitive_headers"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "_obfuscate_sensitive_headers"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "_obfuscate_sensitive_headers"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "_obfuscate_sensitive_headers"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_transport_for_url",
+   "class": "AsyncClient",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_send_single_request"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_send_single_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "aread",
+   "class": "Response",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_send_handling_auth"
+    ],
+    [
+     "httpx/_client.py",
+     "_send_handling_redirects"
+    ],
+    [
+     "httpx/_client.py",
+     "send"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "async_auth_flow"
+     ],
+     [
+      "httpx/_client.py",
+      "_send_handling_auth"
+     ],
+     [
+      "httpx/_client.py",
+      "_send_handling_redirects"
+     ],
+     [
+      "httpx/_client.py",
+      "send"
+     ],
+     [
+      "httpx/_content.py",
+      "__aiter__"
+     ],
+     [
+      "httpx/_transports/mock.py",
+      "handle_async_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "set_cookie_header",
+   "class": "Cookies",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_auth.py",
+     "auth_flow"
+    ],
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_auth.py",
+     "auth_flow"
+    ],
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "auth_flow"
+     ],
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_urls.py",
+   "name": "keys",
+   "class": "QueryParams",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_urls.py",
+     "__iter__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_urls.py",
+      "__iter__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_main.py",
+   "name": "print_response",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "main"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_main.py",
+     "main"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "main"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "main"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_init_transport",
+   "class": "Client",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_decoders.py",
+   "name": "flush",
+   "class": "ContentDecoder",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_decoders.py",
+     "flush"
+    ],
+    [
+     "httpx/_models.py",
+     "aiter_bytes"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_bytes"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "aiter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "text"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "_get_content_decoder",
+   "class": "Response",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_bytes"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_bytes"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_bytes"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_bytes"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "aiter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_bytes"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_redirect_stream",
+   "class": "BaseClient",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_build_redirect_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_client.py",
+     "_build_redirect_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_build_redirect_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "send",
+   "class": "Client",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "request"
+    ],
+    [
+     "httpx/_client.py",
+     "stream"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_send_handling_auth"
+     ],
+     [
+      "httpx/_client.py",
+      "request"
+     ],
+     [
+      "httpx/_client.py",
+      "stream"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_redirect_method",
+   "class": "BaseClient",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_build_redirect_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_client.py",
+     "_build_redirect_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_build_redirect_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_main.py",
+   "name": "print_help",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "handle_help"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_main.py",
+     "handle_help"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "handle_help"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "handle_help"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_transports/default.py",
+   "name": "map_httpcore_exceptions",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_transports/default.py",
+     "__aexit__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__aiter__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__exit__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__iter__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "handle_async_request"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "handle_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_transports/default.py",
+     "__aexit__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__aiter__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__exit__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "__iter__"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "handle_async_request"
+    ],
+    [
+     "httpx/_transports/default.py",
+     "handle_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/default.py",
+      "__aexit__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__aiter__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__exit__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__iter__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "handle_async_request"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "handle_request"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/default.py",
+      "__aexit__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__aiter__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__exit__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "__iter__"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "handle_async_request"
+     ],
+     [
+      "httpx/_transports/default.py",
+      "handle_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_content.py",
+   "name": "encode_json",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_content.py",
+     "encode_request"
+    ],
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_content.py",
+     "encode_request"
+    ],
+    [
+     "httpx/_content.py",
+     "encode_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_request"
+     ],
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_content.py",
+      "encode_request"
+     ],
+     [
+      "httpx/_content.py",
+      "encode_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "_prepare",
+   "class": "Request",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_decoders.py",
+   "name": "flush",
+   "class": "TextDecoder",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_text"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_text"
+    ],
+    [
+     "httpx/_models.py",
+     "text"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "aiter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "text"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_auth.py",
+   "name": "_build_auth_header",
+   "class": "BasicAuth",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_auth.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "__init__"
+     ],
+     [
+      "httpx/_auth.py",
+      "auth_flow"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_content.py",
+   "name": "encode_response",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_multipart.py",
+   "name": "iter_chunks",
+   "class": "MultipartStream",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_multipart.py",
+     "__aiter__"
+    ],
+    [
+     "httpx/_multipart.py",
+     "__iter__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_multipart.py",
+     "__aiter__"
+    ],
+    [
+     "httpx/_multipart.py",
+     "__iter__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_multipart.py",
+      "__aiter__"
+     ],
+     [
+      "httpx/_multipart.py",
+      "__iter__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_port_or_default",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_is_https_redirect"
+    ],
+    [
+     "httpx/_client.py",
+     "_same_origin"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_client.py",
+     "_is_https_redirect"
+    ],
+    [
+     "httpx/_client.py",
+     "_same_origin"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_is_https_redirect"
+     ],
+     [
+      "httpx/_client.py",
+      "_same_origin"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_is_https_redirect"
+     ],
+     [
+      "httpx/_client.py",
+      "_same_origin"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_send_handling_auth",
+   "class": "AsyncClient",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "send"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "send"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_auth.py",
+   "name": "_build_auth_header",
+   "class": "NetRCAuth",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_auth.py",
+     "auth_flow"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "__init__"
+     ],
+     [
+      "httpx/_auth.py",
+      "auth_flow"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_status_codes.py",
+   "name": "is_error",
+   "class": "codes",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "is_error"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "is_error"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_transports/asgi.py",
+   "name": "is_running_trio",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_transports/asgi.py",
+     "create_event"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_transports/asgi.py",
+     "create_event"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/asgi.py",
+      "create_event"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/asgi.py",
+      "create_event"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "_normalize_header_value",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_main.py",
+   "name": "get_lexer_for_response",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_main.py",
+     "print_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_main.py",
+     "print_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "print_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_main.py",
+      "print_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_set_timeout",
+   "class": "BaseClient",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "send"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_client.py",
+     "send"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "send"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_transports/default.py",
+   "name": "_load_httpcore_exceptions",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "httpx/_transports/default.py",
+     "map_httpcore_exceptions"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "httpx/_transports/default.py",
+     "map_httpcore_exceptions"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/default.py",
+      "map_httpcore_exceptions"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_transports/default.py",
+      "map_httpcore_exceptions"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_urls.py",
+   "name": "set",
+   "class": "QueryParams",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_urls.py",
+     "copy_set_param"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_urls.py",
+      "copy_set_param"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_auth.py",
+   "name": "_build_auth_header",
+   "class": "DigestAuth",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_auth.py",
+     "auth_flow"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "__init__"
+     ],
+     [
+      "httpx/_auth.py",
+      "auth_flow"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_send_single_request",
+   "class": "AsyncClient",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_send_handling_redirects"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "_send_handling_redirects"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_decoders.py",
+   "name": "flush",
+   "class": "LineDecoder",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_models.py",
+     "aiter_lines"
+    ],
+    [
+     "httpx/_models.py",
+     "iter_lines"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_models.py",
+      "aiter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "aiter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_bytes"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_lines"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_raw"
+     ],
+     [
+      "httpx/_models.py",
+      "iter_text"
+     ],
+     [
+      "httpx/_models.py",
+      "text"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_models.py",
+   "name": "read",
+   "class": "Response",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "_send_handling_auth"
+    ],
+    [
+     "httpx/_client.py",
+     "_send_handling_redirects"
+    ],
+    [
+     "httpx/_client.py",
+     "send"
+    ],
+    [
+     "httpx/_main.py",
+     "main"
+    ],
+    [
+     "httpx/_models.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_auth.py",
+      "sync_auth_flow"
+     ],
+     [
+      "httpx/_client.py",
+      "_send_handling_auth"
+     ],
+     [
+      "httpx/_client.py",
+      "_send_handling_redirects"
+     ],
+     [
+      "httpx/_client.py",
+      "send"
+     ],
+     [
+      "httpx/_main.py",
+      "main"
+     ],
+     [
+      "httpx/_models.py",
+      "__init__"
+     ],
+     [
+      "httpx/_transports/mock.py",
+      "handle_request"
+     ],
+     [
+      "httpx/_transports/wsgi.py",
+      "handle_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "httpx/_client.py",
+   "name": "_send_handling_auth",
+   "class": "Client",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "httpx/_client.py",
+     "send"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "httpx/_client.py",
+      "send"
+     ]
+    ]
+   }
+  }
+ ]
+}

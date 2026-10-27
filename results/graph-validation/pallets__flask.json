@@ -1,0 +1,1904 @@
+{
+ "summary": {
+  "repo": "pallets/flask",
+  "commit": "d086db856be187255b8ec61ef409357393020f32",
+  "prefix": "src/flask/",
+  "files": 24,
+  "definitions": 311,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 65,
+  "unique_name_targets": 32,
+  "old": {
+   "calls_edges": 762,
+   "cross_file_calls": 432,
+   "function_nodes": 407,
+   "phantom_function_nodes": 96,
+   "jedi": {
+    "tp": 24,
+    "fp": 2,
+    "fn": 48,
+    "recall": 0.3333333333333333,
+    "precision": 0.9230769230769231
+   },
+   "loose_unique": {
+    "tp": 21,
+    "fp": 0,
+    "fn": 34,
+    "recall": 0.38181818181818183,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 555,
+   "cross_file_calls": 220,
+   "function_nodes": 311,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 65,
+    "fp": 8,
+    "fn": 7,
+    "recall": 0.9027777777777778,
+    "precision": 0.8904109589041096
+   },
+   "loose_unique": {
+    "tp": 51,
+    "fp": 1,
+    "fn": 4,
+    "recall": 0.9272727272727272,
+    "precision": 0.9807692307692307
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "src/flask/helpers.py",
+   "name": "_split_blueprint_path",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/helpers.py",
+     "_split_blueprint_path"
+    ],
+    [
+     "src/flask/sansio/app.py",
+     "inject_url_defaults"
+    ],
+    [
+     "src/flask/wrappers.py",
+     "blueprints"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/helpers.py",
+     "_split_blueprint_path"
+    ],
+    [
+     "src/flask/sansio/app.py",
+     "inject_url_defaults"
+    ],
+    [
+     "src/flask/wrappers.py",
+     "blueprints"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/helpers.py",
+      "_split_blueprint_path"
+     ],
+     [
+      "src/flask/sansio/app.py",
+      "inject_url_defaults"
+     ],
+     [
+      "src/flask/wrappers.py",
+      "blueprints"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/app.py",
+      "inject_url_defaults"
+     ],
+     [
+      "src/flask/wrappers.py",
+      "blueprints"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/tag.py",
+   "name": "to_python",
+   "class": "JSONTag",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/tag.py",
+     "untag"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/json/tag.py",
+      "untag"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sessions.py",
+   "name": "make_null_session",
+   "class": "SessionInterface",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/ctx.py",
+     "_get_session"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/ctx.py",
+     "_get_session"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/ctx.py",
+      "_get_session"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/app.py",
+   "name": "handle_url_build_error",
+   "class": "App",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "url_for"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "url_for"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "url_for"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/helpers.py",
+   "name": "stream_with_context",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/helpers.py",
+     "decorator"
+    ],
+    [
+     "src/flask/templating.py",
+     "_stream"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/helpers.py",
+      "decorator"
+     ],
+     [
+      "src/flask/helpers.py",
+      "stream_with_context"
+     ],
+     [
+      "src/flask/templating.py",
+      "_stream"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/helpers.py",
+      "decorator"
+     ],
+     [
+      "src/flask/templating.py",
+      "_stream"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/app.py",
+   "name": "trap_http_exception",
+   "class": "App",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "handle_user_exception"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "handle_user_exception"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "handle_user_exception"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "get_send_file_max_age",
+   "class": "Flask",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "send_static_file"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "send_static_file"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/blueprints.py",
+   "name": "add_app_template_filter",
+   "class": "Blueprint",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/blueprints.py",
+     "app_template_filter"
+    ],
+    [
+     "src/flask/sansio/blueprints.py",
+     "decorator"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sansio/blueprints.py",
+     "app_template_filter"
+    ],
+    [
+     "src/flask/sansio/blueprints.py",
+     "decorator"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/blueprints.py",
+      "app_template_filter"
+     ],
+     [
+      "src/flask/sansio/blueprints.py",
+      "decorator"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "wsgi_app",
+   "class": "Flask",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "__call__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "__call__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "__call__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/helpers.py",
+   "name": "get_debug_flag",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "run"
+    ],
+    [
+     "src/flask/cli.py",
+     "load_app"
+    ],
+    [
+     "src/flask/cli.py",
+     "run_command"
+    ],
+    [
+     "src/flask/sansio/app.py",
+     "make_config"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "run"
+    ],
+    [
+     "src/flask/cli.py",
+     "load_app"
+    ],
+    [
+     "src/flask/cli.py",
+     "run_command"
+    ],
+    [
+     "src/flask/sansio/app.py",
+     "make_config"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "run"
+     ],
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ],
+     [
+      "src/flask/cli.py",
+      "run_command"
+     ],
+     [
+      "src/flask/sansio/app.py",
+      "make_config"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "run"
+     ],
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ],
+     [
+      "src/flask/cli.py",
+      "run_command"
+     ],
+     [
+      "src/flask/sansio/app.py",
+      "make_config"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "preprocess_request",
+   "class": "Flask",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "full_dispatch_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "full_dispatch_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "full_dispatch_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/ctx.py",
+   "name": "match_request",
+   "class": "AppContext",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/ctx.py",
+     "push"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/ctx.py",
+     "push"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/ctx.py",
+      "push"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/helpers.py",
+   "name": "send_from_directory",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "send_static_file"
+    ],
+    [
+     "src/flask/blueprints.py",
+     "send_static_file"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "send_static_file"
+    ],
+    [
+     "src/flask/blueprints.py",
+     "send_static_file"
+    ],
+    [
+     "src/flask/helpers.py",
+     "send_from_directory"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "send_static_file"
+     ],
+     [
+      "src/flask/blueprints.py",
+      "send_static_file"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "send_static_file"
+     ],
+     [
+      "src/flask/blueprints.py",
+      "send_static_file"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/app.py",
+   "name": "make_aborter",
+   "class": "App",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/app.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sansio/app.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/app.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/scaffold.py",
+   "name": "_find_package_path",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/scaffold.py",
+     "find_package"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sansio/scaffold.py",
+     "find_package"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/scaffold.py",
+      "find_package"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/scaffold.py",
+      "find_package"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/app.py",
+   "name": "redirect",
+   "class": "App",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/helpers.py",
+     "redirect"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": []
+   }
+  },
+  {
+   "file": "src/flask/sansio/blueprints.py",
+   "name": "make_setup_state",
+   "class": "Blueprint",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/blueprints.py",
+     "register"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sansio/blueprints.py",
+     "register"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/blueprints.py",
+      "register"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/cli.py",
+   "name": "load_dotenv",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "run"
+    ],
+    [
+     "src/flask/cli.py",
+     "_env_file_callback"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "run"
+    ],
+    [
+     "src/flask/cli.py",
+     "_env_file_callback"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "_env_file_callback"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "run"
+     ],
+     [
+      "src/flask/cli.py",
+      "_env_file_callback"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/cli.py",
+   "name": "locate_app",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/cli.py",
+     "load_app"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/tag.py",
+   "name": "check",
+   "class": "JSONTag",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/tag.py",
+     "tag"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/json/tag.py",
+      "tag"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "add_ctx",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "__init_subclass__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "__init_subclass__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "__init_subclass__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "__init_subclass__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/__init__.py",
+   "name": "dumps",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/tag.py",
+     "dumps"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/json/provider.py",
+      "dumps"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/templating.py",
+   "name": "_stream",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/templating.py",
+     "stream_template"
+    ],
+    [
+     "src/flask/templating.py",
+     "stream_template_string"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/templating.py",
+     "stream_template"
+    ],
+    [
+     "src/flask/templating.py",
+     "stream_template_string"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/templating.py",
+      "stream_template"
+     ],
+     [
+      "src/flask/templating.py",
+      "stream_template_string"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/templating.py",
+      "stream_template"
+     ],
+     [
+      "src/flask/templating.py",
+      "stream_template_string"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/provider.py",
+   "name": "_prepare_response_obj",
+   "class": "JSONProvider",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/json/provider.py",
+     "response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/json/provider.py",
+     "response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/json/provider.py",
+      "response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "process_response",
+   "class": "Flask",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "finalize_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "finalize_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "finalize_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/cli.py",
+   "name": "find_app_by_string",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/cli.py",
+     "locate_app"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/cli.py",
+     "locate_app"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "locate_app"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "locate_app"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/scaffold.py",
+   "name": "_method_route",
+   "class": "Scaffold",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/scaffold.py",
+     "delete"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "get"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "patch"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "post"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "put"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "query"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sansio/scaffold.py",
+     "delete"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "get"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "patch"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "post"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "put"
+    ],
+    [
+     "src/flask/sansio/scaffold.py",
+     "query"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/scaffold.py",
+      "delete"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "get"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "patch"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "post"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "put"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "query"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "async_to_sync",
+   "class": "Flask",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "ensure_sync"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "ensure_sync"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "ensure_sync"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/testing.py",
+   "name": "_copy_environ",
+   "class": "FlaskClient",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/testing.py",
+     "_request_from_builder_args"
+    ],
+    [
+     "src/flask/testing.py",
+     "open"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/testing.py",
+     "_request_from_builder_args"
+    ],
+    [
+     "src/flask/testing.py",
+     "open"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/testing.py",
+      "_request_from_builder_args"
+     ],
+     [
+      "src/flask/testing.py",
+      "open"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/ctx.py",
+   "name": "from_environ",
+   "class": "AppContext",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "request_context"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "request_context"
+    ],
+    [
+     "src/flask/testing.py",
+     "open"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "request_context"
+     ],
+     [
+      "src/flask/testing.py",
+      "open"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/__init__.py",
+   "name": "loads",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/tag.py",
+     "loads"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/config.py",
+      "from_prefixed_env"
+     ],
+     [
+      "src/flask/json/provider.py",
+      "loads"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/debughelpers.py",
+   "name": "attach_enctype_error_multidict",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/wrappers.py",
+     "_load_form_data"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/wrappers.py",
+     "_load_form_data"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/wrappers.py",
+      "_load_form_data"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/wrappers.py",
+      "_load_form_data"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "handle_user_exception",
+   "class": "Flask",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "full_dispatch_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "full_dispatch_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "full_dispatch_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/ctx.py",
+   "name": "pop",
+   "class": "AppContext",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "wsgi_app"
+    ],
+    [
+     "src/flask/ctx.py",
+     "__exit__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "wsgi_app"
+     ],
+     [
+      "src/flask/ctx.py",
+      "__exit__"
+     ],
+     [
+      "src/flask/sansio/app.py",
+      "add_url_rule"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/testing.py",
+   "name": "_get_werkzeug_version",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/testing.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/testing.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/testing.py",
+      "__init__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/testing.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/scaffold.py",
+   "name": "add_url_rule",
+   "class": "Scaffold",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/scaffold.py",
+     "decorator"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/scaffold.py",
+      "decorator"
+     ],
+     [
+      "src/flask/sansio/scaffold.py",
+      "route"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/blueprints.py",
+   "name": "get_send_file_max_age",
+   "class": "Blueprint",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/blueprints.py",
+     "send_static_file"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/blueprints.py",
+      "send_static_file"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/cli.py",
+   "name": "locate_app",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/cli.py",
+     "load_app"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "load_app"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/tag.py",
+   "name": "to_json",
+   "class": "JSONTag",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/tag.py",
+     "tag"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/json/tag.py",
+      "tag"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "dispatch_request",
+   "class": "Flask",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "full_dispatch_request"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "full_dispatch_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/templating.py",
+   "name": "_iter_loaders",
+   "class": "DispatchingJinjaLoader",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/templating.py",
+     "_get_source_explained"
+    ],
+    [
+     "src/flask/templating.py",
+     "_get_source_fast"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/templating.py",
+     "_get_source_explained"
+    ],
+    [
+     "src/flask/templating.py",
+     "_get_source_fast"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/templating.py",
+      "_get_source_explained"
+     ],
+     [
+      "src/flask/templating.py",
+      "_get_source_fast"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/ctx.py",
+   "name": "copy",
+   "class": "AppContext",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/ctx.py",
+     "wrapper"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "update_template_context"
+    ],
+    [
+     "src/flask/ctx.py",
+     "wrapper"
+    ],
+    [
+     "src/flask/sansio/blueprints.py",
+     "register"
+    ],
+    [
+     "src/flask/testing.py",
+     "open"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/testing.py",
+      "open"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "update_template_context"
+     ],
+     [
+      "src/flask/ctx.py",
+      "copy_current_request_context"
+     ],
+     [
+      "src/flask/ctx.py",
+      "wrapper"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/cli.py",
+   "name": "_called_with_wrong_args",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/cli.py",
+     "find_app_by_string"
+    ],
+    [
+     "src/flask/cli.py",
+     "find_best_app"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/cli.py",
+     "find_app_by_string"
+    ],
+    [
+     "src/flask/cli.py",
+     "find_best_app"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "find_app_by_string"
+     ],
+     [
+      "src/flask/cli.py",
+      "find_best_app"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/cli.py",
+      "find_app_by_string"
+     ],
+     [
+      "src/flask/cli.py",
+      "find_best_app"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/blueprints.py",
+   "name": "add_url_rule",
+   "class": "BlueprintSetupState",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/blueprints.py",
+     "register"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/blueprints.py",
+      "register"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "remove_ctx",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "__init_subclass__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/app.py",
+     "__init_subclass__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "__init_subclass__"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "__init_subclass__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sansio/blueprints.py",
+   "name": "register",
+   "class": "Blueprint",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/sansio/app.py",
+     "register_blueprint"
+    ],
+    [
+     "src/flask/sansio/blueprints.py",
+     "register"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sansio/app.py",
+      "register_blueprint"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sessions.py",
+   "name": "get_cookie_samesite",
+   "class": "SessionInterface",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sessions.py",
+     "save_session"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sessions.py",
+     "save_session"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sessions.py",
+      "save_session"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/sessions.py",
+   "name": "get_cookie_name",
+   "class": "SessionInterface",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/flask/sessions.py",
+     "open_session"
+    ],
+    [
+     "src/flask/sessions.py",
+     "save_session"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/flask/sessions.py",
+     "open_session"
+    ],
+    [
+     "src/flask/sessions.py",
+     "save_session"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/sessions.py",
+      "open_session"
+     ],
+     [
+      "src/flask/sessions.py",
+      "save_session"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/flask/json/provider.py",
+   "name": "dump",
+   "class": "JSONProvider",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/json/__init__.py",
+     "dump"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": []
+   }
+  },
+  {
+   "file": "src/flask/app.py",
+   "name": "make_response",
+   "class": "Flask",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/flask/app.py",
+     "finalize_request"
+    ],
+    [
+     "src/flask/helpers.py",
+     "make_response"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/flask/app.py",
+      "finalize_request"
+     ]
+    ]
+   }
+  }
+ ]
+}

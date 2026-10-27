@@ -1,0 +1,2018 @@
+{
+ "summary": {
+  "repo": "psf/requests",
+  "commit": "3c7baaa05ab4aa49cc819ce3a819d260de19c157",
+  "prefix": "src/requests/",
+  "files": 19,
+  "definitions": 197,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 64,
+  "unique_name_targets": 42,
+  "old": {
+   "calls_edges": 850,
+   "cross_file_calls": 501,
+   "function_nodes": 325,
+   "phantom_function_nodes": 97,
+   "jedi": {
+    "tp": 19,
+    "fp": 7,
+    "fn": 52,
+    "recall": 0.2676056338028169,
+    "precision": 0.7307692307692307
+   },
+   "loose_unique": {
+    "tp": 20,
+    "fp": 0,
+    "fn": 49,
+    "recall": 0.2898550724637681,
+    "precision": 1.0
+   }
+  },
+  "new": {
+   "calls_edges": 498,
+   "cross_file_calls": 239,
+   "function_nodes": 228,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 69,
+    "fp": 17,
+    "fn": 2,
+    "recall": 0.971830985915493,
+    "precision": 0.8023255813953488
+   },
+   "loose_unique": {
+    "tp": 66,
+    "fp": 0,
+    "fn": 3,
+    "recall": 0.9565217391304348,
+    "precision": 1.0
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "src/requests/models.py",
+   "name": "register_hook",
+   "class": "RequestHooksMixin",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "__init__"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_hooks"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/auth.py",
+     "__call__"
+    ],
+    [
+     "src/requests/models.py",
+     "__init__"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_hooks"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/auth.py",
+      "__call__"
+     ],
+     [
+      "src/requests/models.py",
+      "__init__"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_hooks"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "itervalues",
+   "class": "RequestsCookieJar",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "values"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "values"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "values"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "address_in_network",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "_encode_params",
+   "class": "RequestEncodingMixin",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare_body"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_url"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare_body"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_url"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare_headers",
+   "class": "PreparedRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "unquote_header_value",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "parse_dict_header"
+    ],
+    [
+     "src/requests/utils.py",
+     "parse_list_header"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "parse_dict_header"
+    ],
+    [
+     "src/requests/utils.py",
+     "parse_list_header"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "parse_dict_header"
+     ],
+     [
+      "src/requests/utils.py",
+      "parse_list_header"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "parse_dict_header"
+     ],
+     [
+      "src/requests/utils.py",
+      "parse_list_header"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "update",
+   "class": "RequestsCookieJar",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "copy"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "__setstate__"
+    ],
+    [
+     "src/requests/cookies.py",
+     "copy"
+    ],
+    [
+     "src/requests/cookies.py",
+     "create_cookie"
+    ],
+    [
+     "src/requests/cookies.py",
+     "update"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_auth"
+    ],
+    [
+     "src/requests/sessions.py",
+     "merge_setting"
+    ],
+    [
+     "src/requests/sessions.py",
+     "request"
+    ],
+    [
+     "src/requests/structures.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "__setstate__"
+     ],
+     [
+      "src/requests/cookies.py",
+      "copy"
+     ],
+     [
+      "src/requests/cookies.py",
+      "create_cookie"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_auth"
+     ],
+     [
+      "src/requests/sessions.py",
+      "merge_setting"
+     ],
+     [
+      "src/requests/sessions.py",
+      "request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare_url",
+   "class": "PreparedRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare_body",
+   "class": "PreparedRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "raise_for_status",
+   "class": "Response",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "ok"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/models.py",
+     "ok"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "ok"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare_cookies",
+   "class": "PreparedRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/auth.py",
+     "handle_401"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare"
+    ],
+    [
+     "src/requests/sessions.py",
+     "resolve_redirects"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/auth.py",
+      "handle_401"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare"
+     ],
+     [
+      "src/requests/sessions.py",
+      "resolve_redirects"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/auth.py",
+   "name": "init_per_thread_state",
+   "class": "HTTPDigestAuth",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/auth.py",
+     "__call__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/auth.py",
+     "__call__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/auth.py",
+      "__call__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "cert_verify",
+   "class": "HTTPAdapter",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "send"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "get_origin_req_host",
+   "class": "MockRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "origin_req_host"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "origin_req_host"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "origin_req_host"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "get_new_headers",
+   "class": "MockRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "get_cookie_header"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "get_cookie_header"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "get_cookie_header"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "merge_setting",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "merge_environment_settings"
+    ],
+    [
+     "src/requests/sessions.py",
+     "merge_hooks"
+    ],
+    [
+     "src/requests/sessions.py",
+     "prepare_request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "merge_environment_settings"
+    ],
+    [
+     "src/requests/sessions.py",
+     "merge_hooks"
+    ],
+    [
+     "src/requests/sessions.py",
+     "prepare_request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "merge_environment_settings"
+     ],
+     [
+      "src/requests/sessions.py",
+      "merge_hooks"
+     ],
+     [
+      "src/requests/sessions.py",
+      "prepare_request"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "merge_environment_settings"
+     ],
+     [
+      "src/requests/sessions.py",
+      "merge_hooks"
+     ],
+     [
+      "src/requests/sessions.py",
+      "prepare_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "mount",
+   "class": "Session",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "__init__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "__init__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "__init__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "get_environ_proxies",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "resolve_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "merge_environment_settings"
+    ],
+    [
+     "src/requests/utils.py",
+     "resolve_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "merge_environment_settings"
+     ],
+     [
+      "src/requests/utils.py",
+      "resolve_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "merge_environment_settings"
+     ],
+     [
+      "src/requests/utils.py",
+      "resolve_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "close",
+   "class": "Session",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "__exit__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "__exit__"
+     ],
+     [
+      "src/requests/sessions.py",
+      "resolve_redirects"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "unquote_unreserved",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "requote_uri"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "requote_uri"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "requote_uri"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "requote_uri"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "get_host",
+   "class": "MockRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "get_origin_req_host"
+    ],
+    [
+     "src/requests/cookies.py",
+     "host"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "get_origin_req_host"
+    ],
+    [
+     "src/requests/cookies.py",
+     "host"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "get_origin_req_host"
+     ],
+     [
+      "src/requests/cookies.py",
+      "host"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "merge_environment_settings",
+   "class": "Session",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "should_bypass_proxies",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "get_environ_proxies"
+    ],
+    [
+     "src/requests/utils.py",
+     "resolve_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "get_environ_proxies"
+    ],
+    [
+     "src/requests/utils.py",
+     "resolve_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "get_environ_proxies"
+     ],
+     [
+      "src/requests/utils.py",
+      "resolve_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "get_environ_proxies"
+     ],
+     [
+      "src/requests/utils.py",
+      "resolve_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "is_valid_cidr",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "_find_no_duplicates",
+   "class": "RequestsCookieJar",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "__getitem__"
+    ],
+    [
+     "src/requests/cookies.py",
+     "get"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "__getitem__"
+    ],
+    [
+     "src/requests/cookies.py",
+     "get"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "__getitem__"
+     ],
+     [
+      "src/requests/cookies.py",
+      "get"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "proxy_manager_for",
+   "class": "HTTPAdapter",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "get_connection"
+    ],
+    [
+     "src/requests/adapters.py",
+     "get_connection_with_tls_context"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "get_connection"
+    ],
+    [
+     "src/requests/adapters.py",
+     "get_connection_with_tls_context"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "get_connection"
+     ],
+     [
+      "src/requests/adapters.py",
+      "get_connection_with_tls_context"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "remove_cookie_by_name",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "__delitem__"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "__delitem__"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "__delitem__"
+     ],
+     [
+      "src/requests/cookies.py",
+      "set"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "__delitem__"
+     ],
+     [
+      "src/requests/cookies.py",
+      "set"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "proxy_headers",
+   "class": "HTTPAdapter",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "proxy_manager_for"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "proxy_manager_for"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "proxy_manager_for"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "rebuild_method",
+   "class": "SessionRedirectMixin",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "resolve_redirects"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "resolve_redirects"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "resolve_redirects"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare_method",
+   "class": "PreparedRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/structures.py",
+   "name": "lower_items",
+   "class": "CaseInsensitiveDict",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/structures.py",
+     "__eq__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/structures.py",
+     "__eq__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/structures.py",
+      "__eq__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "build_response",
+   "class": "HTTPAdapter",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "send"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "should_strip_auth",
+   "class": "SessionRedirectMixin",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "rebuild_auth"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "rebuild_auth"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "rebuild_auth"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "is_unverifiable",
+   "class": "MockRequest",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "unverifiable"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "unverifiable"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "unverifiable"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "iter_content",
+   "class": "Response",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "__iter__"
+    ],
+    [
+     "src/requests/models.py",
+     "content"
+    ],
+    [
+     "src/requests/models.py",
+     "iter_lines"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "__iter__"
+     ],
+     [
+      "src/requests/models.py",
+      "content"
+     ],
+     [
+      "src/requests/models.py",
+      "iter_lines"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "iterkeys",
+   "class": "RequestsCookieJar",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "keys"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "keys"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "keys"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "prepare",
+   "class": "PreparedRequest",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "prepare_request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/sessions.py",
+   "name": "prepare_request",
+   "class": "Session",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/sessions.py",
+     "request"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/sessions.py",
+     "request"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/sessions.py",
+      "request"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "morsel_to_cookie",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "set"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "set"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "set"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "set"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "_parse_content_type_header",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "get_encoding_from_headers"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "get_encoding_from_headers"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "get_encoding_from_headers"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "get_encoding_from_headers"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "is_ipv4_address",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/utils.py",
+     "should_bypass_proxies"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/utils.py",
+      "should_bypass_proxies"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "set_cookie",
+   "class": "RequestsCookieJar",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "_copy_cookie_jar"
+    ],
+    [
+     "src/requests/cookies.py",
+     "cookiejar_from_dict"
+    ],
+    [
+     "src/requests/cookies.py",
+     "merge_cookies"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set_cookie"
+    ],
+    [
+     "src/requests/cookies.py",
+     "update"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/cookies.py",
+     "_copy_cookie_jar"
+    ],
+    [
+     "src/requests/cookies.py",
+     "cookiejar_from_dict"
+    ],
+    [
+     "src/requests/cookies.py",
+     "merge_cookies"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set"
+    ],
+    [
+     "src/requests/cookies.py",
+     "set_cookie"
+    ],
+    [
+     "src/requests/cookies.py",
+     "update"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "_copy_cookie_jar"
+     ],
+     [
+      "src/requests/cookies.py",
+      "cookiejar_from_dict"
+     ],
+     [
+      "src/requests/cookies.py",
+      "merge_cookies"
+     ],
+     [
+      "src/requests/cookies.py",
+      "set"
+     ],
+     [
+      "src/requests/cookies.py",
+      "update"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "_encode_params",
+   "class": "RequestEncodingMixin",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare_body"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_url"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare_body"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_url"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "_encode_params",
+   "class": "RequestEncodingMixin",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare_body"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_url"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare_body"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_url"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "request_url",
+   "class": "HTTPAdapter",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "send"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "send"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/models.py",
+   "name": "_encode_params",
+   "class": "RequestEncodingMixin",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/models.py",
+     "prepare_body"
+    ],
+    [
+     "src/requests/models.py",
+     "prepare_url"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/models.py",
+      "prepare_body"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_url"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/adapters.py",
+   "name": "_urllib3_request_context",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/adapters.py",
+     "build_connection_pool_key_attributes"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "build_connection_pool_key_attributes"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "build_connection_pool_key_attributes"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "build_connection_pool_key_attributes"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/auth.py",
+   "name": "build_digest_header",
+   "class": "HTTPDigestAuth",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/auth.py",
+     "__call__"
+    ],
+    [
+     "src/requests/auth.py",
+     "handle_401"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/auth.py",
+     "__call__"
+    ],
+    [
+     "src/requests/auth.py",
+     "handle_401"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/auth.py",
+      "__call__"
+     ],
+     [
+      "src/requests/auth.py",
+      "handle_401"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/utils.py",
+   "name": "get_encoding_from_headers",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "src/requests/utils.py",
+     "get_unicode_from_response"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "src/requests/adapters.py",
+     "build_response"
+    ],
+    [
+     "src/requests/utils.py",
+     "get_unicode_from_response"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "build_response"
+     ],
+     [
+      "src/requests/utils.py",
+      "get_unicode_from_response"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/adapters.py",
+      "build_response"
+     ],
+     [
+      "src/requests/utils.py",
+      "get_unicode_from_response"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "src/requests/cookies.py",
+   "name": "cookiejar_from_dict",
+   "class": null,
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "src/requests/cookies.py",
+     "merge_cookies"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "merge_cookies"
+     ],
+     [
+      "src/requests/models.py",
+      "__init__"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_cookies"
+     ],
+     [
+      "src/requests/sessions.py",
+      "__init__"
+     ],
+     [
+      "src/requests/sessions.py",
+      "prepare_request"
+     ],
+     [
+      "src/requests/utils.py",
+      "add_dict_to_cookiejar"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "src/requests/cookies.py",
+      "merge_cookies"
+     ],
+     [
+      "src/requests/models.py",
+      "__init__"
+     ],
+     [
+      "src/requests/models.py",
+      "prepare_cookies"
+     ],
+     [
+      "src/requests/sessions.py",
+      "__init__"
+     ],
+     [
+      "src/requests/sessions.py",
+      "prepare_request"
+     ],
+     [
+      "src/requests/utils.py",
+      "add_dict_to_cookiejar"
+     ]
+    ]
+   }
+  }
+ ]
+}

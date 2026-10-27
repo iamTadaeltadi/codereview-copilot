@@ -1,0 +1,2115 @@
+{
+ "summary": {
+  "repo": "Textualize/rich",
+  "commit": "9d8f9a372cc5916fd4781fec207ced7ddac2f08f",
+  "prefix": "rich/",
+  "files": 80,
+  "definitions": 351,
+  "sampled_with_callers": 50,
+  "sampled_without_callers": 53,
+  "unique_name_targets": 37,
+  "old": {
+   "calls_edges": 1992,
+   "cross_file_calls": 1195,
+   "function_nodes": 615,
+   "phantom_function_nodes": 200,
+   "jedi": {
+    "tp": 20,
+    "fp": 18,
+    "fn": 61,
+    "recall": 0.24691358024691357,
+    "precision": 0.5263157894736842
+   },
+   "loose_unique": {
+    "tp": 21,
+    "fp": 4,
+    "fn": 45,
+    "recall": 0.3181818181818182,
+    "precision": 0.84
+   }
+  },
+  "new": {
+   "calls_edges": 742,
+   "cross_file_calls": 291,
+   "function_nodes": 415,
+   "phantom_function_nodes": 0,
+   "jedi": {
+    "tp": 78,
+    "fp": 15,
+    "fn": 3,
+    "recall": 0.9629629629629629,
+    "precision": 0.8387096774193549
+   },
+   "loose_unique": {
+    "tp": 65,
+    "fp": 4,
+    "fn": 1,
+    "recall": 0.9848484848484849,
+    "precision": 0.9420289855072463
+   }
+  }
+ },
+ "targets": [
+  {
+   "file": "rich/markdown.py",
+   "name": "on_text",
+   "class": "MarkdownElement",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/markdown.py",
+     "on_text"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "get_time",
+   "class": "Task",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "__call__"
+    ],
+    [
+     "rich/progress.py",
+     "elapsed"
+    ],
+    [
+     "rich/progress.py",
+     "render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/progress.py",
+     "__call__"
+    ],
+    [
+     "rich/progress.py",
+     "advance"
+    ],
+    [
+     "rich/progress.py",
+     "elapsed"
+    ],
+    [
+     "rich/progress.py",
+     "render"
+    ],
+    [
+     "rich/progress.py",
+     "reset"
+    ],
+    [
+     "rich/progress.py",
+     "start_task"
+    ],
+    [
+     "rich/progress.py",
+     "stop_task"
+    ],
+    [
+     "rich/progress.py",
+     "update"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "__call__"
+     ],
+     [
+      "rich/progress.py",
+      "advance"
+     ],
+     [
+      "rich/progress.py",
+      "elapsed"
+     ],
+     [
+      "rich/progress.py",
+      "render"
+     ],
+     [
+      "rich/progress.py",
+      "reset"
+     ],
+     [
+      "rich/progress.py",
+      "start_task"
+     ],
+     [
+      "rich/progress.py",
+      "stop_task"
+     ],
+     [
+      "rich/progress.py",
+      "update"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "SetConsoleTitle",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_win32_console.py",
+     "set_title"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_win32_console.py",
+     "set_title"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_win32_console.py",
+      "set_title"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_win32_console.py",
+      "set_title"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "on_child_close",
+   "class": "MarkdownElement",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "set_title",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "erase_line",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/padding.py",
+   "name": "unpack",
+   "class": "Padding",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/columns.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/padding.py",
+     "__init__"
+    ],
+    [
+     "rich/panel.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/panel.py",
+     "__rich_measure__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/columns.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/padding.py",
+     "__init__"
+    ],
+    [
+     "rich/panel.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/panel.py",
+     "__rich_measure__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/columns.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/padding.py",
+      "__init__"
+     ],
+     [
+      "rich/panel.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/panel.py",
+      "__rich_measure__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "_flatten_tokens",
+   "class": "Markdown",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/markdown.py",
+     "_flatten_tokens"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/markdown.py",
+     "_flatten_tokens"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_ratio.py",
+   "name": "ratio_resolve",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/layout.py",
+     "divide"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/layout.py",
+     "divide"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/layout.py",
+      "divide"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/layout.py",
+      "divide"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/cells.py",
+   "name": "cell_len",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/cells.py",
+     "set_cell_size"
+    ],
+    [
+     "rich/containers.py",
+     "justify"
+    ],
+    [
+     "rich/panel.py",
+     "align_text"
+    ],
+    [
+     "rich/pretty.py",
+     "__rich_measure__"
+    ],
+    [
+     "rich/pretty.py",
+     "check_length"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/cells.py",
+     "set_cell_size"
+    ],
+    [
+     "rich/containers.py",
+     "justify"
+    ],
+    [
+     "rich/panel.py",
+     "align_text"
+    ],
+    [
+     "rich/pretty.py",
+     "__rich_measure__"
+    ],
+    [
+     "rich/pretty.py",
+     "check_length"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/cells.py",
+      "set_cell_size"
+     ],
+     [
+      "rich/containers.py",
+      "justify"
+     ],
+     [
+      "rich/panel.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/panel.py",
+      "align_text"
+     ],
+     [
+      "rich/pretty.py",
+      "__rich_measure__"
+     ],
+     [
+      "rich/pretty.py",
+      "check_length"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/cells.py",
+      "set_cell_size"
+     ],
+     [
+      "rich/containers.py",
+      "justify"
+     ],
+     [
+      "rich/panel.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/panel.py",
+      "align_text"
+     ],
+     [
+      "rich/pretty.py",
+      "__rich_measure__"
+     ],
+     [
+      "rich/pretty.py",
+      "check_length"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "leave_style",
+   "class": "MarkdownContext",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/markdown.py",
+     "on_leave"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/markdown.py",
+     "on_leave"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/markdown.py",
+      "on_leave"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/filesize.py",
+   "name": "decimal",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/progress.py",
+     "render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "refresh",
+   "class": "Progress",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "add_task"
+    ],
+    [
+     "rich/progress.py",
+     "reset"
+    ],
+    [
+     "rich/progress.py",
+     "update"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "track"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "add_task"
+     ],
+     [
+      "rich/progress.py",
+      "reset"
+     ],
+     [
+      "rich/progress.py",
+      "track"
+     ],
+     [
+      "rich/progress.py",
+      "update"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "write_styled",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/color.py",
+   "name": "blend_rgb",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/progress_bar.py",
+     "_get_pulse_segments"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/progress_bar.py",
+     "_get_pulse_segments"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress_bar.py",
+      "_get_pulse_segments"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress_bar.py",
+      "_get_pulse_segments"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "traverse",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "pretty_repr"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/pretty.py",
+     "pretty_repr"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "pretty_repr"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "pretty_repr"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "hide_cursor",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "check_length",
+   "class": "_Line",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "render"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/live.py",
+   "name": "get_renderable",
+   "class": "Live",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/live.py",
+     "__init__"
+    ],
+    [
+     "rich/live.py",
+     "renderable"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/live.py",
+      "__init__"
+     ],
+     [
+      "rich/live.py",
+      "renderable"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "move_cursor_forward",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "get_table_column",
+   "class": "ProgressColumn",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "make_tasks_table"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/progress.py",
+     "make_tasks_table"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "make_tasks_table"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "update",
+   "class": "Progress",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "open"
+    ],
+    [
+     "rich/progress.py",
+     "run"
+    ],
+    [
+     "rich/progress.py",
+     "seek"
+    ],
+    [
+     "rich/progress.py",
+     "track"
+    ],
+    [
+     "rich/progress.py",
+     "wrap_file"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "open"
+     ],
+     [
+      "rich/progress.py",
+      "run"
+     ],
+     [
+      "rich/progress.py",
+      "seek"
+     ],
+     [
+      "rich/progress.py",
+      "track"
+     ],
+     [
+      "rich/progress.py",
+      "wrap_file"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "check_length",
+   "class": "Node",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "check_length"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "_reset",
+   "class": "Task",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "reset"
+    ],
+    [
+     "rich/progress.py",
+     "update"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/progress.py",
+     "reset"
+    ],
+    [
+     "rich/progress.py",
+     "update"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "reset"
+     ],
+     [
+      "rich/progress.py",
+      "update"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_inspect.py",
+   "name": "_render",
+   "class": "Inspect",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_inspect.py",
+     "__rich__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_inspect.py",
+     "__rich__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_inspect.py",
+      "__rich__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/live_render.py",
+   "name": "set_renderable",
+   "class": "LiveRender",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/live.py",
+     "refresh"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/live.py",
+     "refresh"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/live.py",
+      "refresh"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/color.py",
+   "name": "from_rgb",
+   "class": "Color",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/__main__.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/palette.py",
+     "__rich__"
+    ],
+    [
+     "rich/palette.py",
+     "__rich_console__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/__main__.py",
+     "__rich_console__"
+    ],
+    [
+     "rich/ansi.py",
+     "decode_line"
+    ],
+    [
+     "rich/palette.py",
+     "__rich__"
+    ],
+    [
+     "rich/palette.py",
+     "__rich_console__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/ansi.py",
+      "decode_line"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/__main__.py",
+      "__rich_console__"
+     ],
+     [
+      "rich/ansi.py",
+      "decode_line"
+     ],
+     [
+      "rich/palette.py",
+      "__rich__"
+     ],
+     [
+      "rich/palette.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "expand",
+   "class": "_Line",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/pretty.py",
+     "render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_inspect.py",
+   "name": "_get_formatted_doc",
+   "class": "Inspect",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_inspect.py",
+     "_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_inspect.py",
+     "_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_inspect.py",
+      "_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/ansi.py",
+   "name": "_ansi_tokenize",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/ansi.py",
+     "decode_line"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/ansi.py",
+     "decode_line"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/ansi.py",
+      "decode_line"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/ansi.py",
+      "decode_line"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/progress.py",
+   "name": "start",
+   "class": "Progress",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/progress.py",
+     "__enter__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/progress.py",
+      "__enter__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/ansi.py",
+   "name": "decode_line",
+   "class": "AnsiDecoder",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/ansi.py",
+     "decode"
+    ],
+    [
+     "rich/file_proxy.py",
+     "write"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/ansi.py",
+     "decode"
+    ],
+    [
+     "rich/file_proxy.py",
+     "write"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/ansi.py",
+      "decode"
+     ],
+     [
+      "rich/file_proxy.py",
+      "write"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/measure.py",
+   "name": "with_minimum",
+   "class": "Measurement",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/measure.py",
+     "clamp"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/measure.py",
+     "clamp"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/measure.py",
+      "clamp"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/containers.py",
+   "name": "append",
+   "class": "Renderables",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "on_child_close"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_ratio.py",
+      "ratio_distribute"
+     ],
+     [
+      "rich/_ratio.py",
+      "ratio_reduce"
+     ],
+     [
+      "rich/_wrap.py",
+      "divide_line"
+     ],
+     [
+      "rich/ansi.py",
+      "decode_line"
+     ],
+     [
+      "rich/box.py",
+      "get_bottom"
+     ],
+     [
+      "rich/box.py",
+      "get_row"
+     ],
+     [
+      "rich/box.py",
+      "get_top"
+     ],
+     [
+      "rich/highlighter.py",
+      "highlight"
+     ],
+     [
+      "rich/markup.py",
+      "render"
+     ],
+     [
+      "rich/pretty.py",
+      "_traverse"
+     ],
+     [
+      "rich/pretty.py",
+      "traverse"
+     ],
+     [
+      "rich/progress_bar.py",
+      "_get_pulse_segments"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_log_render.py",
+      "__call__"
+     ],
+     [
+      "rich/containers.py",
+      "justify"
+     ],
+     [
+      "rich/markdown.py",
+      "on_child_close"
+     ],
+     [
+      "rich/markdown.py",
+      "on_text"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "on_enter",
+   "class": "MarkdownElement",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "move_cursor_to",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/control.py",
+   "name": "home",
+   "class": "Control",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/live.py",
+     "process_renderables"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/live.py",
+     "process_renderables"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/live.py",
+      "process_renderables"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/logging.py",
+   "name": "render",
+   "class": "RichHandler",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/logging.py",
+     "emit"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/logging.py",
+      "emit"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/live.py",
+   "name": "_enable_redirect_io",
+   "class": "Live",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/live.py",
+     "start"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/live.py",
+     "start"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/live.py",
+      "start"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "move_cursor_backward",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "render_bullet",
+   "class": "ListItem",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "_get_attr_fields",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "_traverse"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/pretty.py",
+     "_traverse"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "_traverse"
+     ],
+     [
+      "rich/pretty.py",
+      "traverse"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "_traverse"
+     ],
+     [
+      "rich/pretty.py",
+      "traverse"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "_safe_isinstance",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "_ipy_display_hook"
+    ],
+    [
+     "rich/pretty.py",
+     "_traverse"
+    ],
+    [
+     "rich/pretty.py",
+     "display_hook"
+    ],
+    [
+     "rich/pretty.py",
+     "is_expandable"
+    ],
+    [
+     "rich/pretty.py",
+     "iter_rich_args"
+    ],
+    [
+     "rich/pretty.py",
+     "pretty_repr"
+    ],
+    [
+     "rich/pretty.py",
+     "to_repr"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/pretty.py",
+     "_ipy_display_hook"
+    ],
+    [
+     "rich/pretty.py",
+     "_traverse"
+    ],
+    [
+     "rich/pretty.py",
+     "display_hook"
+    ],
+    [
+     "rich/pretty.py",
+     "is_expandable"
+    ],
+    [
+     "rich/pretty.py",
+     "iter_rich_args"
+    ],
+    [
+     "rich/pretty.py",
+     "pretty_repr"
+    ],
+    [
+     "rich/pretty.py",
+     "to_repr"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "_ipy_display_hook"
+     ],
+     [
+      "rich/pretty.py",
+      "_traverse"
+     ],
+     [
+      "rich/pretty.py",
+      "display_hook"
+     ],
+     [
+      "rich/pretty.py",
+      "install"
+     ],
+     [
+      "rich/pretty.py",
+      "is_expandable"
+     ],
+     [
+      "rich/pretty.py",
+      "iter_rich_args"
+     ],
+     [
+      "rich/pretty.py",
+      "pretty_repr"
+     ],
+     [
+      "rich/pretty.py",
+      "to_repr"
+     ],
+     [
+      "rich/pretty.py",
+      "traverse"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "_ipy_display_hook"
+     ],
+     [
+      "rich/pretty.py",
+      "_traverse"
+     ],
+     [
+      "rich/pretty.py",
+      "display_hook"
+     ],
+     [
+      "rich/pretty.py",
+      "install"
+     ],
+     [
+      "rich/pretty.py",
+      "is_expandable"
+     ],
+     [
+      "rich/pretty.py",
+      "iter_rich_args"
+     ],
+     [
+      "rich/pretty.py",
+      "pretty_repr"
+     ],
+     [
+      "rich/pretty.py",
+      "to_repr"
+     ],
+     [
+      "rich/pretty.py",
+      "traverse"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/logging.py",
+   "name": "get_level_text",
+   "class": "RichHandler",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/logging.py",
+     "render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/logging.py",
+     "render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/logging.py",
+      "render"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/live.py",
+   "name": "_disable_redirect_io",
+   "class": "Live",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/live.py",
+     "stop"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/live.py",
+     "stop"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/live.py",
+      "stop"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/markdown.py",
+   "name": "on_leave",
+   "class": "MarkdownElement",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/markdown.py",
+     "__rich_console__"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/markdown.py",
+      "__rich_console__"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pager.py",
+   "name": "_pager",
+   "class": "SystemPager",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/pager.py",
+     "show"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/pager.py",
+     "show"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pager.py",
+      "show"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/pretty.py",
+   "name": "render",
+   "class": "Node",
+   "unique_name": false,
+   "jedi_callers": [
+    [
+     "rich/pretty.py",
+     "pretty_repr"
+    ]
+   ],
+   "loose_callers": null,
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/pretty.py",
+      "pretty_repr"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/cells.py",
+   "name": "get_character_cell_size",
+   "class": null,
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/cells.py",
+     "_cell_len"
+    ],
+    [
+     "rich/cells.py",
+     "split_graphemes"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/cells.py",
+     "_cell_len"
+    ],
+    [
+     "rich/cells.py",
+     "split_graphemes"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/cells.py",
+      "_cell_len"
+     ],
+     [
+      "rich/cells.py",
+      "split_graphemes"
+     ]
+    ]
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/cells.py",
+      "_cell_len"
+     ],
+     [
+      "rich/cells.py",
+      "split_graphemes"
+     ]
+    ]
+   }
+  },
+  {
+   "file": "rich/_win32_console.py",
+   "name": "write_text",
+   "class": "LegacyWindowsTerm",
+   "unique_name": true,
+   "jedi_callers": [
+    [
+     "rich/_win32_console.py",
+     "write_styled"
+    ],
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "loose_callers": [
+    [
+     "rich/_win32_console.py",
+     "write_styled"
+    ],
+    [
+     "rich/_windows_renderer.py",
+     "legacy_windows_render"
+    ]
+   ],
+   "old": {
+    "node_present": true,
+    "callers": []
+   },
+   "new": {
+    "node_present": true,
+    "callers": [
+     [
+      "rich/_win32_console.py",
+      "write_styled"
+     ],
+     [
+      "rich/_windows_renderer.py",
+      "legacy_windows_render"
+     ]
+    ]
+   }
+  }
+ ]
+}
