@@ -1,0 +1,25 @@
+c-CRAB, test-verified real defects, gpt-4o-mini, pre-registered rerun of 28 Oct 2026 (PLAN.md s10): code payloads for every condition, diff-derived seeds, budget 3000 tokens, EXACT LINE (tolerance 0, recomputed from line_distance)
+=== exact line (tolerance 0) ===
+paired defects: 239
+  A  diff only (today)                   2.9%
+  B  graph, repaired retrieval           2.1%
+  C  random nodes, same budget           2.9%
+  D  lexical, same budget                2.1%
+
+  graph − diff only                -0.8%  repo-clustered [-3.0%, +1.2%]  task-clustered [-3.3%, +1.3%]  spans zero
+  graph − random                   -0.8%  repo-clustered [-3.6%, +1.3%]  task-clustered [-3.3%, +1.3%]  spans zero
+  graph − lexical                  +0.0%  repo-clustered [-1.3%, +1.1%]  task-clustered [-1.7%, +1.7%]  spans zero
+  lexical − diff only              -0.8%  repo-clustered [-2.6%, +0.8%]  task-clustered [-2.9%, +1.3%]  spans zero
+  random − diff only               +0.0%  repo-clustered [-2.5%, +2.8%]  task-clustered [-2.1%, +2.5%]  spans zero
+
+=== with the random-other-files control (Cx) ===
+paired defects: 239
+  A  diff only (today)                   2.9%
+  C  random nodes, same budget           2.9%
+  Cx random, other files only            3.8%
+  D  lexical, same budget                2.1%
+  B  graph, repaired retrieval           2.1%
+
+  graph − random other files       -1.7%  repo-clustered [-4.0%, +0.3%]  task-clustered [-4.2%, +0.8%]  spans zero
+  random other files − diff        +0.8%  repo-clustered [-0.6%, +2.9%]  task-clustered [-0.8%, +2.5%]  spans zero
+  random other files − random any  +0.8%  repo-clustered [-1.1%, +2.7%]  task-clustered [-1.3%, +2.9%]  spans zero

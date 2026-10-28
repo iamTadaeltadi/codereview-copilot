@@ -1,0 +1,28 @@
+c-CRAB, test-verified real defects, gpt-4o-mini, pre-registered rerun of 28 Oct 2026 (PLAN.md s10): code payloads for every condition, diff-derived seeds, budget 3000 tokens, tolerance 5 lines
+=== A, B, C, D run on one day ===
+paired defects: 239
+  A  diff only (today)                  36.0%
+  B  graph, repaired retrieval          32.2%
+  C  random nodes, same budget          34.7%
+  D  lexical, same budget               35.6%
+  E  whole changed files (Aug)          35.9%   (n=220)
+  F  fault-location oracle (Aug)        33.6%   (n=238)
+  A  diff only (Aug)                    33.1%   (n=239)
+
+  graph − diff only                -3.8%  repo-clustered [-7.4%, +0.0%]  task-clustered [-7.1%, -0.4%]  spans zero
+  graph − random                   -2.5%  repo-clustered [-4.9%, +0.0%]  task-clustered [-5.0%, +0.0%]  spans zero
+  graph − lexical                  -3.3%  repo-clustered [-6.3%, +0.4%]  task-clustered [-6.7%, +0.0%]  spans zero
+  lexical − diff only              -0.4%  repo-clustered [-4.5%, +3.1%]  task-clustered [-4.6%, +3.8%]  spans zero
+  random − diff only               -1.3%  repo-clustered [-5.6%, +3.0%]  task-clustered [-5.4%, +2.9%]  spans zero
+
+=== with the random-other-files control (Cx) ===
+paired defects: 239
+  A  diff only (today)                  36.0%
+  C  random nodes, same budget          34.7%
+  Cx random, other files only           34.7%
+  D  lexical, same budget               35.6%
+  B  graph, repaired retrieval          32.2%
+
+  graph − random other files       -2.5%  repo-clustered [-6.0%, +1.0%]  task-clustered [-6.3%, +0.8%]  spans zero
+  random other files − diff        -1.3%  repo-clustered [-5.4%, +3.2%]  task-clustered [-5.4%, +2.9%]  spans zero
+  random other files − random any  +0.0%  repo-clustered [-3.1%, +3.2%]  task-clustered [-3.3%, +2.9%]  spans zero
