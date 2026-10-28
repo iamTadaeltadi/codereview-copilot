@@ -15,7 +15,9 @@ have no cross-file edges left to test.
 
 from __future__ import annotations
 
+import os
 import re
+import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 import urllib.error
@@ -56,18 +58,29 @@ def fetch_file(repo: str, commit: str, path: str, token: str = "",
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
+    debug = os.environ.get("SPARSE_DEBUG")
+    started = time.time()
     for attempt in range(attempts):
+        status = "?"
         try:
             if opener is not None:
                 return opener(url)
             request = urllib.request.Request(url, headers=headers)
             with urllib.request.urlopen(request, timeout=timeout) as response:
-                return response.read().decode("utf-8", errors="ignore")
+                text = response.read().decode("utf-8", errors="ignore")
+            if debug:
+                print(f"    fetch {path} 200 {len(text)}b {time.time()-started:.1f}s", file=sys.stderr, flush=True)
+            return text
         except urllib.error.HTTPError as error:
+            status = error.code
             if error.code in (401, 403, 404):
+                if debug:
+                    print(f"    fetch {path} {status} {time.time()-started:.1f}s", file=sys.stderr, flush=True)
                 return None
-        except Exception:
-            pass
+        except Exception as error:
+            status = type(error).__name__
+        if debug:
+            print(f"    fetch {path} attempt {attempt+1} {status} {time.time()-started:.1f}s", file=sys.stderr, flush=True)
         if attempt + 1 < attempts:
             time.sleep(min(8, 2 ** attempt))
     return None
