@@ -1,0 +1,8 @@
+evidence recall, results/ccrab-final: share of defects whose comment names a file or identifier that the delivered context contains
+
+  cond  defects  named  recall  outside-diff named  recall  tasks named  task recall
+  A         246    161    0.0%                  86    0.0%          142         0.0%
+  B         245    160   61.9%                  85   18.8%          141        66.0%
+  C         245    160   50.6%                  85   11.8%          141        53.9%
+  Cx        245    160   50.0%                  85   14.1%          141        52.5%
+  D         244    159   60.4%                  84   22.6%          140        65.7%

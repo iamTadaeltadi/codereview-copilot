@@ -1,0 +1,27 @@
+chance baseline for results/ccrab-final: same finding count as the model, uniform over the diff's hunk lines, same matcher; 500 draws per task and condition
+defects whose line lies inside a hunk of their file: 237/246 (96.3%); a finding outside the hunks can still hit within the tolerance
+
+=== tolerance 5 ===  paired defects: 244
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       50.8%    35.3%  +15.5%  [+10.7%, +20.2%]        [+9.9%, +21.2%]  model above chance
+  B       54.1%    35.4%  +18.7%  [+12.2%, +25.4%]        [+12.8%, +24.7%]  model above chance
+  C       52.0%    34.9%  +17.1%  [+10.9%, +23.8%]        [+10.8%, +23.2%]  model above chance
+  Cx      52.9%    35.1%  +17.8%  [+12.1%, +23.1%]        [+11.9%, +23.4%]  model above chance
+  D       52.9%    35.3%  +17.5%  [+11.9%, +22.8%]        [+11.8%, +23.1%]  model above chance
+
+=== exact line ===  paired defects: 244
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       23.4%     4.8%  +18.5%  [+13.6%, +24.2%]        [+13.2%, +24.0%]  model above chance
+  B       24.6%     4.9%  +19.7%  [+15.0%, +25.1%]        [+14.5%, +25.1%]  model above chance
+  C       24.2%     4.8%  +19.4%  [+14.6%, +24.7%]        [+14.1%, +24.7%]  model above chance
+  Cx      24.6%     4.6%  +20.0%  [+15.5%, +24.6%]        [+14.7%, +25.5%]  model above chance
+  D       25.0%     4.8%  +20.2%  [+15.6%, +25.0%]        [+14.8%, +25.7%]  model above chance
+
+=== top-1, tolerance 5 ===  paired defects: 244
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       26.2%    13.7%  +12.5%  [+7.9%, +17.3%]        [+7.9%, +17.3%]  model above chance
+  B       26.6%    13.6%  +13.0%  [+8.5%, +17.8%]        [+8.3%, +17.9%]  model above chance
+  C       25.4%    13.5%  +11.9%  [+7.6%, +16.3%]        [+7.3%, +16.7%]  model above chance
+  Cx      25.8%    13.5%  +12.3%  [+7.6%, +17.1%]        [+7.7%, +17.0%]  model above chance
+  D       26.6%    13.6%  +13.0%  [+8.5%, +17.7%]        [+8.4%, +17.9%]  model above chance
+

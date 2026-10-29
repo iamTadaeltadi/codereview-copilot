@@ -1,0 +1,207 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : openai/gpt-4o-mini
+conditions: ['C']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+  [1/195] Avaiga__taipy-1042@a76a34b               C ctx=  7781 found= 5 hit=1/1 $0.00094 5.9s
+  [2/195] Avaiga__taipy-833@24559da                C ctx=  3090 found= 9 hit=0/1 $0.00196 8.1s
+  [3/195] Lightning-AI__pytorch-lightning-4654@89b C ctx=  3476 found= 3 hit=1/1 $0.00042 2.8s
+  [4/195] Lightning-AI__pytorch-lightning-7351@7b3 C ctx=  6058 found= 5 hit=1/1 $0.00090 6.0s
+  [5/195] Lightning-AI__pytorch-lightning-866@5a0c C ctx=  7460 found= 5 hit=1/1 $0.00059 4.7s
+  [6/195] ManimCommunity__manim-509@1cbc24f        C ctx=  2770 found= 2 hit=1/1 $0.00022 2.1s
+  [7/195] OpenMined__PySyft-5385@0af54a4           C ctx=  5966 found= 3 hit=2/2 $0.00049 3.4s
+  [8/195] PostHog__posthog-4868@1372f68            C ctx=  5266 found= 7 hit=0/1 $0.00144 6.3s
+  [9/195] PostHog__posthog-8874@960dad4            C ctx=  8435 found= 4 hit=0/1 $0.00064 9.6s
+  [10/195] PrefectHQ__prefect-14392@aac04aa         C ctx=   884 found= 7 hit=0/1 $0.00077 9.7s
+  [11/195] PrefectHQ__prefect-18444@1ffae47         C ctx=  3384 found= 5 hit=0/1 $0.00187 4.3s
+  [12/195] RasaHQ__rasa-5341@d8b1c24                C ctx=  7354 found= 4 hit=0/1 $0.00093 8.7s
+  [13/195] RasaHQ__rasa-5818@693ab41                C ctx=  6455 found= 3 hit=0/2 $0.00059 5.9s
+  [14/195] ansible__ansible-27435@da1a331           C ctx=  9154 found= 5 hit=1/3 $0.00106 5.4s
+  [15/195] ansible__ansible-36996@4b45ffc           C ctx=  9839 found= 4 hit=1/1 $0.00061 5.0s
+  [16/195] ansible__ansible-39963@85a7d65           C ctx=  9697 found= 4 hit=1/1 $0.00063 4.5s
+  [17/195] ansible__ansible-42145@12c0d66           C ctx=  8948 found= 4 hit=3/3 $0.00058 4.6s
+  [18/195] ansible__ansible-42456@b29e00e           C ctx=  5572 found= 4 hit=0/1 $0.00058 4.0s
+  [19/195] ansible__ansible-49873@10ef1a3           C ctx=  8095 found= 4 hit=0/1 $0.00056 4.5s
+  [20/195] ansible__ansible-51415@fb988f5           C ctx=  9935 found= 4 hit=0/1 $0.00058 2.8s
+  [21/195] ansible__ansible-54268@403b068           C ctx=  9797 found= 5 hit=0/1 $0.00072 3.0s
+  [22/195] ansible__ansible-55379@060b0e9           C ctx=  7672 found= 5 hit=0/1 $0.00127 4.2s
+  [23/195] ansible__ansible-59946@fbe8544           C ctx=  8872 found= 2 hit=1/1 $0.00049 2.0s
+  [24/195] ansible__ansible-60622@19d2ad7           C ctx=  9357 found= 3 hit=1/1 $0.00057 2.3s
+  [25/195] ansible__ansible-61603@5bf662a           C ctx=  3892 found= 8 hit=1/1 $0.00161 4.8s
+  [26/195] ansible__ansible-71136@621cec5           C ctx=  8165 found= 3 hit=1/1 $0.00068 4.7s
+  [27/195] ansible__ansible-77944@0f6d2a8           C ctx=  8395 found= 7 hit=0/1 $0.00119 4.4s
+  [28/195] apache__airflow-16732@8ec4f26            C ctx=  8644 found= 3 hit=0/1 $0.00076 3.6s
+  [29/195] apache__airflow-26766@cf0c9a6            C ctx=  8528 found= 4 hit=1/1 $0.00075 4.9s
+  [30/195] apache__airflow-51237@6dd1634            C ctx=  8642 found= 5 hit=0/1 $0.00179 6.6s
+  [31/195] apache__airflow-8749@161c96c             C ctx=  3314 found= 7 hit=0/1 $0.00174 5.6s
+  [32/195] bridgecrewio__checkov-4155@48ecaf7       C ctx=  6744 found= 5 hit=1/1 $0.00070 5.5s
+  [33/195] ccxt__ccxt-14582@83f50a7                 C ctx=    95 found= 2 hit=1/1 $0.00016 2.5s
+  [34/195] ccxt__ccxt-14830@1d1701f                 C ctx=    90 found= 2 hit=1/1 $0.00017 2.0s
+  [35/195] ccxt__ccxt-16729@284cdce                 C ctx=    84 found= 4 hit=1/1 $0.00037 5.5s
+  [36/195] certbot__certbot-7270@65f464e            C ctx=  2639 found= 5 hit=1/1 $0.00075 3.6s
+  [37/195] certbot__certbot-9076@01f570d            C ctx=  1575 found= 3 hit=0/1 $0.00030 3.4s
+  [38/195] certbot__certbot-9208@2584184            C ctx=  8920 found= 4 hit=1/4 $0.00085 3.1s
+  [39/195] conan-io__conan-16942@e62c6eb            C ctx=  7567 found= 4 hit=0/2 $0.00077 4.6s
+  [40/195] conan-io__conan-6052@ca23055             C ctx=  6856 found= 6 hit=0/1 $0.00130 4.2s
+  [41/195] cvat-ai__cvat-1396@bd228e1               C ctx=  7646 found= 5 hit=1/1 $0.00071 5.1s
+  [42/195] dask__dask-7974@88a13f7                  C ctx=  8203 found= 4 hit=0/3 $0.00076 3.5s
+  [43/195] dask__dask-8869@24f8120                  C ctx=  7233 found= 5 hit=0/1 $0.00078 4.3s
+  [44/195] dbt-labs__dbt-core-1453@70206b1          C ctx=  6193 found= 3 hit=0/1 $0.00091 3.1s
+  [45/195] dbt-labs__dbt-core-5027@8dcfeb1          C ctx=  3221 found= 6 hit=0/2 $0.00162 7.7s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12          C ctx=  4234 found=19 hit=1/1 $0.00132 11.4s
+  [47/195] dbt-labs__dbt-core-8743@fb6f32f          C ctx=  5870 found= 5 hit=1/1 $0.00087 5.5s
+  [48/195] deepset-ai__haystack-1413@fc3b61a        C ctx=  9624 found= 5 hit=0/1 $0.00072 27.1s
+  [49/195] deepset-ai__haystack-1604@78e9795        C ctx=  8586 found= 5 hit=0/1 $0.00129 6.9s
+  [50/195] deepset-ai__haystack-3546@a260299        C ctx=  4953 found= 7 hit=0/1 $0.00153 8.9s
+  [51/195] deepset-ai__haystack-3837@e0d9ac8        C ctx=  7827 found= 3 hit=1/1 $0.00056 4.1s
+  [52/195] deepset-ai__haystack-5284@60a39ef        C ctx=  7014 found= 3 hit=1/1 $0.00061 4.2s
+  [53/195] deepset-ai__haystack-5467@cc8b6d5        C ctx=  3075 found= 4 hit=1/1 $0.00131 4.7s
+  [54/195] deepset-ai__haystack-8457@2dd3777        C ctx=  5450 found= 9 hit=1/1 $0.00152 6.9s
+  [55/195] deepset-ai__haystack-9290@3f511f6        C ctx=  7922 found= 5 hit=1/1 $0.00104 24.4s
+  [56/195] dmlc__dgl-3892@98afbd1                   C ctx=  5281 found= 6 hit=0/1 $0.00154 4.8s
+  [57/195] dmlc__dgl-4620@5297d27                   C ctx=  7206 found= 5 hit=2/3 $0.00088 6.8s
+  [58/195] frappe__frappe-13065@dfc23eb             C ctx=  3382 found= 5 hit=1/1 $0.00155 5.6s
+  [59/195] frappe__frappe-16877@e78a251             C ctx=  7156 found= 2 hit=1/1 $0.00046 3.0s
+  [60/195] freqtrade__freqtrade-5846@da4344d        C ctx=  6945 found= 6 hit=1/1 $0.00169 6.4s
+  [61/195] geldata__gel-4469@95cccee                C ctx=  6311 found= 4 hit=0/2 $0.00100 3.3s
+  [62/195] geldata__gel-5130@2e5341f                C ctx=  7756 found= 6 hit=1/2 $0.00079 4.3s
+  [63/195] getsentry__sentry-78778@17b738e          C ctx=  7862 found= 5 hit=0/1 $0.00073 5.2s
+  [64/195] gradio-app__gradio-5232@5b83994          C ctx=  6640 found=11 hit=0/1 $0.00184 6.8s
+  [65/195] home-assistant__core-121178@b09b3b5      C ctx=  9112 found= 4 hit=1/1 $0.00063 5.5s
+  [66/195] home-assistant__core-142977@fa60db7      C ctx=  8479 found= 4 hit=1/1 $0.00058 3.1s
+  [67/195] home-assistant__core-146453@71eab0c      C ctx=  7962 found= 5 hit=0/1 $0.00124 6.6s
+  [68/195] hpcaitech__ColossalAI-6059@802df11       C ctx=  4961 found= 7 hit=0/1 $0.00081 9.6s
+  [69/195] huggingface__accelerate-255@12e4b18      C ctx=  7640 found= 5 hit=1/3 $0.00102 3.8s
+  [70/195] huggingface__datasets-2182@748e2e9       C ctx=  7618 found= 6 hit=1/1 $0.00158 5.1s
+  [71/195] huggingface__datasets-3129@3d35ada       C ctx=  7145 found= 8 hit=1/1 $0.00091 8.1s
+  [72/195] huggingface__datasets-4433@43a3326       C ctx=  8404 found= 6 hit=1/1 $0.00099 9.6s
+  [73/195] huggingface__datasets-586@034c1c0        C ctx=  9443 found= 6 hit=1/1 $0.00073 6.1s
+  [74/195] huggingface__diffusers-4015@c63a53a      C ctx=  7487 found= 4 hit=0/1 $0.00093 5.5s
+  [75/195] huggingface__diffusers-792@90385bb       C ctx=  6372 found= 3 hit=1/1 $0.00052 3.5s
+  [76/195] intel__ipex-llm-5097@9525134             C ctx=  7579 found= 2 hit=1/1 $0.00045 5.0s
+  [77/195] jina-ai__serve-2037@792b165              C ctx=  6658 found= 6 hit=1/1 $0.00082 6.7s
+  [78/195] jina-ai__serve-2297@e1aea7f              C ctx=  3838 found= 6 hit=0/1 $0.00105 7.5s
+  [79/195] jina-ai__serve-4883@ca87c3e              C ctx=  6648 found= 5 hit=0/1 $0.00101 5.5s
+  [80/195] keephq__keep-1984@e524fe8                C ctx=  4920 found= 5 hit=0/2 $0.00136 5.3s
+  [81/195] keephq__keep-4568@aaa03de                C ctx=  7941 found=10 hit=0/1 $0.00176 7.8s
+  [82/195] keephq__keep-625@767a6e3                 C ctx=  8557 found= 4 hit=1/1 $0.00182 4.2s
+  [83/195] letta-ai__letta-58@d3a3a21               C ctx=  7643 found= 6 hit=1/1 $0.00116 4.3s
+  [84/195] localstack__localstack-12496@22b4c31     C ctx=  6760 found= 4 hit=1/1 $0.00150 5.8s
+  [85/195] marimo-team__marimo-3122@5536640         C ctx=  7952 found= 4 hit=1/1 $0.00065 12.7s
+  [86/195] marimo-team__marimo-4080@8a73f89         C ctx=  6502 found= 6 hit=0/1 $0.00209 4.9s
+  [87/195] matplotlib__matplotlib-24111@3f99c20     C ctx=  6942 found= 4 hit=1/1 $0.00071 3.9s
+  [88/195] matplotlib__matplotlib-27172@9f80d55     C ctx=  6492 found= 4 hit=0/1 $0.00094 7.7s
+  [89/195] matplotlib__matplotlib-30199@b5dfb32     C ctx=  7636 found= 4 hit=0/1 $0.00057 8.5s
+  [90/195] matplotlib__matplotlib-8938@d670a4f      C ctx=  7868 found= 3 hit=0/1 $0.00053 2.9s
+  [91/195] microsoft__autogen-1616@7f23912          C ctx=  7627 found= 5 hit=0/1 $0.00070 4.2s
+  [92/195] microsoft__autogen-2225@9cf65ed          C ctx=  5070 found= 5 hit=0/1 $0.00175 5.5s
+  [93/195] mlflow__mlflow-1658@3f53b0b              C ctx=  8727 found= 2 hit=1/1 $0.00049 3.3s
+  [94/195] modin-project__modin-2801@64caea0        C ctx=  2007 found= 6 hit=1/1 $0.00090 5.1s
+  [95/195] modin-project__modin-3765@d2d8bd2        C ctx=  6509 found= 6 hit=0/2 $0.00070 7.0s
+  [96/195] modin-project__modin-4215@69f9652        C ctx=  7114 found= 3 hit=1/1 $0.00052 5.5s
+  [97/195] netbox-community__netbox-13373@1d02196   C ctx=  9398 found= 5 hit=3/4 $0.00062 3.4s
+  [98/195] netbox-community__netbox-13563@4da93f4   C ctx=  5389 found= 3 hit=2/2 $0.00043 3.6s
+  [99/195] netbox-community__netbox-14047@0ec158d   C ctx=  9258 found= 5 hit=0/1 $0.00083 3.4s
+  [100/195] netbox-community__netbox-14754@44cf93a   C ctx=  8536 found= 6 hit=1/1 $0.00080 3.3s
+  [101/195] netbox-community__netbox-17716@8a8c328   C ctx=  6522 found= 5 hit=1/1 $0.00108 4.8s
+  [102/195] networkx__networkx-4602@b2da108          C ctx=  7355 found= 7 hit=1/1 $0.00074 6.0s
+  [103/195] networkx__networkx-5305@072b960          C ctx=  7929 found= 8 hit=2/3 $0.00101 8.9s
+  [104/195] networkx__networkx-5371@b446ef1          C ctx=  1067 found= 3 hit=1/1 $0.00029 4.4s
+  [105/195] networkx__networkx-7159@7e65b7d          C ctx=  7812 found= 1 hit=1/1 $0.00040 197.0s
+  [106/195] numba__numba-4282@a062e23                C ctx=  8849 found= 4 hit=1/1 $0.00065 3.3s
+  [107/195] numba__numba-9144@74a4cd4                C ctx=  7908 found= 2 hit=1/1 $0.00052 3.4s
+  [108/195] numpy__numpy-20310@a4daaf5 C: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [109/195] numpy__numpy-8423@0ec089a                C ctx=  7074 found= 4 hit=1/1 $0.00105 4.9s
+  [110/195] optuna__optuna-1087@4177569              C ctx=  7067 found=17 hit=1/1 $0.00101 11.3s
+  [111/195] optuna__optuna-3629@f4f6b5f              C ctx=  6835 found= 5 hit=1/1 $0.00081 3.7s
+  [112/195] optuna__optuna-972@1f4813a               C ctx=  9660 found= 1 hit=0/1 $0.00052 1.9s
+  [113/195] pandas-dev__pandas-14737@8e4adbb         C ctx=  7603 found= 6 hit=0/1 $0.00096 4.7s
+  [114/195] pandas-dev__pandas-16744@b8a6007         C ctx= 10238 found= 1 hit=1/1 $0.00044 2.1s
+  [115/195] pandas-dev__pandas-18440@65fbc91         C ctx=  6438 found= 6 hit=1/1 $0.00060 4.6s
+  [116/195] pandas-dev__pandas-18604@8c9061b         C ctx= 10658 found= 2 hit=1/1 $0.00048 2.7s
+  [117/195] pandas-dev__pandas-20550@c1dfe56         C ctx=  7872 found= 3 hit=1/1 $0.00049 3.7s
+  [118/195] pandas-dev__pandas-23141@1c22791         C ctx=  7913 found= 4 hit=0/1 $0.00084 7.3s
+  [119/195] pandas-dev__pandas-23480@ab05b87         C ctx=  9376 found= 2 hit=1/1 $0.00052 2.6s
+  [120/195] pandas-dev__pandas-23886@d6a2d5b         C ctx=  3842 found=56 hit=1/1 $0.00273 23.6s
+  [121/195] pandas-dev__pandas-24968@0ea6653         C ctx=  7920 found= 4 hit=0/1 $0.00069 5.5s
+  [122/195] pandas-dev__pandas-25914@87c183e         C ctx=  9161 found= 2 hit=0/1 $0.00055 3.5s
+  [123/195] pandas-dev__pandas-28802@33c889c         C ctx=  9188 found= 3 hit=1/2 $0.00065 4.0s
+  [124/195] pandas-dev__pandas-31538@33e24a3         C ctx=  8445 found= 2 hit=1/1 $0.00047 2.3s
+  [125/195] pandas-dev__pandas-33962@fc4993f         C ctx=  6908 found= 3 hit=1/1 $0.00066 4.2s
+  [126/195] pandas-dev__pandas-34056@d001e97         C ctx=  7948 found= 3 hit=1/1 $0.00063 3.6s
+  [127/195] pandas-dev__pandas-34363@f3c7e18         C ctx=  9594 found= 3 hit=1/2 $0.00054 4.3s
+  [128/195] pandas-dev__pandas-34933@de64663         C ctx=  9746 found= 3 hit=1/1 $0.00054 16.5s
+  [129/195] pandas-dev__pandas-35231@2f4902c         C ctx=  9111 found= 6 hit=1/1 $0.00075 6.3s
+  [130/195] pandas-dev__pandas-35974@d0a8a68         C ctx=  6254 found= 4 hit=1/1 $0.00098 5.4s
+  [131/195] pandas-dev__pandas-37676@22a6bff         C ctx=  9985 found= 2 hit=0/1 $0.00052 4.7s
+  [132/195] pandas-dev__pandas-40372@51fe758         C ctx=  2725 found= 6 hit=0/1 $0.00150 7.1s
+  [133/195] pandas-dev__pandas-42635@59d4145         C ctx=  9100 found= 3 hit=2/2 $0.00052 4.3s
+  [134/195] pandas-dev__pandas-55938@b36d8d1         C ctx=  6744 found= 2 hit=1/1 $0.00041 2.7s
+  [135/195] pydantic__pydantic-7677@b6bbdcc          C ctx=  6740 found= 3 hit=1/1 $0.00059 3.7s
+  [136/195] python-telegram-bot__python-telegram-bot C ctx=  9253 found= 4 hit=1/1 $0.00060 3.5s
+  [137/195] python-telegram-bot__python-telegram-bot C ctx=  8644 found= 3 hit=0/1 $0.00057 4.6s
+  [138/195] python__mypy-14517@78b0f55               C ctx=  7830 found= 6 hit=0/1 $0.00127 6.1s
+  [139/195] python__mypy-15353@65efb01               C ctx=  7527 found= 5 hit=1/1 $0.00090 5.7s
+  [140/195] python__mypy-17309@b3c328e               C ctx=  8251 found= 3 hit=1/1 $0.00055 3.4s
+  [141/195] python__mypy-4000@358ca96                C ctx=  8641 found= 7 hit=1/1 $0.00132 6.3s
+  [142/195] python__mypy-4341@2456414                C ctx=  5967 found= 7 hit=0/1 $0.00143 7.2s
+  [143/195] python__mypy-6803@8e6a9b8                C ctx= 10221 found= 3 hit=0/1 $0.00060 2.6s
+  [144/195] python__mypy-9629@13dc4d2                C ctx=  8759 found= 3 hit=1/1 $0.00062 5.9s
+  [145/195] pytorch__vision-2988@7ea166d             C ctx=  6297 found= 5 hit=0/1 $0.00102 4.7s
+  [146/195] pytorch__vision-4457@231054c             C ctx=  8237 found= 3 hit=1/1 $0.00056 2.5s
+  [147/195] pytorch__vision-8316@92ec2fb             C ctx=  6096 found= 4 hit=0/1 $0.00098 4.6s
+  [148/195] qutebrowser__qutebrowser-5981@7f4897f    C ctx=   262 found= 3 hit=1/1 $0.00032 92.5s
+  [149/195] qutebrowser__qutebrowser-7003@3656345    C ctx=  8030 found= 5 hit=0/1 $0.00077 3.6s
+  [150/195] ray-project__ray-49918@04cf1ee           C ctx=  7262 found= 5 hit=0/1 $0.00111 3.6s
+  [151/195] ray-project__ray-50590@3dad0b2           C ctx=  7164 found= 4 hit=0/1 $0.00103 4.5s
+  [152/195] reflex-dev__reflex-4406@5ec2c11          C ctx=  6649 found= 5 hit=1/1 $0.00074 3.9s
+  [153/195] run-llama__llama_index-19234@e7810e8     C ctx=  6148 found= 5 hit=0/1 $0.00079 8.5s
+  [154/195] saleor__saleor-4617@9c2907b              C ctx=  5258 found= 7 hit=0/1 $0.00153 7.9s
+  [155/195] scikit-learn__scikit-learn-12486@15a4397 C ctx=  8535 found= 4 hit=1/1 $0.00059 4.3s
+  [156/195] scikit-learn__scikit-learn-14427@0f2047d C ctx=   116 found= 1 hit=1/1 $0.00010 2.0s
+  [157/195] scikit-learn__scikit-learn-14660@850cd0a C ctx=  9432 found= 1 hit=1/1 $0.00045 2.5s
+  [158/195] scikit-learn__scikit-learn-23370@1dde56f C ctx=  9150 found= 4 hit=1/1 $0.00063 3.9s
+  [159/195] scikit-learn__scikit-learn-23548@cc5e175 C ctx=  8901 found= 3 hit=1/1 $0.00057 4.8s
+  [160/195] scikit-learn__scikit-learn-29401@819e167 C ctx=  8281 found= 4 hit=0/1 $0.00073 4.6s
+  [161/195] scikit-learn__scikit-learn-8835@4bef1da  C ctx=  9088 found= 6 hit=0/1 $0.00083 3.9s
+  [162/195] scikit-learn__scikit-learn-9802@5c7da54  C ctx=  8885 found= 4 hit=0/1 $0.00039 189.7s
+  [163/195] scipy__scipy-10410@3a58e13               C ctx=  7542 found= 6 hit=1/1 $0.00072 4.8s
+  [164/195] scipy__scipy-13893@4fcbd8b               C ctx=  7359 found= 5 hit=0/2 $0.00105 8.4s
+  [165/195] scipy__scipy-13918@c98fbe5               C ctx=  7767 found= 4 hit=0/3 $0.00085 7.1s
+  [166/195] scipy__scipy-15905@171e94e               C ctx=  7690 found= 4 hit=1/1 $0.00064 5.0s
+  [167/195] scipy__scipy-16508@3d7cf12               C ctx=  4867 found= 9 hit=0/1 $0.00166 8.2s
+  [168/195] scipy__scipy-7353@0a59715                C ctx=  7096 found= 6 hit=0/1 $0.00106 5.7s
+  [169/195] scipy__scipy-9488@9e81f03                C ctx=  6624 found= 5 hit=1/1 $0.00102 4.1s
+  [170/195] skypilot-org__skypilot-1144@36893af      C ctx=  9319 found= 5 hit=0/3 $0.00115 4.4s
+  [171/195] skypilot-org__skypilot-1297@fd5782f      C ctx=  6754 found= 5 hit=1/1 $0.00091 3.1s
+  [172/195] skypilot-org__skypilot-1427@b01cb79      C ctx=  9379 found= 7 hit=1/1 $0.00148 4.9s
+  [173/195] skypilot-org__skypilot-1505@e7e933d      C ctx=  3735 found= 4 hit=0/1 $0.00057 5.0s
+  [174/195] skypilot-org__skypilot-1718@1b51ae2      C ctx=  4298 found=10 hit=1/3 $0.00149 9.3s
+  [175/195] skypilot-org__skypilot-5435@50d9632      C ctx=  7086 found= 5 hit=0/1 $0.00093 4.8s
+  [176/195] sqlfluff__sqlfluff-1803@a822a1f          C ctx=  8936 found= 2 hit=0/1 $0.00060 3.6s
+  [177/195] sqlfluff__sqlfluff-494@554c74a           C ctx=  9765 found= 5 hit=0/1 $0.00120 8.9s
+  [178/195] sympy__sympy-16133@82bdbae               C ctx=  7057 found= 5 hit=1/2 $0.00077 9.0s
+  [179/195] sympy__sympy-18410@189871b               C ctx=  6413 found= 3 hit=1/1 $0.00054 4.0s
+  [180/195] sympy__sympy-18605@a356458               C ctx=  7938 found= 3 hit=1/1 $0.00053 4.1s
+  [181/195] sympy__sympy-18630@9ca7e3a               C ctx=  7568 found= 3 hit=2/2 $0.00050 3.4s
+  [182/195] sympy__sympy-19254@8adfdbe               C ctx=  6470 found= 4 hit=1/1 $0.00058 3.2s
+  [183/195] sympy__sympy-19913@d466e06               C ctx=  7446 found= 1 hit=1/1 $0.00045 2.5s
+  [184/195] sympy__sympy-21459@382ea94               C ctx=  4519 found= 5 hit=0/1 $0.00212 4.5s
+  [185/195] sympy__sympy-21883@418efae               C ctx=  7556 found= 6 hit=0/1 $0.00103 5.1s
+  [186/195] sympy__sympy-22426@05cec82               C ctx=  2488 found= 4 hit=0/1 $0.00087 4.9s
+  [187/195] sympy__sympy-27352@b3187d6               C ctx=  5513 found= 4 hit=2/2 $0.00071 6.1s
+  [188/195] tobymao__sqlglot-1123@23610af            C ctx=  4344 found= 7 hit=0/1 $0.00088 20.4s
+  [189/195] tobymao__sqlglot-1729@8be14c1            C ctx=  8043 found= 3 hit=0/1 $0.00059 6.5s
+  [190/195] tobymao__sqlglot-2096@1794bf3            C ctx=  2113 found=14 hit=0/3 $0.00166 12.6s
+  [191/195] tobymao__sqlglot-5284@3f57fcd            C ctx=  7731 found= 9 hit=1/1 $0.00079 7.1s
+  [192/195] vega__altair-3426@b0d0e5c                C ctx=  2157 found= 8 hit=0/1 $0.00177 6.4s
+  [193/195] voxel51__fiftyone-4236@2af48de           C ctx=  8422 found= 3 hit=1/1 $0.00074 8.3s
+  [194/195] xorbitsai__inference-1168@f3ada96        C ctx=  6812 found=10 hit=6/8 $0.00132 6.2s
+  [195/195] zulip__zulip-25349@67de2a4               C ctx=  4984 found=10 hit=0/3 $0.00134 8.1s
+
+total wall time: 1554s
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+C         194      245    127   51.8%    [45.3%, 58.8%]   13.0%   0.21   0.0014
+
+total cost: $0.1720

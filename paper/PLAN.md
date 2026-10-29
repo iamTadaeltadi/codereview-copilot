@@ -1131,3 +1131,11 @@ partial records are reported as partial. The API key's own $5.00 cap was
 reached on 29 October; the run cannot start until it is raised.
 
 **Afterwards.** No further c-CRAB iteration. The paper reports all four runs.
+
+**Outcome (30 October 2026, `results/ccrab-final/`).** Cost $0.76. Primary: on the 64 paired
+subset defects B 64.1% against Cx 51.6%, B − Cx +12.5 points, repository bootstrap [+5.0, +20.8],
+task bootstrap [+4.7, +20.3]; B localises 8 defects Cx misses and Cx none that B misses, over 7
+repositories with none the other way. Exact line on the subset +3.1 [−3.2, +9.0], spans zero.
+Secondary, all 244 paired defects: A 50.8, B 54.1, C 52.0, Cx 52.9, D 52.9; B − Cx +1.2
+[−2.2, +5.0]; B − A +3.3 [−0.9, +7.2]; all paired differences span zero; every condition 15 to 19
+points above its random-line chance. Evidence recall B 61.9%, D 60.4%, C 50.6%, Cx 50.0%.

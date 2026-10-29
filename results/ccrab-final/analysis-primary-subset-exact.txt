@@ -1,0 +1,19 @@
+c-CRAB, test-verified real defects, gpt-4o-mini, final run of 30 Oct 2026 (PLAN.md s11): plain code-block context, callers-first graph walk, no test files, numbered diff, budget 3000 tokens — PRIMARY subset, exact line
+=== exact line (tolerance 0) ===
+paired defects: 64
+  B  graph                              34.4%
+  Cx random, other files                31.2%
+  A  diff only                          32.8%
+  C  random, any file                   32.8%
+  D  lexical                            32.8%
+
+  B − Cx       +3.1%  repo-clustered [-3.2%, +9.0%]  task-clustered [-3.1%, +9.4%]  spans zero
+  B − A        +1.6%  repo-clustered [-5.6%, +8.1%]  task-clustered [-4.7%, +7.8%]  spans zero
+  Cx − A       -1.6%  repo-clustered [-5.0%, +0.0%]  task-clustered [-4.7%, +0.0%]  spans zero
+  B − C        +1.6%  repo-clustered [-3.8%, +6.7%]  task-clustered [-3.1%, +7.8%]  spans zero
+  B − D        +1.6%  repo-clustered [-3.8%, +6.9%]  task-clustered [-3.1%, +7.8%]  spans zero
+  C − A        +0.0%  repo-clustered [-4.5%, +4.8%]  task-clustered [-4.7%, +4.7%]  spans zero
+  D − A        +0.0%  repo-clustered [-4.6%, +4.3%]  task-clustered [-4.7%, +4.7%]  spans zero
+  C − Cx       +1.6%  repo-clustered [+0.0%, +5.4%]  task-clustered [+0.0%, +4.7%]  spans zero
+  D − Cx       +1.6%  repo-clustered [+0.0%, +4.8%]  task-clustered [+0.0%, +4.7%]  spans zero
+  D − C        +0.0%  repo-clustered [-4.8%, +4.2%]  task-clustered [-4.7%, +4.7%]  spans zero
