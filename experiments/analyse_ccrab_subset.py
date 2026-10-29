@@ -1,6 +1,6 @@
 """Paired analysis of a c-CRAB run that has only some conditions.
 
-Usage: python experiments/analyse_ccrab_subset.py results/ccrab-gemini A,B,Cx "header" [exact]
+Usage: python experiments/analyse_ccrab_subset.py results/ccrab-gemini A,B,Cx "header" [exact] [subset-ids.txt]
 
 Same loader, rates and bootstrap as analyse_ccrab (repository-clustered and
 task-clustered percentile bootstrap, 6,000 trials, seed 0); every ordered pair
@@ -16,11 +16,14 @@ from experiments.analyse_ccrab import bootstrap, load, rate
 LABEL = {"A": "diff only", "B": "graph", "C": "random, any file", "Cx": "random, other files", "D": "lexical"}
 
 
-def main(results, conds="A,B,Cx", header="", exact=False):
+def main(results, conds="A,B,Cx", header="", exact=False, subset=None):
     conds = conds.split(",")
+    keep = set(Path(subset).read_text().split()) if subset else None
     exact = str(exact).lower() in ("1", "true", "exact", "yes")
     data = {c: load(Path(results, f"{c}-outcomes.jsonl"), exact) for c in conds}
     keys = sorted(set.intersection(*[set(data[c]) for c in conds]))
+    if keep is not None:
+        keys = [k for k in keys if k[1] in keep]
     lines = [header, "=== exact line (tolerance 0) ===" if exact else "=== tolerance 5 ===", f"paired defects: {len(keys)}"]
     for c in conds:
         lines.append(f"  {c:<3}{LABEL.get(c, c):<34}{rate(data[c], keys):6.1%}")

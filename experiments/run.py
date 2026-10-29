@@ -110,8 +110,30 @@ def split_payload(raw: str):
     return json.dumps(payload), meta
 
 
+def render_context(payload: dict) -> str:
+    """The retrieved entities as plain code blocks, one header line each.
+
+    The same function renders every condition, so the model text differs
+    between conditions only in which entities were selected. The JSON
+    envelope (seeds, budget accounting, condition) stays in the log.
+    """
+    seeds = payload.get("seeds") or []
+    lines = []
+    if seeds:
+        lines.append("Entities overlapping the diff: " + ", ".join(
+            f"{s.get('relative_path')}::{s.get('name')}" for s in seeds if s.get("name") != "unknown"))
+        lines.append("")
+    lines.append("Related code from the repository:")
+    for entry in payload.get("neighbors") or []:
+        lines += ["", f"### {entry.get('relative_path')} :: {entry.get('name')} ({entry.get('type')})",
+                  "```", (entry.get("source") or "").rstrip("\n"), "```"]
+    return "\n".join(lines)
+
+
 def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse=True,
-                  hops=1, max_files=60, prefer_cross_file=False, strip_seed=False):
+                  hops=1, max_files=60, prefer_cross_file=False, strip_seed=False,
+                  plain_context=False, exclude_tests=False, callers_first=False,
+                  drop_class_seeds=False):
     """Return (context text for the model, graph info, retrieval log fields)."""
     if condition == CONDITION_NONE:
         return "", None, {}
@@ -151,6 +173,8 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
         strip_seed=strip_seed,
         entity_types=ENTITY_TYPES,
         max_entity_lines=matrix.entity_lines,
+        exclude_tests=exclude_tests,
+        callers_first=callers_first,
     )
     if not tools:
         return "", info, {}
@@ -158,10 +182,16 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
     # The same seeds for every condition, chosen from the diff and never from
     # the ground truth: an earlier version seeded from the function covering
     # the defect line, which no reviewer could know.
-    seeds = seed_queries(task, graph)
+    seeds = seed_queries(task, graph, drop_class_seeds=drop_class_seeds)
     if not seeds:
         return "", info, {"seeds": []}
-    text, meta = split_payload(tools[0].invoke({"node": "\n".join(seeds)}))
+    raw = tools[0].invoke({"node": "\n".join(seeds)})
+    text, meta = split_payload(raw)
+    if plain_context:
+        payload = json.loads(raw)
+        text = render_context(payload)
+        meta["delivered_ids"] = [e.get("id") for e in payload.get("neighbors") or []]
+        meta["delivered_seeds"] = [s.get("id") for s in payload.get("seeds") or []]
     meta["seed_queries"] = seeds
     return text, info, meta
 
@@ -187,7 +217,7 @@ def changed_ranges(diff: str) -> dict:
     return out
 
 
-def seed_queries(task, graph) -> list:
+def seed_queries(task, graph, drop_class_seeds: bool = False) -> list:
     """Every function or class in the graph whose span overlaps a changed hunk,
     in diff order; a changed file with no such entity contributes its file node.
     Does not read task.defects."""
@@ -209,6 +239,12 @@ def seed_queries(task, graph) -> list:
                 hits.append((lo, hi - lo, f"{path}::{data.get('type')}::{data.get('name')}"))
         if hits:
             # Innermost entities first at each position: a method before its class.
+            # A class whose own method is already a seed is not seeded as well:
+            # the method says where the change is, the class only repeats it.
+            if drop_class_seeds:
+                functions = [(lo, lo + ln) for lo, ln, q in hits if "::function::" in q]
+                hits = [(lo, ln, q) for lo, ln, q in hits
+                        if "::class::" not in q or not any(lo <= flo and fhi <= lo + ln for flo, fhi in functions)]
             seeds.extend(q for _, _, q in sorted(hits))
         elif graph.has_node(path):
             seeds.append(path)
@@ -253,6 +289,15 @@ def main() -> int:
     parser.add_argument("--hops", type=int, default=1,
                         help="import hops when building the graph; the cross-file "
                              "benchmark needs the wider neighbourhood its defects live in")
+    parser.add_argument("--plain-context", action="store_true",
+                        help="render retrieved entities as plain code blocks with a header line "
+                             "(path, name) instead of the JSON envelope; same renderer for every condition")
+    parser.add_argument("--exclude-tests", action="store_true",
+                        help="graph walk (and the random type-mix reference walk) skips test files")
+    parser.add_argument("--callers-first", action="store_true",
+                        help="graph walk ranks direct callers of the seeds first, then callees, then deeper")
+    parser.add_argument("--drop-class-seeds", action="store_true",
+                        help="a class whose method is already a seed is not seeded as well")
     parser.add_argument("--full-repo", action="store_true",
                         help="download whole repositories instead of the diff's files "
                              "and their imports; needs a fast connection")
@@ -309,6 +354,10 @@ def main() -> int:
                     hops=args.hops, max_files=120 if args.crossfile else 60,
                     prefer_cross_file=args.prefer_cross_file,
                     strip_seed=args.strip_seed,
+                    plain_context=args.plain_context,
+                    exclude_tests=args.exclude_tests,
+                    callers_first=args.callers_first,
+                    drop_class_seeds=args.drop_class_seeds,
                 )
             except RepoError as error:
                 print(f"  [{index}/{len(tasks)}] {task.task_id} {condition}: SKIP {error}")
@@ -337,6 +386,7 @@ def main() -> int:
                             "condition": condition,
                             "model": model,
                             "context_chars": len(context),
+                            "context_text": context if args.plain_context else None,
                             "retrieval": retrieval,
                             "findings": [asdict(f) for f in result.findings],
                             "parse_failed": result.parse_failed,

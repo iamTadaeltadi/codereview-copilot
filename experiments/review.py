@@ -106,7 +106,12 @@ def build_messages(task, condition: str, context_text: str = "") -> list:
         "```",
     ]
     if context_text:
-        parts += ["", "Repository context:", "```json", context_text, "```"]
+        # A JSON payload (the runs up to 29 October) is fenced as JSON; the
+        # plain rendering carries its own code fences per entity.
+        if context_text.lstrip().startswith("{"):
+            parts += ["", "Repository context:", "```json", context_text, "```"]
+        else:
+            parts += ["", "Repository context:", context_text]
     if condition not in (CONDITION_NONE, CONDITION_WHOLE_FILE, CONDITION_ORACLE):
         parts += ["", TOOL_CLAUSE]
     parts += ["", OUTPUT_CONTRACT]

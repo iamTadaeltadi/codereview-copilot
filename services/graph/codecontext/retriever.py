@@ -1,5 +1,6 @@
 import os
 import pickle
+import re
 from collections import deque
 
 
@@ -89,8 +90,15 @@ def _bounded_neighbors(graph, node_id, max_nodes: int = 12, max_depth: int = 2,
     return _bounded_neighbors_multi(graph, [node_id], max_nodes, max_depth, entity_types, exclude)
 
 
+TEST_PATH = re.compile(r"(^|/)(tests?|testing)/|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)conftest\.py$")
+
+
+def is_test_path(path) -> bool:
+    return bool(path) and bool(TEST_PATH.search(str(path)))
+
+
 def _bounded_neighbors_multi(graph, seeds, max_nodes: int = 12, max_depth: int = 2,
-                             entity_types=None, exclude=()):
+                             entity_types=None, exclude=(), exclude_tests: bool = False):
     """Breadth-first walk from every seed at once, both edge directions.
 
     The depth of a neighbour is its distance to the nearest seed, and no seed
@@ -118,6 +126,8 @@ def _bounded_neighbors_multi(graph, seeds, max_nodes: int = 12, max_depth: int =
             visited.add(candidate)
             if allowed is not None and graph.nodes[candidate].get("type") not in allowed:
                 continue
+            if exclude_tests and is_test_path(graph.nodes[candidate].get("relative_path")):
+                continue
             queue.append((candidate, depth + 1))
             neighbors.append((candidate, depth + 1))
             if len(neighbors) >= max_nodes:
@@ -125,20 +135,41 @@ def _bounded_neighbors_multi(graph, seeds, max_nodes: int = 12, max_depth: int =
     return neighbors
 
 
-def _rank(graph, home_paths, neighbours, prefer_cross_file: bool):
-    """Order neighbours before the cap applies.
+def _calls(graph, u, v) -> bool:
+    data = graph.get_edge_data(u, v) or {}
+    attrs = list(data.values()) if data and all(isinstance(x, dict) for x in data.values()) else [data]
+    return any(a.get("label") == "calls" for a in attrs)
+
+
+def _tier(graph, seeds, node_id, depth) -> int:
+    """0 direct caller of a seed, 1 direct callee, 2 other depth-1, 3 further."""
+    if depth > 1:
+        return 3
+    if any(_calls(graph, node_id, s) for s in seeds):
+        return 0
+    if any(_calls(graph, s, node_id) for s in seeds):
+        return 1
+    return 2
+
+
+def _rank(graph, home_paths, neighbours, prefer_cross_file: bool, seeds=(), callers_first: bool = False):
+    """Order neighbours before the cap applies. With callers_first, direct
+    callers of the seeds come first, then direct callees, then the rest of
+    depth 1, then deeper nodes; cross-file preference orders within a tier.
 
     Insertion order decides which neighbours survive the cap. Preferring
     neighbours in files other than the seeds' spends the budget on the part of
     the neighbourhood a same-file search could not have found. Ties keep the
     breadth-first order, so nearer neighbours still come first.
     """
-    if not prefer_cross_file:
+    if not prefer_cross_file and not callers_first:
         return neighbours
     home = set(home_paths)
     return sorted(
         neighbours,
-        key=lambda item: (graph.nodes[item[0]].get("relative_path") in home, item[1]),
+        key=lambda item: (_tier(graph, seeds, item[0], item[1]) if callers_first else 0,
+                          graph.nodes[item[0]].get("relative_path") in home if prefer_cross_file else 0,
+                          item[1]),
     )
 
 
@@ -152,6 +183,8 @@ def retrieve_node_context(
     entity_types=None,
     with_source: bool = False,
     max_source_lines: int | None = None,
+    exclude_tests: bool = False,
+    callers_first: bool = False,
 ) -> dict:
     """The ego-neighbourhood of one or more seed entities.
 
@@ -185,11 +218,12 @@ def retrieve_node_context(
 
     # Ranking cannot promote what the walk never reached, so when ranking is
     # requested the walk is bounded by depth alone and the cap applies after.
-    walk_cap = 100_000 if prefer_cross_file else max_neighbors
-    walked = _bounded_neighbors_multi(graph, found, walk_cap, max_depth, entity_types)
+    walk_cap = 100_000 if (prefer_cross_file or callers_first) else max_neighbors
+    walked = _bounded_neighbors_multi(graph, found, walk_cap, max_depth, entity_types,
+                                      exclude_tests=exclude_tests)
     homes = [graph.nodes[s].get("relative_path") for s in found]
     neighbors = []
-    for neighbor_id, depth in _rank(graph, homes, walked, prefer_cross_file)[:max_neighbors]:
+    for neighbor_id, depth in _rank(graph, homes, walked, prefer_cross_file, found, callers_first)[:max_neighbors]:
         entry = stripped_entry(graph, neighbor_id)
         entry["depth"] = depth
         if with_source:

@@ -295,3 +295,121 @@ class KnownPathsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+FINAL_REPO = {
+    "pkg/core.py": src("""
+        def target(x):
+            return x
+
+
+        def callee_of_target():
+            return 1
+
+
+        class Holder:
+            def method(self):
+                return target(1)
+
+            def other(self):
+                return 2
+    """),
+    "pkg/callers.py": src("""
+        from pkg.core import target, callee_of_target
+
+
+        def caller_one(v):
+            return target(v)
+
+
+        def uses_callee():
+            return callee_of_target()
+
+
+        class Registry:
+            def add(self, item):
+                return item
+    """),
+    "tests/test_core.py": src("""
+        from pkg.core import target
+
+
+        def test_target():
+            assert target(1) == 1
+    """),
+}
+
+
+@unittest.skipUnless(_AVAILABLE, "graph service deps not installed")
+class FinalRunSelectionTests(unittest.TestCase):
+    """The 30 October selection rules: callers first, no test files, plain rendering,
+    class seeds dropped when their methods are seeds."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.graph = graph_from_sources(FINAL_REPO)
+
+    def walk(self, **kwargs):
+        return retrieve_node_context(self.graph, "", "pkg/core.py::function::target", max_neighbors=20,
+                                     max_depth=3, entity_types=ENTITY_TYPES, **kwargs)
+
+    def test_test_files_are_excluded_from_the_graph_walk(self):
+        with_tests = {e["relative_path"] for e in self.walk()["neighbors"]}
+        without = {e["relative_path"] for e in self.walk(exclude_tests=True)["neighbors"]}
+        self.assertIn("tests/test_core.py", with_tests)
+        self.assertNotIn("tests/test_core.py", without)
+
+    def test_direct_callers_come_before_everything_else(self):
+        ids = [e["id"] for e in self.walk(callers_first=True, exclude_tests=True)["neighbors"]]
+        callers = {"pkg/callers.py::function::caller_one", "pkg/core.py::function::method"}
+        self.assertTrue(set(ids[:2]) <= callers, ids)
+        self.assertTrue(set(ids[:2]) == callers or len(callers & set(ids[:2])) == 2, ids)
+
+    def test_cross_file_preference_orders_within_the_caller_tier(self):
+        ids = [e["id"] for e in self.walk(callers_first=True, exclude_tests=True, prefer_cross_file=True)["neighbors"]]
+        self.assertEqual(ids[0], "pkg/callers.py::function::caller_one", ids)
+
+    def test_random_type_mix_follows_the_same_selection_rules(self):
+        from collections import Counter
+        kw = dict(budget_tokens=4000, max_neighbors=20, entity_types=ENTITY_TYPES,
+                  exclude_tests=True, callers_first=True, prefer_cross_file=True)
+        b = build_tools(self.graph, "/tmp", condition=CONDITION_GRAPH, **kw)[0].invoke({"node": "pkg/core.py::function::target"})
+        cx = build_tools(self.graph, "/tmp", condition=CONDITION_RANDOM, seed=3, **kw)[0].invoke({"node": "pkg/core.py::function::target"})
+        self.assertEqual(Counter(e["type"] for e in json.loads(b)["neighbors"]),
+                         Counter(e["type"] for e in json.loads(cx)["neighbors"]))
+
+    def test_plain_rendering_is_code_blocks_with_a_header_line_and_no_json(self):
+        from experiments.run import render_context
+        payload = json.loads(build_tools(self.graph, "/tmp", condition=CONDITION_GRAPH, budget_tokens=4000,
+                                         entity_types=ENTITY_TYPES)[0].invoke({"node": "pkg/core.py::function::target"}))
+        text = render_context(payload)
+        self.assertIn("### pkg/callers.py :: caller_one (function)", text)
+        self.assertIn("def caller_one(v):", text)
+        self.assertNotIn('"neighbors"', text)
+        self.assertNotIn("budget", text)
+        self.assertNotIn("condition", text)
+        self.assertFalse(text.lstrip().startswith("{"))
+
+    def test_the_same_renderer_serves_every_condition(self):
+        import re
+        from experiments.run import render_context
+        header = re.compile(r"^### \S+ :: \S+ \((function|class)\)$")
+        for condition in (CONDITION_GRAPH, CONDITION_RANDOM, CONDITION_LEXICAL):
+            payload = json.loads(build_tools(self.graph, "/tmp", condition=condition, budget_tokens=4000,
+                                             entity_types=ENTITY_TYPES)[0].invoke({"node": "pkg/core.py::function::target"}))
+            text = render_context(payload)
+            self.assertTrue(text.startswith("Entities overlapping the diff: pkg/core.py::target"), condition)
+            headers = [line for line in text.splitlines() if line.startswith("### ")]
+            self.assertEqual(len(headers), len(payload["neighbors"]), condition)
+            self.assertTrue(all(header.match(h) for h in headers), (condition, headers))
+            self.assertEqual(text.count("```") , 2 * len(headers), condition)
+
+    def test_class_seed_is_dropped_when_its_method_is_a_seed(self):
+        diff = ("diff --git a/pkg/core.py b/pkg/core.py\n--- a/pkg/core.py\n+++ b/pkg/core.py\n"
+                "@@ -10,2 +10,2 @@\n     def method(self):\n-        return target(1)\n+        return target(2)\n")
+        task = SimpleNamespace(diff=diff)
+        with_class = seed_queries(task, self.graph)
+        without = seed_queries(task, self.graph, drop_class_seeds=True)
+        self.assertIn("pkg/core.py::class::Holder", with_class)
+        self.assertIn("pkg/core.py::function::method", with_class)
+        self.assertEqual(without, ["pkg/core.py::function::method"])

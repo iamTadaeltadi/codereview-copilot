@@ -33,6 +33,8 @@ class ToolOrganizerTests(unittest.TestCase):
             max_depth=ToolOrganizerModule.DEFAULT_MAX_DEPTH,
             prefer_cross_file=False,
             entity_types=None,
+            exclude_tests=False,
+            callers_first=False,
         )
 
     def test_the_tool_reports_its_budget_alongside_the_payload(self):

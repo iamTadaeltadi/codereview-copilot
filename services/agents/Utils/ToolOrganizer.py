@@ -117,6 +117,8 @@ def build_retrieve_graph_tool(
     strip_seed: bool = True,
     entity_types=None,
     max_entity_lines: int = DEFAULT_ENTITY_LINES,
+    exclude_tests: bool = False,
+    callers_first: bool = False,
 ):
     """Condition B. `strip_seed` is accepted for the old command line and
     ignored: the seed is always reduced to id, name, type and path."""
@@ -133,6 +135,7 @@ def build_retrieve_graph_tool(
         walk = retrieve_node_context(
             graph, graph_path, node, max_neighbors=max_neighbors, max_depth=max_depth,
             prefer_cross_file=prefer_cross_file, entity_types=entity_types,
+            exclude_tests=exclude_tests, callers_first=callers_first,
         )
         seeds = walk.get("seeds")
         if seeds is None:
@@ -162,6 +165,8 @@ def build_random_context_tool(
     prefer_cross_file: bool = False,
     entity_types=None,
     max_entity_lines: int = DEFAULT_ENTITY_LINES,
+    exclude_tests: bool = False,
+    callers_first: bool = False,
 ):
     """Random type-matched entities; with other_files_only, drawn from files
     other than the seeds'. The type mix is taken from the graph condition's own
@@ -189,6 +194,7 @@ def build_random_context_tool(
             reference = retrieve_node_context(
                 graph, "", node, max_neighbors=max_neighbors, max_depth=max_depth,
                 prefer_cross_file=prefer_cross_file, entity_types=entity_types,
+                exclude_tests=exclude_tests, callers_first=callers_first,
             )
             wanted = Counter(n.get("type") for n in reference["neighbors"])
             by_type = {}
@@ -399,6 +405,8 @@ def build_tools(
     strip_seed: bool = True,
     entity_types=None,
     max_entity_lines: int = DEFAULT_ENTITY_LINES,
+    exclude_tests: bool = False,
+    callers_first: bool = False,
 ):
     if condition not in CONDITIONS:
         raise ValueError(f"unknown condition {condition!r}, expected one of {CONDITIONS}")
@@ -413,6 +421,7 @@ def build_tools(
                 budget_tokens=budget_tokens, other_files_only=prefer_cross_file,
                 max_depth=max_depth, prefer_cross_file=prefer_cross_file,
                 entity_types=entity_types, max_entity_lines=max_entity_lines,
+                exclude_tests=exclude_tests, callers_first=callers_first,
             )
         ]
 
@@ -447,6 +456,7 @@ def build_tools(
             graph, graph_folder_path, max_depth=max_depth, max_neighbors=max_neighbors,
             budget_tokens=budget_tokens, prefer_cross_file=prefer_cross_file,
             strip_seed=strip_seed, entity_types=entity_types, max_entity_lines=max_entity_lines,
+            exclude_tests=exclude_tests, callers_first=callers_first,
         )
     ]
 

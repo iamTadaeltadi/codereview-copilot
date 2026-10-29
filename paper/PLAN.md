@@ -1058,3 +1058,73 @@ own random-line baseline by the same script; the quoted-token line accuracy
 before (ccrab-v2) and after. Reported whatever comes out. The 28 October result
 stays in results/ccrab-v2/ and is not replaced; the paper's claims are not
 changed until the author has seen both.
+
+## 11. Pre-registration: the final c-CRAB run (30 October 2026)
+
+Written and committed before the run. This is the last c-CRAB iteration; the
+result is reported whatever it is, and every c-CRAB run (26 Oct withdrawn,
+28 Oct `ccrab-v2`, 29 Oct `ccrab-numbered`, this one) is reported in the paper.
+
+**Why one more run.** An audit of the 29 October run found four design
+weaknesses that no earlier pre-registration had fixed: the retrieved entities
+reached the model as a JSON envelope; the delivered entity ids were not logged
+per call; the graph walk returned test files and ranked by breadth-first order
+with a cross-file preference, not by relation to the changed code; and a class
+was seeded alongside its own changed methods. The changes below are identical
+for every condition except where they decide which entities are selected.
+
+**Changes.**
+1. *Rendering.* `experiments/run.py::render_context`: one header line listing
+   the entities overlapping the diff, then each retrieved entity as a plain
+   code block under a header line `### path :: name (type)`. The same function
+   renders B, C, Cx and D (`--plain-context`). The 3,000-token budget is still
+   applied to the JSON envelope exactly as before, so the selection step is
+   unchanged; the model sees the same entries, rendered.
+2. *Logging.* Every raw record carries `context_text` (what the model saw) and
+   `retrieval.delivered_ids` (the ids delivered, in order).
+3. *Graph selection* (`--exclude-tests --callers-first`, B's walk only, and
+   the random conditions' type-mix reference walk so the type mix still
+   matches): neighbours in test files (`tests/`, `test_*.py`, `*_test.py`,
+   `conftest.py`) are not returned or walked through; direct callers of the
+   seeds rank first, then direct callees, then the rest of depth 1, then
+   deeper; the cross-file preference orders within a tier. C and Cx still
+   draw from all files, including test files: their selection rule is
+   "random", and that is left as it is. `--drop-class-seeds`: a class whose
+   method is already a seed is not seeded as well (all conditions share the
+   seeds).
+4. *Evidence recall* (`experiments/evidence_recall.py`): per condition, the
+   share of defects, and of tasks, whose review comment names a file or an
+   identifier (backticked or quoted tokens, snake_case or CamelCase words,
+   3+ characters) that the delivered context contains; and the same for
+   names absent from the diff text. A is 0 by construction.
+
+**Held constant.** 195 tasks, gpt-4o-mini, temperature 0.1, seed 0, numbered
+diff, code payloads cut at 40 lines, budget 3,000, hops 3, depth 3, cap 80,
+tolerance 5 with exact line recomputed, `-v2` graph cache, the launcher's
+three passes (`experiments/launch_ccrab_final.sh`).
+
+**Primary comparison, fixed in advance.** B minus Cx on the localised rate at
+tolerance 5, on source-file defects whose comment is strict outside-diff:
+defects whose path is not a test file and whose `scope_strict` in
+`results/evidence-scope.jsonl` is `outside-diff` (comments naming a file the
+diff does not contain, linking to code outside it, or saying "called by" and
+the like). The id list is `results/ccrab-final/primary-subset.txt`, committed
+before the run (77 of the 291 confirmed defects; 64 of the 243 defects paired
+in the 29 October run, in 35 repositories). Paired by defect, percentile
+bootstrap over repositories (6,000 trials, seed 0), task bootstrap beside it.
+
+*Disclosure.* This subset was seen in exploratory analysis before this plan
+was written: on the 29 October records it reads B 54.7% against Cx 51.6%
+(A 50.0%), and on the 28 October records B 40.6% against Cx 42.2%. Neither is
+a pre-registered result; this run is the test.
+
+**Secondary.** The same comparison on all paired defects; B − A, C − A, Cx − A,
+D − A on both sets; exact line; each condition against its random-line chance
+baseline (`experiments/chance_ccrab.py`); quoted-token line accuracy; evidence
+recall per condition.
+
+**Stop rule.** If the recorded cost passes $2.00 the run is stopped and the
+partial records are reported as partial. The API key's own $5.00 cap was
+reached on 29 October; the run cannot start until it is raised.
+
+**Afterwards.** No further c-CRAB iteration. The paper reports all four runs.
