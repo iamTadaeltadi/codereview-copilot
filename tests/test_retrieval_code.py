@@ -386,8 +386,6 @@ class FinalRunSelectionTests(unittest.TestCase):
                                   callers_first=True, prefer_cross_file=cross)[0].invoke({"node": "pkg/core.py::function::target"})
                 paths = {e["relative_path"] for e in json.loads(raw)["neighbors"]}
                 self.assertNotIn("tests/test_core.py", paths, (seed, cross))
-        raw = build_tools(self.graph, "/tmp", condition=CONDITION_RANDOM, seed=0, budget_tokens=4000, max_neighbors=20,
-                          entity_types=ENTITY_TYPES, match_types=False)[0].invoke({"node": "pkg/core.py::function::target"}) if False else None
 
     def test_plain_rendering_is_code_blocks_with_a_header_line_and_no_json(self):
         from experiments.run import render_context
