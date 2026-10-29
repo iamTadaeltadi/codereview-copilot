@@ -16,6 +16,7 @@ generated benchmark, `data/crossfile.jsonl`. See the `WITHDRAWN.md` in each.
 | `ccrab-today/` | the October c-CRAB re-run: A, C, Cx, D stand; `B-outcomes.jsonl` is withdrawn (`WITHDRAWN-ccrab-graph.md`), `Bs-outcomes.jsonl` is the seed-stripped control |
 | `ccrab-Bs-gpt4omini/` | raw records and log of the seed-stripped control |
 | `ccrab-v2/` | the pre-registered rerun of 28 Oct after the retrieval repair (PLAN.md §10): A, B, C, Cx, D on 239 paired defects, code payloads, diff seeds, 3,000 tokens; B − Cx −2.5 [−6.0, +1.0] |
+| `ccrab-numbered/` | the 29 Oct rerun of `ccrab-v2` with numbered diff lines (PLAN.md §10 amendment): every condition ~50% at tolerance 5, 15 points above its random-line chance; B − Cx +0.8 [−1.3, +3.3]; includes the 50-comment hand-label CSV |
 | `evidence-scope.*` | anchor-vs-evidence classification of 291 c-CRAB defects, strict and loose bounds, reason per decision |
 | `search-trigger/` | the search-trigger test, 40 paired tasks |
 | `audit/` | the retrieval-comparison audit that withdrew "which code does not matter" |

@@ -1,0 +1,8 @@
+findings per task per condition, from the raw records
+
+cond  tasks  mean findings  mean ctx chars   cost $
+A       193           5.17               0    0.126
+B       194           4.95           10548    0.190
+C       194           5.07           10489    0.190
+Cx      194           5.02           10463    0.208
+D       194           4.89           10195    0.157
