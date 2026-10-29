@@ -12,3 +12,8 @@ nine arms, 0 parse failures in 2,439 replies, $0.38. Stop rule was $1.50.
   read as one dataset: balanced accuracy = (hit rate on defects + clear rate on twins) / 2,
   per arm and per comparison, repository-clustered paired bootstrap
 - `run.log`, `cost.log` — the run's console output and the cost watcher's samples
+
+- `analysis-signal-detection.txt` — per arm, H = hit rate on the defects, F = flag rate on the twins
+  (`v3twins-neutral-gpt4omini/structure.jsonl`), d' = z(H) − z(F), c = −(z(H)+z(F))/2, repository
+  bootstrap (`experiments/signal_detection.py`). c falls from +0.71 (diff) to −1.07 (attributed);
+  every arm with caller code or dependency metadata has d' at or below the diff's 0.37.

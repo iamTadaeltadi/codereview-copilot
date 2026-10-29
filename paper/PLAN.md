@@ -1015,3 +1015,46 @@ paths that exist (`experiments/sparse.py::repo_tree`, `known_paths`). The
 files fetched for a task are the same set the guessing would have found, up
 to the same cap of 60; no per-call setting, prompt, budget or condition
 changed. The run was restarted from zero under the plan as written.
+
+**Amendment after the run, 29 October 2026: numbered diff lines, one more run.**
+The run of 28 October (results/ccrab-v2/) is complete and stands as reported:
+B − Cx −2.5 [−6.0, +1.0], no condition above the diff alone. Two checks on its
+records, both before any new model call:
+
+- *Chance baseline* (`experiments/chance_ccrab.py`, results/ccrab-v2/chance-baseline.txt):
+  the same number of findings as the model, on uniformly random new-file lines
+  of the diff's hunks, scored by the same matcher. No condition is above it at
+  tolerance 5 (A 36.0% vs 36.0%, B 32.2% vs 34.9%, D 35.6% vs 35.3%), at the
+  exact line (every condition below; B and D with intervals excluding zero), or
+  for the first finding alone.
+- *Line accuracy of quoted tokens* (`experiments/line_accuracy.py`,
+  results/ccrab-v2/line-accuracy.txt): of the diff-only findings whose message
+  quotes a token present in the diff (459 of 1,014), 8.9% report the line that
+  contains the token, 60.6% are within 5 lines and 39.4% are more than 5 lines
+  off; the other conditions are the same (7.6 to 10.0% exact). The ground truth
+  is not the problem: 237 of 246 defect lines lie inside a hunk of their file.
+
+The reading is a pipeline fault, not a model result: the prompt gives a raw
+unified diff with no per-line numbers, so the model has to count from the hunk
+header, and mostly does not. In the v3 planted benchmark every hunk is one line
+on the new-file side (1,103 of 1,103 hunks in data/crossfile-v3.jsonl, 655 of
+655 in the twins), so counting is not an issue there; it is on c-CRAB, whose
+hunks are long.
+
+*Change.* `experiments/review.py::number_diff` prefixes every context and added
+line of the diff with its new-file line number (removed lines get blank
+padding; headers unchanged), and the output contract says so in one added
+sentence. The numbered diff is the same for every condition
+(tests/test_review_prompt.py::NumberedDiffTests). Nothing else changes: same
+tasks, seeds, payloads, budget 3,000, tolerance 5, gpt-4o-mini, seed 0, `-v2`
+graph cache (reused from disk).
+
+*Run.* Once, A, B, C, Cx, D on the same 195 tasks, three passes as before
+(launcher saved beside the records), stop if the recorded cost passes $2.00.
+
+*Analysis, fixed in advance.* The §10 tables (tolerance 5 and exact line, B − Cx
+primary, repository bootstrap) on the new records; each condition against its
+own random-line baseline by the same script; the quoted-token line accuracy
+before (ccrab-v2) and after. Reported whatever comes out. The 28 October result
+stays in results/ccrab-v2/ and is not replaced; the paper's claims are not
+changed until the author has seen both.

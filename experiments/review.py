@@ -40,7 +40,8 @@ Reply with JSON only, in exactly this shape:
 {"findings": [{"path": "relative/file.py", "line": 42, "message": "what is wrong"}]}
 
 Use the file paths exactly as they appear in the diff, and line numbers from the
-new version of the file. Report your best candidates even when you are not
+new version of the file: every diff line is prefixed with its new-file line
+number (removed lines have none). Report your best candidates even when you are not
 certain — a plausible defect that turns out to be wrong is more useful here than
 silence. Return an empty list only if you genuinely cannot identify anything.
 Never wrap the JSON in prose.
@@ -65,6 +66,35 @@ class ReviewResult:
     error: str = ""
 
 
+HUNK_HEADER = re.compile(r"^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@")
+
+
+def number_diff(diff: str) -> str:
+    """Prefix every content line of a unified diff with its new-file line number.
+
+    Context and added lines get the number; removed lines get blank padding;
+    file and hunk headers are unchanged. The model otherwise has to count lines
+    from the hunk header itself, and in results/ccrab-v2 it mostly did not.
+    """
+    out, n = [], None
+    for line in diff.split("\n"):
+        if line.startswith("diff --git "):
+            n = None
+        elif line.startswith("@@"):
+            m = HUNK_HEADER.match(line)
+            n = int(m.group(1)) if m else None
+            out.append(line)
+            continue
+        if n is None or line.startswith("\\"):
+            out.append(line)
+        elif line.startswith("-"):
+            out.append(f"{'':>6}{line}")
+        else:
+            out.append(f"{n:>5} {line}")
+            n += 1
+    return "\n".join(out)
+
+
 def build_messages(task, condition: str, context_text: str = "") -> list:
     parts = [
         f"Repository: {task.repo}",
@@ -72,7 +102,7 @@ def build_messages(task, condition: str, context_text: str = "") -> list:
         "",
         "Pull request diff:",
         "```diff",
-        task.diff,
+        number_diff(task.diff),
         "```",
     ]
     if context_text:

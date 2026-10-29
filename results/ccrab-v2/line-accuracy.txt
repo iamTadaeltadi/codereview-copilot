@@ -1,0 +1,9 @@
+line accuracy of quoted tokens, results/ccrab-v2
+
+  cond  findings  quoting  located   exact     <=5      >5  median
+  A         1014      494      459    8.9%   60.6%   39.4%       4
+  B          961      544      513    7.6%   55.4%   44.6%       4
+  C          953      532      498   10.0%   58.8%   41.2%       4
+  Cx         971      553      516    8.1%   57.8%   42.2%       4
+  D          961      561      528    8.0%   58.5%   41.5%       4
+  all       4860     2684     2514    8.5%   58.2%   41.8%       4

@@ -89,6 +89,7 @@ class OpenRouterClient:
         timeout: int = DEFAULT_TIMEOUT,
         max_retries: int = DEFAULT_MAX_RETRIES,
         transport=None,
+        reasoning: dict | None = None,
     ):
         if not api_key:
             raise LLMError("no API key: set OPENROUTER_API_KEY in .env")
@@ -97,6 +98,7 @@ class OpenRouterClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self._transport = transport
+        self.reasoning = reasoning
 
     def _post(self, path: str, payload: dict) -> dict:
         if self._transport is not None:
@@ -128,6 +130,8 @@ class OpenRouterClient:
             "max_tokens": max_tokens,
             "usage": {"include": True},
         }
+        if self.reasoning is not None:
+            payload["reasoning"] = self.reasoning
         if tools:
             payload["tools"] = tools
         if seed is not None:
@@ -185,4 +189,5 @@ def client_from_env(env=None) -> OpenRouterClient:
     return OpenRouterClient(
         api_key=env.get("OPENROUTER_API_KEY", ""),
         base_url=env.get("OPENROUTER_API_BASE_URL") or "https://openrouter.ai/api/v1",
+        reasoning=json.loads(env["OPENROUTER_REASONING"]) if env.get("OPENROUTER_REASONING") else None,
     )

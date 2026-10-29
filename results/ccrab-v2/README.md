@@ -41,3 +41,10 @@ and the same with a fifth argument `exact`.
 **Known limitation, stated before the run.** Methods are keyed without their class, so same-named
 methods in one file share a node (69 of the new builder's 84 false-positive caller edges in
 `results/graph-validation/` were on methods). Not fixed for this run.
+
+**Checks on these records (29 October).** `chance-baseline.txt`: the same number of findings as the
+model on uniformly random hunk lines, same matcher (`experiments/chance_ccrab.py`); no condition is
+above chance at tolerance 5, exact line or top-1. `line-accuracy.txt`: of findings quoting a token
+present in the diff, 8.5% name the line containing it and 41.8% are more than 5 lines off
+(`experiments/line_accuracy.py`); the diff reached the model without line numbers. Both led to the
+amendment in `paper/PLAN.md` §10 and the numbered-diff rerun.
