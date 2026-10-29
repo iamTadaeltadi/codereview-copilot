@@ -21,6 +21,7 @@ from codecontext.retriever import (
     _find_target_node,
     entity_source,
     find_seed_nodes,
+    is_test_path,
     retrieve_node_context,
     split_queries,
     stripped_entry,
@@ -186,6 +187,10 @@ def build_random_context_tool(
 
         rng = random.Random(f"{seed}:{node}")
         pool = _pool(graph, seed_ids, entity_types)
+        if exclude_tests:
+            # The same test-file rule as the graph walk, so B and Cx differ in
+            # graph structure and ranking only (PLAN.md section 11, amendment).
+            pool = [n for n in pool if not is_test_path(graph.nodes[n].get("relative_path"))] or pool
         if other_files_only:
             homes = {graph.nodes[s].get("relative_path") for s in seed_ids}
             pool = [n for n in pool if graph.nodes[n].get("relative_path") not in homes] or pool

@@ -1087,11 +1087,14 @@ for every condition except where they decide which entities are selected.
    matches): neighbours in test files (`tests/`, `test_*.py`, `*_test.py`,
    `conftest.py`) are not returned or walked through; direct callers of the
    seeds rank first, then direct callees, then the rest of depth 1, then
-   deeper; the cross-file preference orders within a tier. C and Cx still
-   draw from all files, including test files: their selection rule is
-   "random", and that is left as it is. `--drop-class-seeds`: a class whose
-   method is already a seed is not seeded as well (all conditions share the
-   seeds).
+   deeper; the cross-file preference orders within a tier. *Amendment before
+   the first call, 30 October:* C and Cx draw from the same test-free pool
+   (the same path rule, applied to the random pool in
+   `Utils/ToolOrganizer.py::build_random_context_tool`), so the only
+   difference between B and Cx is graph structure and ranking, not test
+   filtering. D is unchanged and may return test files. `--drop-class-seeds`:
+   a class whose method is already a seed is not seeded as well (all
+   conditions share the seeds).
 4. *Evidence recall* (`experiments/evidence_recall.py`): per condition, the
    share of defects, and of tasks, whose review comment names a file or an
    identifier (backticked or quoted tokens, snake_case or CamelCase words,
