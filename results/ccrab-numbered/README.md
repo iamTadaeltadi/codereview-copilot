@@ -16,11 +16,11 @@ all five conditions. Six replies were not scored (4 unparseable JSON, 2 cut at t
 
 | condition | localised, tol 5 | random-line chance | exact line | chance | mean findings |
 |---|---|---|---|---|---|
-| A diff only | 49.8% | 35.0% | 24.3% | 4.9% | 5.19 |
-| B graph | 51.4% | 35.0% | 24.3% | 4.9% | 5.01 |
+| A diff only | 49.8% | 35.0% | 24.3% | 4.9% | 5.17 |
+| B graph | 51.4% | 35.0% | 24.3% | 4.9% | 4.95 |
 | C random, any file | 52.3% | 35.6% | 23.0% | 5.0% | 5.07 |
-| Cx random, other files | 50.6% | 35.9% | 22.6% | 4.9% | 5.05 |
-| D lexical | 51.9% | 34.9% | 23.5% | 4.9% | 4.91 |
+| Cx random, other files | 50.6% | 35.9% | 22.6% | 4.9% | 5.02 |
+| D lexical | 51.9% | 34.9% | 23.5% | 4.9% | 4.89 |
 
 Every condition is now above its random-line baseline with intervals excluding zero (tolerance 5
 by about 15 to 17 points, exact line by 18 to 20, top-1 by 12 to 13). Primary comparison B − Cx:
