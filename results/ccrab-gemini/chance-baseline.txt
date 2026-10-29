@@ -1,0 +1,18 @@
+chance baseline for results/ccrab-gemini: same finding count as the model, uniform over the diff's hunk lines, same matcher; 500 draws per task and condition
+defects whose line lies inside a hunk of their file: 237/246 (96.3%); a finding outside the hunks can still hit within the tolerance
+
+=== tolerance 5 ===  paired defects: 75
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       53.3%    27.7%  +25.6%  [+17.9%, +34.1%]        [+15.6%, +35.4%]  model above chance
+  B       45.3%    26.6%  +18.7%  [+12.3%, +27.3%]        [+9.2%, +28.2%]  model above chance
+
+=== exact line ===  paired defects: 75
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       30.7%     3.5%  +27.2%  [+17.8%, +41.8%]        [+17.1%, +38.0%]  model above chance
+  B       28.0%     3.2%  +24.8%  [+16.4%, +38.2%]        [+15.4%, +35.2%]  model above chance
+
+=== top-1, tolerance 5 ===  paired defects: 75
+  cond    model   chance    diff  repo-clustered 95%      task-clustered 95%
+  A       26.7%    11.9%  +14.7%  [+7.0%, +24.2%]        [+5.6%, +25.1%]  model above chance
+  B       21.3%    11.8%   +9.5%  [+3.3%, +18.6%]        [+1.6%, +18.7%]  model above chance
+

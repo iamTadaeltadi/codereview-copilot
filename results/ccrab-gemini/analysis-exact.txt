@@ -1,0 +1,7 @@
+c-CRAB, test-verified real defects, google/gemini-2.5-flash (thinking off), numbered diff, code payloads, diff seeds, budget 3000 tokens, 29 Oct 2026
+=== exact line (tolerance 0) ===
+paired defects: 75
+  A  diff only                          29.3%
+  B  graph                              26.7%
+
+  B − A        -2.7%  repo-clustered [-9.4%, +4.1%]  task-clustered [-9.3%, +4.0%]  spans zero

@@ -1,7 +1,7 @@
 """Chance baseline for a c-CRAB run: the same number of findings as the model, on
 uniformly random new-file lines of the diff's hunks, scored by the same matcher.
 
-Usage: python experiments/chance_ccrab.py results/ccrab-v2 [draws=500] [header]
+Usage: python experiments/chance_ccrab.py results/ccrab-v2 [draws=500] [header] [conds=A,B,C,Cx,D]
 
 For every (task, condition) with a raw record, k = the model's finding count. Each
 draw places k findings on lines sampled uniformly (with replacement) from the
@@ -44,6 +44,8 @@ def model_findings(results):
     """(task, cond) -> list of ReportedFinding, from the raw records."""
     out = {}
     for cond, name in FILES.items():
+        if not Path(results, f"{name}-raw.jsonl").exists():
+            continue
         for line in Path(results, f"{name}-raw.jsonl").open():
             if not line.strip():
                 continue
@@ -73,8 +75,8 @@ def bootstrap(diffs, group_of):
     return out[int(0.025 * TRIALS)], out[int(0.975 * TRIALS) - 1]
 
 
-def main(results="results/ccrab-v2", draws=500, header=None):
-    draws = int(draws)
+def main(results="results/ccrab-v2", draws=500, header=None, conds=None):
+    draws = int(draws); conds = conds.split(",") if conds else CONDS
     tasks = {t.task_id: t for t in tasks_like_the_run()}
     found = model_findings(results)
     scores = {"tolerance 5": (5, False), "exact line": (0, False), "top-1, tolerance 5": (5, True)}
@@ -85,7 +87,7 @@ def main(results="results/ccrab-v2", draws=500, header=None):
         lines = hunk_lines(task.diff)
         inside = {(d.path, d.line) for d in task.defects} & set(lines)
         covered += len(inside); total += len(task.defects)
-        for cond in CONDS:
+        for cond in conds:
             if (tid, cond) not in found or not lines:
                 continue
             fs = found[(tid, cond)]
@@ -107,10 +109,10 @@ def main(results="results/ccrab-v2", draws=500, header=None):
                  f"defects whose line lies inside a hunk of their file: {covered}/{total} "
                  f"({covered / total:.1%}); a finding outside the hunks can still hit within the tolerance", ""]
     for s in scores:
-        keys = sorted(set.intersection(*[set(model[s][c]) for c in CONDS]))
+        keys = sorted(set.intersection(*[set(model[s][c]) for c in conds]))
         lines_out += [f"=== {s} ===  paired defects: {len(keys)}",
                       f"  {'cond':<5}{'model':>8}{'chance':>9}{'diff':>8}  repo-clustered 95%      task-clustered 95%"]
-        for c in CONDS:
+        for c in conds:
             m = sum(model[s][c][k] for k in keys) / len(keys)
             ch = sum(chance[s][c][k] for k in keys) / len(keys)
             d = {k: int(model[s][c][k]) - chance[s][c][k] for k in keys}

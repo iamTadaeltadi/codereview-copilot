@@ -1,0 +1,8 @@
+signal detection: results/v3-neutral-gemini/structure.jsonl results/v3twins-neutral-gemini/structure.jsonl
+repositories: 21; defects: 81; twins: 81; bootstrap over repositories, 6000 trials, seed 0
+
+  arm                 H      F  d-prime  95%                      c  95%                d'-d'(diff) 95%        c-c(diff) 95%
+  1-diff          0.667  0.630     0.10  [-0.27, +0.46]    -0.38  [-0.58, -0.18]  +0.00 [+0.00, +0.00]  +0.00 [+0.00, +0.00]
+  2-evidence      0.850  0.802     0.19  [-0.27, +0.81]    -0.94  [-1.21, -0.75]  +0.09 [-0.40, +0.74]  -0.56 [-0.85, -0.34]
+  5-attributed    0.887  0.815     0.32  [-0.19, +0.96]    -1.05  [-1.32, -0.87]  +0.22 [-0.43, +0.99]  -0.67 [-0.95, -0.48]
+  7-random        0.675  0.550     0.33  [-0.10, +0.79]    -0.29  [-0.53, -0.03]  +0.23 [-0.02, +0.56]  +0.09 [-0.08, +0.25]

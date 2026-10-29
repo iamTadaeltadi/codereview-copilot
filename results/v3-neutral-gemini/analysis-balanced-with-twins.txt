@@ -1,0 +1,44 @@
+file:                 results/v3-neutral-gemini/structure.jsonl results/v3twins-neutral-gemini/structure.jsonl
+model:                google/gemini-2.5-flash
+encoding:             tag
+metric:               correct
+arms:                 1-diff, 2-evidence, 5-attributed, 7-random
+tasks compared:       160
+duplicates dropped:   0  (first occurrence kept)
+incomplete dropped:   2  (tasks missing from at least one arm)
+bootstrap:            6000 trials, seed 0, percentile 2.5/97.5
+
+arm               n  n_metric  mean_correct  findings  distract  parse_fail  prompt_chars    cost_usd
+-----------------------------------------------------------------------------------------------------
+1-diff          160       160         0.525      0.71      0.05           0          1177     0.00030
+2-evidence      160       160         0.525      0.84      0.02           0          4243     0.00071
+5-attributed    160       160         0.537      0.86      0.01           0          4243     0.00070
+7-random        160       160         0.562      0.76      0.14           0          3809     0.00055
+
+arm            n_defect n_twin  on defects  on twins  balanced
+1-diff               80     80       0.675     0.375     0.525
+2-evidence           80     80       0.850     0.200     0.525
+5-attributed         80     80       0.887     0.188     0.537
+7-random             80     80       0.675     0.450     0.562
+
+comparisons (2 in the Holm family)
+
+primary: 5-attributed minus 1-diff  (metric=correct, n=160, skipped=0)
+  difference   0.013   repo-clustered 95% CI [ -0.083,   0.118]   task-clustered 95% CI [ -0.069,   0.094]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=22 (a right, b wrong)  c=20 (a wrong, b right)  exact p=0.8776  Holm-adjusted p=1.0000
+
+secondary: 2-evidence minus 1-diff  (metric=correct, n=160, skipped=0)
+  difference   0.000   repo-clustered 95% CI [ -0.076,   0.092]   task-clustered 95% CI [ -0.081,   0.081]
+  repo-clustered: interval spans zero; task-clustered: interval spans zero
+  McNemar b=21 (a right, b wrong)  c=21 (a wrong, b right)  exact p=1.0000  Holm-adjusted p=1.0000
+
+balanced accuracy: (rate on defects + clear rate on twins) / 2, repository-clustered paired bootstrap
+
+primary: 5-attributed minus 1-diff  (balanced correct, defects=80, twins=80, repos=21)
+  balanced 5-attributed   0.537 [  0.478,   0.604]   1-diff   0.525 [  0.455,   0.596]
+  balanced difference   0.012   repo-clustered 95% CI [ -0.082,   0.109]   interval spans zero
+
+secondary: 2-evidence minus 1-diff  (balanced correct, defects=80, twins=80, repos=21)
+  balanced 2-evidence   0.525 [  0.465,   0.595]   1-diff   0.525 [  0.455,   0.596]
+  balanced difference   0.000   repo-clustered 95% CI [ -0.075,   0.087]   interval spans zero

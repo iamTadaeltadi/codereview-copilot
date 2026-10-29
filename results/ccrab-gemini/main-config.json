@@ -1,0 +1,41 @@
+{
+  "model": "google/gemini-2.5-flash",
+  "conditions": [
+    "A",
+    "B"
+  ],
+  "depth": 3,
+  "budget_tokens": 3000,
+  "tolerance": 5,
+  "tasks": 195,
+  "matrix": {
+    "conditions": [
+      "A",
+      "B",
+      "C",
+      "D",
+      "G",
+      "F",
+      "E"
+    ],
+    "models": [
+      "primary",
+      "secondary"
+    ],
+    "budget_tokens": 3000,
+    "depths": [
+      1,
+      2,
+      3
+    ],
+    "candidate_cap": 80,
+    "entity_lines": 40,
+    "temperature": 0.1,
+    "seeds": [
+      0
+    ],
+    "tasks": 339,
+    "prompt_version": "v1",
+    "embedder": "hashing-baseline"
+  }
+}
