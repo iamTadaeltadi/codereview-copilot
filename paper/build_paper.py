@@ -14,9 +14,9 @@ ORDER = ["00-abstract.md", "01-intro.md", "02-related.md", "03-method.md", "04-r
 AUTHOR = "Tadael Shewarega Gebre"; AFFIL = "Independent researcher, Addis Ababa"
 EMAIL = "tadaelshewaregagebre30@gmail.com"
 FIGS = {  # anchor substring in a heading -> (file, caption)
-    "4.1 The partial-input ceiling": [("fig1-ceiling.png", "Figure 1. The partial-input ceiling: share of defect lines a model finds from the diff alone (gpt-4o-mini, exact line) on the second and third generated benchmarks and on the real c-CRAB defects. The third version was stopped under the pre-set 95% rule.")],
+    "4.1 The partial-input ceiling": [("fig1-ceiling.png", "Figure 1. The partial-input ceiling: share of defect lines gpt-4o-mini finds from the diff alone, at the exact line, on the second and third generated benchmarks under the presuming prompt, on the third under the neutral prompt, and on the real c-CRAB defects (numbered diff, 5-line tolerance, 244 defects; random placement gives 35%). The third version was stopped under the pre-set 95% rule.")],
     "4.3 Safe twins": [("fig3-twins.png", "Figure 3. Safe twins on the third benchmark: the share of changes every sampled caller tolerates that the model leaves unflagged, by arm, on two models under the presuming prompt and on gpt-4o-mini under the neutral prompt.")],
-    "4.5 Real defects": [("fig2-ccrab.png", "Figure 2. c-CRAB: real test-verified defects, one pipeline, model and budget, 5-line tolerance. The graph condition as first reported (red) carried the line span of the defect's function; with the span removed it sits with every other condition.")],
+    "4.5 Real defects": [("fig2-ccrab.png", "Figure 2. c-CRAB real defects, gpt-4o-mini, 5-line tolerance, the four runs side by side. Run 1's graph condition as first reported (dashed) carried the line span of the defect's function; its solid bar is the span-removed control. Runs 1 and 2 sit at the rate of random line placement; numbering the diff lines in runs 3 and 4 lifts every condition by fifteen points, and no condition is above the diff alone on the full defect set.")],
 }
 
 refs = {}

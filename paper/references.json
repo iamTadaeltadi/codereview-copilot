@@ -346,9 +346,9 @@
   "authors": [
    "Kevin Lira",
    "Baldoino Fonseca",
-   "Davy Ba\u00eda",
-   "M\u00e1rcio Ribeiro",
-   "Wesley K. G. Assun\u00e7\u00e3o"
+   "Davy Baía",
+   "Márcio Ribeiro",
+   "Wesley K. G. Assunção"
   ],
   "year": 2026,
   "venue": "",
@@ -663,5 +663,20 @@
   "year": "2020",
   "venue": "ICLR 2020",
   "url": "https://arxiv.org/abs/1909.12434"
+ },
+ {
+  "key": "arXiv260630587",
+  "arxiv_id": "2606.30587",
+  "title": "Words Speak Louder Than Code: Investigating Cognitive Heuristics in LLM-Based Code Vulnerability Detection",
+  "authors": [
+   "Asif Shahriar",
+   "Hongyu Cai",
+   "Hadjer Benkraouda",
+   "Gang Wang",
+   "Z. Berkay Celik"
+  ],
+  "year": 2026,
+  "venue": "IEEE S&P 2027",
+  "url": "https://arxiv.org/abs/2606.30587"
  }
 ]

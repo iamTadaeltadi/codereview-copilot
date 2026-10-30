@@ -36,31 +36,45 @@ if m: bars.append(("second version\n(withdrawn)", float(m.group(1)) * 100))
 v3 = [json.loads(l) for l in (ROOT / "results" / "v3-ceiling" / "structure-gpt4omini-tag-partial.jsonl").open() if l.strip()]
 d = [r for r in v3 if r["arm"] == "1-diff"]
 bars.append(("third version\n(stopped at %d)" % len(d), 100 * sum(1 for r in d if r["hit"]) / len(d)))
-t = (ROOT / "results" / "ccrab-today" / "analysis.txt").read_text()
+neu = [json.loads(l) for l in (ROOT / "results" / "v3-neutral-gpt4omini" / "structure.jsonl").open() if l.strip()]
+nd = [r for r in neu if r["arm"] == "1-diff"]
+bars.append(("third version,\nneutral prompt", 100 * sum(1 for r in nd if r["hit"]) / len(nd)))
+t = (ROOT / "results" / "ccrab-final" / "analysis.txt").read_text()
 m = re.search(re.escape("A  diff only (today)") + r"\s+([0-9.]+)%", t)
-bars.append(("c-CRAB real defects\n(n=219)", float(m.group(1))))
+bars.append(("c-CRAB real defects\n(numbered diff, tol 5)", float(m.group(1))))
 fig, ax = plt.subplots(figsize=(6.2, 2.8))
-ax.bar(range(len(bars)), [b[1] for b in bars], color=["#8A939D", "#8A939D", "#0E6B63"][:len(bars)])
+ax.bar(range(len(bars)), [b[1] for b in bars], color=["#8A939D", "#8A939D", "#5EC2B6", "#0E6B63"][:len(bars)])
 for i, (lab, v) in enumerate(bars): ax.text(i, v + 1.5, f"{v:.1f}", ha="center", fontsize=8.5)
 ax.axhline(95, ls=":", lw=0.8, color="#A4381F"); ax.text(len(bars) - 0.5, 96, "stop rule 95%", fontsize=7.5, color="#A4381F", ha="right")
 ax.set_xticks(range(len(bars))); ax.set_xticklabels([b[0] for b in bars], fontsize=8); ax.set_ylim(0, 110)
 ax.set_ylabel("% defect lines found, diff only")
 fig.tight_layout(); fig.savefig(OUT / "fig1-ceiling.pdf"); fig.savefig(OUT / "fig1-ceiling.png", dpi=180); plt.close(fig)
 
-# Figure 2: c-CRAB real defects, controlled comparison
-t = (ROOT / "results" / "ccrab-today" / "analysis.txt").read_text()
-rates = {}
-for lab, key in (("diff only", "A  diff only (today)"), ("random, any file", "C  random nodes, same budget"), ("lexical", "D  lexical, same budget"),
-                 ("graph, as reported\n(withdrawn)", "B  graph, repaired retrieval"), ("random, other files only", "random, other files only"),
-                 ("graph, seed span removed", "Bs graph, seed stripped")):
-    m = re.search(re.escape(key) + r"\s+([0-9.]+)%", t)
-    if m: rates[lab] = float(m.group(1))
-order = ["diff only", "random, any file", "random, other files only", "lexical", "graph, seed span removed", "graph, as reported\n(withdrawn)"]
-order = [o for o in order if o in rates]
-fig, ax = plt.subplots(figsize=(7.4, 3.2))
-ax.bar(range(len(order)), [rates[o] for o in order], color=["#8A939D"] * (len(order) - 1) + ["#A4381F"])
-for i, o in enumerate(order): ax.text(i, rates[o] + 1, f"{rates[o]:.1f}", ha="center", fontsize=8.5)
-ax.set_xticks(range(len(order))); ax.set_xticklabels(order, fontsize=7.5, rotation=12); ax.set_ylim(0, 60); ax.set_ylabel("% of real defects localised, 5-line tolerance")
+# Figure 2: c-CRAB real defects, the four runs side by side
+def ccrab_rates(path, keys):
+    t = (ROOT / "results" / path / "analysis.txt").read_text(); out = {}
+    for lab, key in keys:
+        m = re.search(re.escape(key) + r"\s+([0-9.]+)%", t)
+        if m: out[lab] = float(m.group(1))
+    return out
+STD = [("A", "A  diff only (today)"), ("B", "B  graph, repaired retrieval"), ("C", "C  random nodes, same budget"), ("Cx", "Cx random, other files only"), ("D", "D  lexical, same budget")]
+runs2 = [("1. 26 Oct\nraw diff, fault seeds", ccrab_rates("ccrab-today", [("A", "A  diff only (today)"), ("B", "Bs graph, seed stripped"), ("C", "C  random nodes, same budget"), ("Cx", "Cx random, other files only"), ("D", "D  lexical, same budget"), ("Bw", "B  graph, repaired retrieval")])),
+         ("2. 28 Oct\nrepaired retrieval", ccrab_rates("ccrab-v2", STD)),
+         ("3. 29 Oct\nnumbered lines", ccrab_rates("ccrab-numbered", STD)),
+         ("4. 30 Oct\ncallers first, plain", ccrab_rates("ccrab-final", STD))]
+conds = ["A", "B", "C", "Cx", "D"]; cols = {"A": "#8A939D", "B": "#0E6B63", "C": "#C9CFD6", "Cx": "#B5BCC4", "D": "#A0A8B1"}
+fig, ax = plt.subplots(figsize=(7.6, 3.2)); w = 0.15
+for gi, (lab, r) in enumerate(runs2):
+    for ci, c in enumerate(conds):
+        if c in r:
+            ax.bar(gi + (ci - 2) * w, r[c], width=w, color=cols[c], label=c if gi == 0 else None)
+    if "Bw" in r:
+        ax.bar(gi + (1 - 2) * w, r["Bw"], width=w, fill=False, edgecolor="#A4381F", ls="--", lw=1.0, label="B as first reported (withdrawn)")
+    if gi >= 1:
+        ax.plot([gi - 2.6 * w, gi + 2.6 * w], [35.5, 35.5], color="#A4381F", lw=0.9)
+ax.text(1 - 2.6 * w, 37, "random line placement", fontsize=7, color="#A4381F")
+ax.set_xticks(range(len(runs2))); ax.set_xticklabels([l for l, _ in runs2], fontsize=7.5); ax.set_ylim(0, 65)
+ax.set_ylabel("% of real defects localised, 5-line tolerance"); ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper left")
 fig.tight_layout(); fig.savefig(OUT / "fig2-ccrab.pdf"); fig.savefig(OUT / "fig2-ccrab.png", dpi=180); plt.close(fig)
 
 # Figure 3: safe twins on the third benchmark (drawn only once both runs are frozen)
