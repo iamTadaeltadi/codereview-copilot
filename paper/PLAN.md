@@ -1139,3 +1139,42 @@ repositories with none the other way. Exact line on the subset +3.1 [−3.2, +9.
 Secondary, all 244 paired defects: A 50.8, B 54.1, C 52.0, Cx 52.9, D 52.9; B − Cx +1.2
 [−2.2, +5.0]; B − A +3.3 [−0.9, +7.2]; all paired differences span zero; every condition 15 to 19
 points above its random-line chance. Evidence recall B 61.9%, D 60.4%, C 50.6%, Cx 50.0%.
+
+## 12. Pre-registration: replication of the final c-CRAB run on deepseek-v3.2 (1 November 2026)
+
+Written and committed before the first model call. Run once; reported whatever it gives. The
+gpt-4o-mini results of runs 1 to 4 are not changed, re-analysed or pooled with this run.
+
+**Configuration.** Run 4's exactly (`experiments/launch_ccrab_deepseek.sh`, a copy of
+`launch_ccrab_final.sh` with the model string changed and the stop rule raised): same 195
+tasks and 246 defects, plain code-block context, callers-first graph walk over function and
+class nodes with test files excluded from B, C and Cx, class seeds dropped when their methods
+are seeds, diff-derived seeds, numbered diff lines, budget 3,000 tokens, hops 3, depth 3,
+tolerance 5, temperature 0.1, seed 0, `-v2` graph cache read from disk, the same three
+passes (A,B,D with `--prefer-cross-file`; C with it; C without). Model
+`deepseek/deepseek-v3.2` via OpenRouter, the model used for the twins in Section 4.3.
+Nothing else differs from run 4.
+
+**Primary.** B − Cx on the localised rate at tolerance 5, on the same 77 committed defect ids
+as run 4's primary (`results/ccrab-deepseek/primary-subset.txt`, byte-identical to
+`results/ccrab-final/primary-subset.txt`), restricted to the defects answered in all five
+conditions; paired by defect, percentile bootstrap over repositories (6,000 trials, seed 0),
+task bootstrap beside it. *Disclosure:* on gpt-4o-mini this subset read B 64.1% against
+Cx 51.6% in run 4 (+12.5 [+5.0, +20.8]), B 54.7% against Cx 51.6% in run 3 and B 40.6%
+against Cx 42.2% in run 2. This run is the replication on a second model.
+
+**Secondary.** (a) B − Cx on source-file defects whose `scope_loose` in
+`results/evidence-scope.jsonl` is `outside-diff` (`results/ccrab-deepseek/secondary-subset-loose.txt`,
+118 ids, a superset of the 77; 102 of them were paired in run 4). *Disclosure:* on run 4's
+gpt-4o-mini records this set reads B 60.8%, Cx 53.9%, A 52.0%; no interval was computed.
+(b) All paired defects: B − Cx, B − A, C − A, Cx − A, D − A. (c) The same at the exact line.
+(d) Each condition against its random-line chance baseline (`experiments/chance_ccrab.py`,
+500 draws). (e) Quoted-token line accuracy and evidence recall, for the record.
+
+**Stop rule.** If the recorded cost passes $5.00 the run is stopped and the partial records
+are reported as partial. The account holds about $4.1 of credit at the time of writing, so
+exhaustion of credit is the stop that would come first; a 403 from the key is reported as
+such, not as the stop rule.
+
+**Afterwards.** The result is added to the paper as the second-model replication of run 4's
+primary, in the paper's own words whatever its sign. No further c-CRAB run is planned.
