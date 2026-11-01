@@ -1178,3 +1178,10 @@ such, not as the stop rule.
 
 **Afterwards.** The result is added to the paper as the second-model replication of run 4's
 primary, in the paper's own words whatever its sign. No further c-CRAB run is planned.
+
+**Amendment before the run, 1 November 2026, 12:50.** The first launch crashed on the first
+task after one model call ($0.0011): the scratch interpreter the launcher pointed at had lost
+its installed packages (`ModuleNotFoundError: git`, `networkx`). The one recorded row was
+discarded (`runs/ccrab-deepseek-*` deleted) and the launcher now points at a project
+interpreter (`.venv`, git-ignored) built from `requirements-dev.txt`. No setting, prompt,
+budget, model or condition changed. The run restarts from zero under §12 as written.

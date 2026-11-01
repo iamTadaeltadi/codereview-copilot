@@ -4,7 +4,7 @@
 # Three sequential passes as before; stop if the summed recorded cost passes $5.00.
 set -u
 ROOT="/Users/tadaelshewarega/Desktop/education stff/canada-2027/capstone/codereview-copilot"
-PY=/private/tmp/claude-501/-Users-tadaelshewarega/9c0408ce-8c21-4e7c-a0f6-92330e46007d/scratchpad/venv/bin/python
+PY="$ROOT/.venv/bin/python"
 cd "$ROOT"; export PYTHONPATH=.:services/graph:services/agents
 COMMON=(--limit 400 --budget 3000 --hops 3 --depth 3 --tolerance 5 --model deepseek/deepseek-v3.2
         --plain-context --exclude-tests --callers-first --drop-class-seeds)
