@@ -61,19 +61,22 @@ STD = [("A", "A  diff only (today)"), ("B", "B  graph, repaired retrieval"), ("C
 runs2 = [("1. 26 Oct\nraw diff, fault seeds", ccrab_rates("ccrab-today", [("A", "A  diff only (today)"), ("B", "Bs graph, seed stripped"), ("C", "C  random nodes, same budget"), ("Cx", "Cx random, other files only"), ("D", "D  lexical, same budget"), ("Bw", "B  graph, repaired retrieval")])),
          ("2. 28 Oct\nrepaired retrieval", ccrab_rates("ccrab-v2", STD)),
          ("3. 29 Oct\nnumbered lines", ccrab_rates("ccrab-numbered", STD)),
-         ("4. 30 Oct\ncallers first, plain", ccrab_rates("ccrab-final", STD))]
+         ("4. 30 Oct\ncallers first, plain", ccrab_rates("ccrab-final", STD)),
+         ("4 on deepseek-v3.2\n1–3 Nov, replication", ccrab_rates("ccrab-deepseek", STD))]
+CHANCE = {1: 35.5, 2: 35.5, 3: 35.5, 4: 42.0}
 conds = ["A", "B", "C", "Cx", "D"]; cols = {"A": "#8A939D", "B": "#0E6B63", "C": "#C9CFD6", "Cx": "#B5BCC4", "D": "#A0A8B1"}
-fig, ax = plt.subplots(figsize=(7.6, 3.2)); w = 0.15
+fig, ax = plt.subplots(figsize=(8.6, 3.2)); w = 0.15
 for gi, (lab, r) in enumerate(runs2):
     for ci, c in enumerate(conds):
         if c in r:
             ax.bar(gi + (ci - 2) * w, r[c], width=w, color=cols[c], label=c if gi == 0 else None)
     if "Bw" in r:
         ax.bar(gi + (1 - 2) * w, r["Bw"], width=w, fill=False, edgecolor="#A4381F", ls="--", lw=1.0, label="B as first reported (withdrawn)")
-    if gi >= 1:
-        ax.plot([gi - 2.6 * w, gi + 2.6 * w], [35.5, 35.5], color="#A4381F", lw=0.9)
+    if gi in CHANCE:
+        ax.plot([gi - 2.6 * w, gi + 2.6 * w], [CHANCE[gi]] * 2, color="#A4381F", lw=0.9)
+ax.axvline(3.5, color="#8A939D", lw=0.6, ls=":")
 ax.text(1 - 2.6 * w, 37, "random line placement", fontsize=7, color="#A4381F")
-ax.set_xticks(range(len(runs2))); ax.set_xticklabels([l for l, _ in runs2], fontsize=7.5); ax.set_ylim(0, 65)
+ax.set_xticks(range(len(runs2))); ax.set_xticklabels([l for l, _ in runs2], fontsize=7.5); ax.set_ylim(0, 75)
 ax.set_ylabel("% of real defects localised, 5-line tolerance"); ax.legend(frameon=False, fontsize=7, ncol=3, loc="upper left")
 fig.tight_layout(); fig.savefig(OUT / "fig2-ccrab.pdf"); fig.savefig(OUT / "fig2-ccrab.png", dpi=180); plt.close(fig)
 
