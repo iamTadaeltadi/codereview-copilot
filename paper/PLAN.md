@@ -1206,3 +1206,15 @@ A 64.5, B 61.6, C 66.9, Cx 66.9, D 60.8; B − Cx −5.3 [−12.0, +0.8]; B − 
 B − C −5.3 [−9.8, −1.4]. Every condition 18 to 28 points above random-line chance at
 tolerance 5. Evidence recall unchanged from run 4 (context does not depend on the model).
 The run-4 lead does not replicate on the second model; the paper reports it so.
+
+## 13. Pre-registration: the neutral-prompt defects on deepseek-v3.2 (3 November 2026)
+
+**Question.** The sensitivity-and-criterion result of 4.3 (d′ and c per arm, `results/v3-neutral-gpt4omini/analysis-signal-detection.txt`) is on one model: dependency context moves the criterion, not the sensitivity. The twins under the neutral prompt already exist on deepseek-v3.2 (`results/v3twins-neutral-deepseek/`, 158 twins, F per arm from 0.095 to 0.228); the defects under the neutral prompt do not. This run adds them so that d′ and c can be computed on a second model.
+
+**Configuration.** `experiments/run_structure.py --limit 400 --encoding tag --model deepseek/deepseek-v3.2 --neutral-prompt --benchmark data/crossfile-v3.jsonl`, all nine arms, temperature and seed as in every structure run: the gpt-4o-mini neutral defect run with the model changed only, and the deepseek twin run with the benchmark changed only. As for the twins, the 277 defects are split into three interleaved shards (rows 0,3,6,…; 1,4,7,…; 2,5,8,…) run in parallel, written by the launcher (`experiments/launch_v3_neutral_deepseek.sh`) into `runs/v3-neutral-deepseek-shard{0,1,2}/`, read together by the analyses. Run once; a call that returns no scorable reply is re-issued once under the runner's resume rule, as in §12.
+
+**Primary.** On the arm that names the relation and its argument (5-attributed) against the diff alone (1-diff), with H from this run and F from the existing deepseek twins, repository bootstrap (6,000 trials, seed 0, `experiments/signal_detection.py`): (i) c(5) − c(1) is negative with an interval excluding zero, the criterion moves; (ii) d′(5) − d′(1) does not exceed zero with an interval excluding zero, the sensitivity is not raised. Both must hold for the paper to say "two models". The same two differences are reported for every arm.
+
+**Secondary.** H per arm with its interval (`analyse_structure.py --metric hit`); balanced accuracy per arm against the diff (`--metric correct` over defects and twins together); the precise-line rate. *Disclosure:* on gpt-4o-mini the primary reads c −1.78 [−2.00, −1.60] and d′ −0.72 [−1.13, −0.29]; the deepseek twin F values are known (diff 0.108, attributed 0.209), the H values are not.
+
+**Stop rule.** $1.50 recorded; the twins run cost $0.55 for 1,422 replies, so 2,439 replies are expected near $1.00; the account holds about $1.9, and credit exhaustion is reported as such. Afterwards the result goes into 4.3 beside the gpt-4o-mini table, whatever its sign.
