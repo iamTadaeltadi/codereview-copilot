@@ -1,0 +1,25 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : deepseek/deepseek-v3.2
+conditions: ['A', 'B', 'D']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+resuming  : 578 task/condition pairs already recorded
+  [61/195] geldata__gel-4469@95cccee                A ctx=     0 found=10 hit=1/2 $0.00116 224.0s
+  [84/195] localstack__localstack-12496@22b4c31     A ctx=     0 found= 7 hit=1/1 $0.00231 40.0s
+  [84/195] localstack__localstack-12496@22b4c31     D ctx=  6574 found= 6 hit=0/1 $0.00186 56.4s
+  [86/195] marimo-team__marimo-4080@8a73f89         A ctx=     0 found= 7 hit=0/1 $0.00386 21.7s
+  [108/195] numpy__numpy-20310@a4daaf5 B: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [108/195] numpy__numpy-20310@a4daaf5 D: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [180/195] sympy__sympy-18605@a356458               B ctx=  8412 found= 3 hit=1/1 $0.00094 30.6s
+
+total wall time: 373s
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+A           3        4      2   50.0%   [25.0%, 100.0%]    8.3%   0.14   0.0037
+B           1        1      1  100.0%  [100.0%, 100.0%]   33.3%   0.50   0.0009
+D           1        1      0    0.0%      [0.0%, 0.0%]    0.0%   0.00        -
+
+  B vs A: +0.0% (95% CI +0.0% to +0.0%) — not distinguishable at this sample size
+  D is lower than A by 100.0% (95% CI -100.0% to -100.0%)
+
+total cost: $0.0101

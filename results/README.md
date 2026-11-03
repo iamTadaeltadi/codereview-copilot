@@ -19,6 +19,7 @@ generated benchmark, `data/crossfile.jsonl`. See the `WITHDRAWN.md` in each.
 | `ccrab-numbered/` | the 29 Oct rerun of `ccrab-v2` with numbered diff lines (PLAN.md §10 amendment): every condition ~50% at tolerance 5, 15 points above its random-line chance; B − Cx +0.8 [−1.3, +3.3]; includes the 50-comment hand-label CSV |
 | `ccrab-gemini/` | PARTIAL: gemini-2.5-flash (thinking off, numbered diff) A and B on 60 tasks; key cap stopped it; B − A −8.0 [−15.5, −1.1]; no Cx |
 | `ccrab-final/` | the 30 Oct final pre-registered run (PLAN.md §11): plain code-block context, callers-first graph walk, no test files in B/C/Cx; PRIMARY B − Cx on 64 strict outside-diff source-file defects +12.5 [+5.0, +20.8]; all 244 defects B − Cx +1.2 [−2.2, +5.0]; evidence recall per condition |
+| `ccrab-deepseek/` | the 1–3 Nov replication of ccrab-final on deepseek-v3.2 (PLAN.md §12), same config, model changed only; PRIMARY B − Cx on 65 strict outside-diff source-file defects −7.7 [−17.8, +3.6], sign reversed, does not replicate; all 245 defects B − Cx −5.3 [−12.0, +0.8]; every condition 18–28 points above random-line chance |
 | `v3-neutral-gemini/`, `v3twins-neutral-gemini/` | PARTIAL: gemini-2.5-flash neutral prompt, arms 1/2/5/7, 80 defects + 80 twins; d'/c and balanced accuracy |
 | `evidence-scope.*` | anchor-vs-evidence classification of 291 c-CRAB defects, strict and loose bounds, reason per decision |
 | `search-trigger/` | the search-trigger test, 40 paired tasks |

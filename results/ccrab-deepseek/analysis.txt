@@ -1,0 +1,25 @@
+c-CRAB, test-verified real defects, deepseek-v3.2, replication of run 4 on 1 Nov 2026 (PLAN.md s12): plain code-block context, callers-first graph walk, no test files, numbered diff, budget 3000 tokens, tolerance 5 lines
+=== A, B, C, D run on one day ===
+paired defects: 245
+  A  diff only (today)                  64.5%
+  B  graph, repaired retrieval          61.6%
+  C  random nodes, same budget          66.9%
+  D  lexical, same budget               60.8%
+
+  graph − diff only                -2.9%  repo-clustered [-6.6%, +0.9%]  task-clustered [-7.8%, +2.0%]  spans zero
+  graph − random                   -5.3%  repo-clustered [-9.8%, -1.4%]  task-clustered [-9.8%, -1.2%]  excludes zero
+  graph − lexical                  +0.8%  repo-clustered [-3.1%, +4.8%]  task-clustered [-3.7%, +5.3%]  spans zero
+  lexical − diff only              -3.7%  repo-clustered [-8.1%, +1.0%]  task-clustered [-8.6%, +1.6%]  spans zero
+  random − diff only               +2.4%  repo-clustered [-1.4%, +6.8%]  task-clustered [-2.0%, +6.9%]  spans zero
+
+=== with the random-other-files control (Cx) ===
+paired defects: 245
+  A  diff only (today)                  64.5%
+  C  random nodes, same budget          66.9%
+  Cx random, other files only           66.9%
+  D  lexical, same budget               60.8%
+  B  graph, repaired retrieval          61.6%
+
+  graph − random other files       -5.3%  repo-clustered [-12.0%, +0.8%]  task-clustered [-11.0%, +0.4%]  spans zero
+  random other files − diff        +2.4%  repo-clustered [-2.6%, +8.3%]  task-clustered [-2.9%, +7.8%]  spans zero
+  random other files − random any  +0.0%  repo-clustered [-5.3%, +5.9%]  task-clustered [-5.3%, +5.3%]  spans zero

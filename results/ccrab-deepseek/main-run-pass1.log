@@ -1,0 +1,602 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : deepseek/deepseek-v3.2
+conditions: ['A', 'B', 'D']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+  [1/195] Avaiga__taipy-1042@a76a34b               A ctx=     0 found=10 hit=0/1 $0.00073 24.1s
+  [1/195] Avaiga__taipy-1042@a76a34b               B ctx=  8238 found= 9 hit=0/1 $0.00126 47.2s
+  [1/195] Avaiga__taipy-1042@a76a34b               D ctx=  6946 found=12 hit=0/1 $0.00135 29.9s
+  [2/195] Avaiga__taipy-833@24559da                A ctx=     0 found= 6 hit=0/1 $0.01549 556.4s
+  [2/195] Avaiga__taipy-833@24559da                B ctx=  4551 found= 5 hit=1/1 $0.00161 54.4s
+  [2/195] Avaiga__taipy-833@24559da                D ctx=  3307 found= 6 hit=0/1 $0.00129 40.2s
+  [3/195] Lightning-AI__pytorch-lightning-4654@89b A ctx=     0 found= 3 hit=1/1 $0.00050 7.8s
+  [3/195] Lightning-AI__pytorch-lightning-4654@89b B ctx=  3527 found= 3 hit=1/1 $0.00043 6.0s
+  [3/195] Lightning-AI__pytorch-lightning-4654@89b D ctx=  7491 found= 4 hit=1/1 $0.00072 7.3s
+  [4/195] Lightning-AI__pytorch-lightning-7351@7b3 A ctx=     0 found= 3 hit=1/1 $0.00968 436.2s
+  [4/195] Lightning-AI__pytorch-lightning-7351@7b3 B ctx=  7674 found= 4 hit=1/1 $0.00118 43.4s
+  [4/195] Lightning-AI__pytorch-lightning-7351@7b3 D ctx=  6633 found= 3 hit=1/1 $0.01197 641.4s
+  [5/195] Lightning-AI__pytorch-lightning-866@5a0c A ctx=     0 found= 7 hit=1/1 $0.00079 11.3s
+  [5/195] Lightning-AI__pytorch-lightning-866@5a0c B ctx=  7903 found= 6 hit=1/1 $0.00132 8.5s
+  [5/195] Lightning-AI__pytorch-lightning-866@5a0c D ctx=  7589 found= 5 hit=1/1 $0.00083 8.2s
+  [6/195] ManimCommunity__manim-509@1cbc24f        A ctx=     0 found= 2 hit=1/1 $0.00044 18.9s
+  [6/195] ManimCommunity__manim-509@1cbc24f        B ctx=  2981 found= 3 hit=1/1 $0.00100 35.6s
+  [6/195] ManimCommunity__manim-509@1cbc24f        D ctx=  2761 found= 1 hit=1/1 $0.00034 2.0s
+  [7/195] OpenMined__PySyft-5385@0af54a4           A ctx=     0 found= 5 hit=2/2 $0.00046 6.3s
+  [7/195] OpenMined__PySyft-5385@0af54a4           B ctx=  9724 found= 6 hit=2/2 $0.00098 9.8s
+  [7/195] OpenMined__PySyft-5385@0af54a4           D ctx=  4107 found= 5 hit=2/2 $0.00087 10.3s
+  [8/195] PostHog__posthog-4868@1372f68            A ctx=     0 found=10 hit=1/1 $0.00216 25.4s
+  [8/195] PostHog__posthog-4868@1372f68            B ctx=  4206 found=10 hit=1/1 $0.00164 25.4s
+  [8/195] PostHog__posthog-4868@1372f68            D ctx=  5051 found= 9 hit=1/1 $0.00217 62.8s
+  [9/195] PostHog__posthog-8874@960dad4            A ctx=     0 found= 5 hit=1/1 $0.00547 276.8s
+  [9/195] PostHog__posthog-8874@960dad4            B ctx=  7463 found= 4 hit=0/1 $0.00930 420.1s
+  [9/195] PostHog__posthog-8874@960dad4            D ctx=  7168 found= 4 hit=1/1 $0.00118 29.2s
+  [10/195] PrefectHQ__prefect-14392@aac04aa         A ctx=     0 found=11 hit=0/1 $0.00199 13.5s
+  [10/195] PrefectHQ__prefect-14392@aac04aa         B ctx=   884 found= 8 hit=0/1 $0.00201 11.8s
+  [10/195] PrefectHQ__prefect-14392@aac04aa         D ctx=   884 found= 9 hit=0/1 $0.00057 12.0s
+  [11/195] PrefectHQ__prefect-18444@1ffae47         A ctx=     0 found= 9 hit=0/1 $0.00314 9.5s
+  [11/195] PrefectHQ__prefect-18444@1ffae47         B ctx=  3170 found=10 hit=0/1 $0.00091 16.7s
+  [11/195] PrefectHQ__prefect-18444@1ffae47         D ctx=  4083 found=10 hit=0/1 $0.00073 12.4s
+  [12/195] RasaHQ__rasa-5341@d8b1c24                A ctx=     0 found= 6 hit=1/1 $0.00133 12.2s
+  [12/195] RasaHQ__rasa-5341@d8b1c24                B ctx=  9488 found= 6 hit=1/1 $0.00213 7.1s
+  [12/195] RasaHQ__rasa-5341@d8b1c24                D ctx=  4256 found= 5 hit=1/1 $0.00111 8.5s
+  [13/195] RasaHQ__rasa-5818@693ab41                A ctx=     0 found= 5 hit=1/2 $0.00062 5.9s
+  [13/195] RasaHQ__rasa-5818@693ab41                B ctx=  6455 found= 5 hit=1/2 $0.00072 6.8s
+  [13/195] RasaHQ__rasa-5818@693ab41                D ctx=  5357 found= 5 hit=0/2 $0.00096 4.9s
+  [14/195] ansible__ansible-27435@da1a331           A ctx=     0 found= 6 hit=2/3 $0.00124 23.4s
+  [14/195] ansible__ansible-27435@da1a331           B ctx=  8114 found= 8 hit=1/3 $0.00144 24.4s
+  [14/195] ansible__ansible-27435@da1a331           D ctx=  6750 found= 8 hit=1/3 $0.00136 23.2s
+  [15/195] ansible__ansible-36996@4b45ffc           A ctx=     0 found= 3 hit=1/1 $0.00035 8.3s
+  [15/195] ansible__ansible-36996@4b45ffc           B ctx=  9904 found= 5 hit=1/1 $0.00090 10.3s
+  [15/195] ansible__ansible-36996@4b45ffc           D ctx=  3923 found= 4 hit=1/1 $0.00062 15.3s
+  [16/195] ansible__ansible-39963@85a7d65           A ctx=     0 found= 4 hit=0/1 $0.00537 278.5s
+  [16/195] ansible__ansible-39963@85a7d65           B ctx=  8349 found= 6 hit=1/1 $0.00097 27.3s
+  [16/195] ansible__ansible-39963@85a7d65           D ctx=  8679 found= 3 hit=0/1 $0.00174 57.6s
+  [17/195] ansible__ansible-42145@12c0d66           A ctx=     0 found= 6 hit=3/3 $0.00047 9.7s
+  [17/195] ansible__ansible-42145@12c0d66           B ctx=  8674 found= 6 hit=3/3 $0.00109 10.3s
+  [17/195] ansible__ansible-42145@12c0d66           D ctx=  7067 found= 5 hit=3/3 $0.00076 8.1s
+  [18/195] ansible__ansible-42456@b29e00e           A ctx=     0 found= 6 hit=0/1 $0.00061 8.7s
+  [18/195] ansible__ansible-42456@b29e00e           B ctx=  9572 found= 6 hit=0/1 $0.00127 10.5s
+  [18/195] ansible__ansible-42456@b29e00e           D ctx=  1917 found= 5 hit=0/1 $0.00043 9.0s
+  [19/195] ansible__ansible-49873@10ef1a3           A ctx=     0 found= 4 hit=0/1 $0.00051 6.7s
+  [19/195] ansible__ansible-49873@10ef1a3           B ctx=  7766 found= 4 hit=0/1 $0.00112 8.2s
+  [19/195] ansible__ansible-49873@10ef1a3           D ctx=  6921 found= 4 hit=0/1 $0.00078 8.1s
+  [20/195] ansible__ansible-51415@fb988f5           A ctx=     0 found= 3 hit=1/1 $0.00033 5.9s
+  [20/195] ansible__ansible-51415@fb988f5           B ctx=  9614 found= 3 hit=0/1 $0.00082 5.3s
+  [20/195] ansible__ansible-51415@fb988f5           D ctx=  9665 found= 3 hit=1/1 $0.00096 5.2s
+  [21/195] ansible__ansible-54268@403b068           A ctx=     0 found= 4 hit=0/1 $0.00401 216.9s
+  [21/195] ansible__ansible-54268@403b068           B ctx=  9022 found= 4 hit=0/1 $0.00127 26.8s
+  [21/195] ansible__ansible-54268@403b068           D ctx=  8713 found= 4 hit=0/1 $0.00105 23.4s
+  [22/195] ansible__ansible-55379@060b0e9           A ctx=     0 found=13 hit=0/1 $0.00200 21.9s
+  [22/195] ansible__ansible-55379@060b0e9           B ctx=  6295 found=10 hit=0/1 $0.00106 16.5s
+  [22/195] ansible__ansible-55379@060b0e9           D ctx=  7279 found=10 hit=0/1 $0.00237 16.1s
+  [23/195] ansible__ansible-59946@fbe8544           A ctx=     0 found= 2 hit=1/1 $0.00407 190.4s
+  [23/195] ansible__ansible-59946@fbe8544           B ctx=  7591 found= 2 hit=1/1 $0.00156 54.5s
+  [23/195] ansible__ansible-59946@fbe8544           D ctx=  1648 found= 1 hit=1/1 $0.00081 37.9s
+  [24/195] ansible__ansible-60622@19d2ad7           A ctx=     0 found= 3 hit=0/1 $0.00031 7.9s
+  [24/195] ansible__ansible-60622@19d2ad7           B ctx=  8385 found= 3 hit=0/1 $0.00078 13.2s
+  [24/195] ansible__ansible-60622@19d2ad7           D ctx= 10317 found= 3 hit=1/1 $0.00096 10.7s
+  [25/195] ansible__ansible-61603@5bf662a           A ctx=     0 found=21 hit=1/1 $0.01424 622.4s
+  [25/195] ansible__ansible-61603@5bf662a           B ctx=  4636 found=14 hit=1/1 $0.01066 380.3s
+  [25/195] ansible__ansible-61603@5bf662a           D ctx=  5373 found= 9 hit=0/1 $0.00201 78.4s
+  [26/195] ansible__ansible-71136@621cec5           A ctx=     0 found= 7 hit=1/1 $0.00080 11.2s
+  [26/195] ansible__ansible-71136@621cec5           B ctx=  9029 found= 6 hit=1/1 $0.00089 8.0s
+  [26/195] ansible__ansible-71136@621cec5           D ctx=  5479 found= 6 hit=1/1 $0.00114 7.5s
+  [27/195] ansible__ansible-77944@0f6d2a8           A ctx=     0 found=12 hit=1/1 $0.01013 413.2s
+  [27/195] ansible__ansible-77944@0f6d2a8           B ctx=  8103 found=10 hit=1/1 $0.01163 568.0s
+  [27/195] ansible__ansible-77944@0f6d2a8           D ctx=  7774 found= 7 hit=1/1 $0.00206 91.6s
+  [28/195] apache__airflow-16732@8ec4f26            A ctx=     0 found= 5 hit=0/1 $0.00100 15.2s
+  [28/195] apache__airflow-16732@8ec4f26            B ctx=  8702 found= 3 hit=0/1 $0.00262 55.9s
+  [28/195] apache__airflow-16732@8ec4f26            D ctx=  7109 found= 4 hit=0/1 $0.00077 8.5s
+  [29/195] apache__airflow-26766@cf0c9a6            A ctx=     0 found= 5 hit=1/1 $0.00072 7.9s
+  [29/195] apache__airflow-26766@cf0c9a6            B ctx=  9100 found= 7 hit=1/1 $0.00107 11.7s
+  [29/195] apache__airflow-26766@cf0c9a6            D ctx=  7919 found= 6 hit=1/1 $0.00100 10.0s
+  [30/195] apache__airflow-51237@6dd1634            A ctx=     0 found= 6 hit=0/1 $0.00255 10.9s
+  [30/195] apache__airflow-51237@6dd1634            B ctx=  8799 found= 5 hit=0/1 $0.00202 15.0s
+  [30/195] apache__airflow-51237@6dd1634            D ctx=  7514 found= 4 hit=0/1 $0.00186 10.2s
+  [31/195] apache__airflow-8749@161c96c             A ctx=     0 found=10 hit=1/1 $0.00264 17.2s
+  [31/195] apache__airflow-8749@161c96c             B ctx=  3083 found= 9 hit=1/1 $0.00169 15.1s
+  [31/195] apache__airflow-8749@161c96c             D ctx=  3634 found=10 hit=1/1 $0.00170 17.2s
+  [32/195] bridgecrewio__checkov-4155@48ecaf7       A ctx=     0 found= 3 hit=1/1 $0.00126 8.9s
+  [32/195] bridgecrewio__checkov-4155@48ecaf7       B ctx=  8511 found= 4 hit=1/1 $0.00138 16.0s
+  [32/195] bridgecrewio__checkov-4155@48ecaf7       D ctx=  7075 found= 5 hit=1/1 $0.00125 8.9s
+  [33/195] ccxt__ccxt-14582@83f50a7                 A ctx=     0 found= 1 hit=1/1 $0.00040 4.1s
+  [33/195] ccxt__ccxt-14582@83f50a7                 B ctx=    95 found= 1 hit=1/1 $0.00320 153.1s
+  [33/195] ccxt__ccxt-14582@83f50a7                 D ctx=    95 found= 2 hit=1/1 $0.00324 184.0s
+  [34/195] ccxt__ccxt-14830@1d1701f                 A ctx=     0 found= 2 hit=1/1 $0.00020 7.2s
+  [34/195] ccxt__ccxt-14830@1d1701f                 B ctx=    90 found= 2 hit=1/1 $0.00019 5.5s
+  [34/195] ccxt__ccxt-14830@1d1701f                 D ctx=    90 found= 2 hit=1/1 $0.00015 4.4s
+  [35/195] ccxt__ccxt-16729@284cdce                 A ctx=     0 found= 7 hit=1/1 $0.00059 14.5s
+  [35/195] ccxt__ccxt-16729@284cdce                 B ctx=    84 found= 7 hit=1/1 $0.00045 12.6s
+  [35/195] ccxt__ccxt-16729@284cdce                 D ctx=    84 found= 4 hit=0/1 $0.00032 5.9s
+  [36/195] certbot__certbot-7270@65f464e            A ctx=     0 found=12 hit=0/1 $0.00301 9.7s
+  [36/195] certbot__certbot-7270@65f464e            B ctx=  2639 found= 9 hit=0/1 $0.00144 19.0s
+  [36/195] certbot__certbot-7270@65f464e            D ctx=  2639 found=11 hit=0/1 $0.00161 41.8s
+  [37/195] certbot__certbot-9076@01f570d            A ctx=     0 found= 8 hit=0/1 $0.00123 7.8s
+  [37/195] certbot__certbot-9076@01f570d            B ctx=  1575 found= 4 hit=0/1 $0.00068 4.9s
+  [37/195] certbot__certbot-9076@01f570d            D ctx=   297 found= 7 hit=0/1 $0.00067 5.2s
+  [38/195] certbot__certbot-9208@2584184            A ctx=     0 found= 9 hit=1/4 $0.00110 19.9s
+  [38/195] certbot__certbot-9208@2584184            B ctx=  8791 found= 7 hit=2/4 $0.00118 15.3s
+  [38/195] certbot__certbot-9208@2584184            D ctx=  6503 found=10 hit=3/4 $0.00117 16.6s
+  [39/195] conan-io__conan-16942@e62c6eb            A ctx=     0 found= 7 hit=0/2 $0.00089 10.2s
+  [39/195] conan-io__conan-16942@e62c6eb            B ctx=  6015 found= 8 hit=0/2 $0.00135 10.4s
+  [39/195] conan-io__conan-16942@e62c6eb            D ctx=  8382 found= 8 hit=0/2 $0.00085 13.6s
+  [40/195] conan-io__conan-6052@ca23055             A ctx=     0 found= 5 hit=0/1 $0.01526 803.6s
+  [40/195] conan-io__conan-6052@ca23055             B ctx=  6000 found= 5 hit=0/1 $0.01400 353.1s
+  [40/195] conan-io__conan-6052@ca23055             D ctx=  5671 found= 8 hit=1/1 $0.00261 71.8s
+  [41/195] cvat-ai__cvat-1396@bd228e1               A ctx=     0 found= 7 hit=0/1 $0.00072 10.0s
+  [41/195] cvat-ai__cvat-1396@bd228e1               B ctx=  8537 found= 6 hit=1/1 $0.00133 9.5s
+  [41/195] cvat-ai__cvat-1396@bd228e1               D ctx=  4493 found= 5 hit=0/1 $0.00060 8.8s
+  [42/195] dask__dask-7974@88a13f7                  A ctx=     0 found= 8 hit=0/3 $0.00091 10.8s
+  [42/195] dask__dask-7974@88a13f7                  B ctx=  8433 found= 7 hit=0/3 $0.00098 13.2s
+  [42/195] dask__dask-7974@88a13f7                  D ctx=  7929 found= 7 hit=0/3 $0.00094 10.6s
+  [43/195] dask__dask-8869@24f8120                  A ctx=     0 found= 6 hit=1/1 $0.00078 15.8s
+  [43/195] dask__dask-8869@24f8120                  B ctx=  8437 found= 6 hit=1/1 $0.00134 19.2s
+  [43/195] dask__dask-8869@24f8120                  D ctx=  6315 found= 6 hit=1/1 $0.00131 20.6s
+  [44/195] dbt-labs__dbt-core-1453@70206b1          A ctx=     0 found= 4 hit=1/1 $0.00159 7.7s
+  [44/195] dbt-labs__dbt-core-1453@70206b1          B ctx=  5449 found= 6 hit=1/1 $0.00131 7.3s
+  [44/195] dbt-labs__dbt-core-1453@70206b1          D ctx=  6458 found= 5 hit=1/1 $0.00146 11.8s
+  [45/195] dbt-labs__dbt-core-5027@8dcfeb1          A ctx=     0 found=13 hit=1/2 $0.00265 32.4s
+  [45/195] dbt-labs__dbt-core-5027@8dcfeb1          B ctx=  3221 found=10 hit=1/2 $0.00168 15.5s
+  [45/195] dbt-labs__dbt-core-5027@8dcfeb1          D ctx=  3221 found= 9 hit=1/2 $0.00144 14.3s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12          A ctx=     0 found= 5 hit=1/1 $0.00160 17.5s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12          B ctx=  5713 found= 4 hit=1/1 $0.00119 31.9s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12          D ctx=  5111 found= 4 hit=1/1 $0.00110 19.5s
+  [47/195] dbt-labs__dbt-core-8743@fb6f32f          A ctx=     0 found= 7 hit=1/1 $0.00191 10.9s
+  [47/195] dbt-labs__dbt-core-8743@fb6f32f          B ctx=  6246 found=10 hit=1/1 $0.00095 14.0s
+  [47/195] dbt-labs__dbt-core-8743@fb6f32f          D ctx=  5824 found= 7 hit=1/1 $0.00086 13.5s
+  [48/195] deepset-ai__haystack-1413@fc3b61a        A ctx=     0 found= 8 hit=1/1 $0.00059 8.7s
+  [48/195] deepset-ai__haystack-1413@fc3b61a        B ctx= 10098 found= 9 hit=1/1 $0.00131 11.6s
+  [48/195] deepset-ai__haystack-1413@fc3b61a        D ctx=  9466 found= 8 hit=1/1 $0.00098 9.0s
+  [49/195] deepset-ai__haystack-1604@78e9795        A ctx=     0 found= 7 hit=0/1 $0.00166 12.2s
+  [49/195] deepset-ai__haystack-1604@78e9795        B ctx=  8780 found= 6 hit=0/1 $0.00145 11.6s
+  [49/195] deepset-ai__haystack-1604@78e9795        D ctx=  7773 found= 8 hit=0/1 $0.00145 14.5s
+  [50/195] deepset-ai__haystack-3546@a260299        A ctx=     0 found= 7 hit=0/1 $0.00253 10.5s
+  [50/195] deepset-ai__haystack-3546@a260299        B ctx=  4767 found= 8 hit=1/1 $0.00289 12.6s
+  [50/195] deepset-ai__haystack-3546@a260299        D ctx=  5095 found= 8 hit=0/1 $0.00081 13.2s
+  [51/195] deepset-ai__haystack-3837@e0d9ac8        A ctx=     0 found= 7 hit=1/1 $0.00086 9.8s
+  [51/195] deepset-ai__haystack-3837@e0d9ac8        B ctx=  9127 found= 5 hit=0/1 $0.00112 7.3s
+  [51/195] deepset-ai__haystack-3837@e0d9ac8        D ctx=  8271 found= 6 hit=1/1 $0.00154 18.6s
+  [52/195] deepset-ai__haystack-5284@60a39ef        A ctx=     0 found= 5 hit=1/1 $0.00059 8.4s
+  [52/195] deepset-ai__haystack-5284@60a39ef        B ctx=  7711 found= 5 hit=1/1 $0.00091 12.2s
+  [52/195] deepset-ai__haystack-5284@60a39ef        D ctx=  8602 found= 4 hit=1/1 $0.00113 12.8s
+  [53/195] deepset-ai__haystack-5467@cc8b6d5        A ctx=     0 found=14 hit=1/1 $0.00362 51.6s
+  [53/195] deepset-ai__haystack-5467@cc8b6d5        B ctx=  3075 found=11 hit=1/1 $0.00164 16.2s
+  [53/195] deepset-ai__haystack-5467@cc8b6d5        D ctx=  3075 found=15 hit=0/1 $0.00202 60.6s
+  [54/195] deepset-ai__haystack-8457@2dd3777        A ctx=     0 found= 8 hit=1/1 $0.00223 12.5s
+  [54/195] deepset-ai__haystack-8457@2dd3777        B ctx=  5430 found= 9 hit=1/1 $0.00092 13.4s
+  [54/195] deepset-ai__haystack-8457@2dd3777        D ctx=  4138 found=10 hit=1/1 $0.00077 16.0s
+  [55/195] deepset-ai__haystack-9290@3f511f6        A ctx=     0 found= 6 hit=1/1 $0.00127 8.7s
+  [55/195] deepset-ai__haystack-9290@3f511f6        B ctx=  8004 found= 8 hit=1/1 $0.00134 14.6s
+  [55/195] deepset-ai__haystack-9290@3f511f6        D ctx=  7370 found= 7 hit=1/1 $0.00122 11.4s
+  [56/195] dmlc__dgl-3892@98afbd1                   A ctx=     0 found=10 hit=1/1 $0.00356 52.1s
+  [56/195] dmlc__dgl-3892@98afbd1                   B ctx=  3928 found= 9 hit=1/1 $0.00164 11.8s
+  [56/195] dmlc__dgl-3892@98afbd1                   D ctx=  3528 found= 9 hit=1/1 $0.00164 27.6s
+  [57/195] dmlc__dgl-4620@5297d27                   A ctx=     0 found= 7 hit=2/3 $0.01597 700.7s
+  [57/195] dmlc__dgl-4620@5297d27                   B ctx=  7607 found= 8 hit=2/3 $0.02249 955.5s
+  [57/195] dmlc__dgl-4620@5297d27                   D ctx=  7643 found= 8 hit=2/3 $0.01982 915.7s
+  [58/195] frappe__frappe-13065@dfc23eb             A ctx=     0 found= 5 hit=1/1 $0.00292 12.4s
+  [58/195] frappe__frappe-13065@dfc23eb             B ctx=  3977 found= 9 hit=1/1 $0.00301 14.6s
+  [58/195] frappe__frappe-13065@dfc23eb             D ctx=  3145 found=10 hit=1/1 $0.00180 9.4s
+  [59/195] frappe__frappe-16877@e78a251             A ctx=     0 found= 5 hit=1/1 $0.00034 18.3s
+  [59/195] frappe__frappe-16877@e78a251             B ctx=  6296 found= 4 hit=1/1 $0.00075 7.9s
+  [59/195] frappe__frappe-16877@e78a251             D ctx=  6994 found= 4 hit=1/1 $0.00083 8.3s
+  [60/195] freqtrade__freqtrade-5846@da4344d        A ctx=     0 found=10 hit=0/1 $0.00248 20.5s
+  [60/195] freqtrade__freqtrade-5846@da4344d        B ctx=  7162 found= 8 hit=0/1 $0.00190 18.4s
+  [60/195] freqtrade__freqtrade-5846@da4344d        D ctx=  6486 found=10 hit=0/1 $0.00350 48.3s
+  [61/195] geldata__gel-4469@95cccee A: ERROR deepseek/deepseek-v3.2: reply was cut off (finish_reason='error', 4096 output tokens) — not scored
+  [61/195] geldata__gel-4469@95cccee                B ctx=  8438 found= 3 hit=0/2 $0.00405 159.1s
+  [61/195] geldata__gel-4469@95cccee                D ctx=  4702 found= 6 hit=0/2 $0.00200 8.2s
+  [62/195] geldata__gel-5130@2e5341f                A ctx=     0 found= 7 hit=1/2 $0.00082 20.4s
+  [62/195] geldata__gel-5130@2e5341f                B ctx=  6225 found= 6 hit=1/2 $0.00118 15.6s
+  [62/195] geldata__gel-5130@2e5341f                D ctx=  8570 found= 5 hit=1/2 $0.00098 9.3s
+  [63/195] getsentry__sentry-78778@17b738e          A ctx=     0 found=11 hit=0/1 $0.00089 13.8s
+  [63/195] getsentry__sentry-78778@17b738e          B ctx=  8238 found=12 hit=0/1 $0.00116 23.7s
+  [63/195] getsentry__sentry-78778@17b738e          D ctx=  7921 found=15 hit=0/1 $0.00117 23.5s
+  [64/195] gradio-app__gradio-5232@5b83994          A ctx=     0 found=10 hit=1/1 $0.00253 16.2s
+  [64/195] gradio-app__gradio-5232@5b83994          B ctx=  6363 found=10 hit=1/1 $0.00187 19.4s
+  [64/195] gradio-app__gradio-5232@5b83994          D ctx=  6538 found=10 hit=0/1 $0.00179 18.3s
+  [65/195] home-assistant__core-121178@b09b3b5      A ctx=     0 found= 4 hit=1/1 $0.00057 8.9s
+  [65/195] home-assistant__core-121178@b09b3b5      B ctx=  6593 found= 4 hit=1/1 $0.00100 23.7s
+  [65/195] home-assistant__core-121178@b09b3b5      D ctx=  7902 found= 4 hit=1/1 $0.00121 8.9s
+  [66/195] home-assistant__core-142977@fa60db7      A ctx=     0 found= 5 hit=1/1 $0.00046 11.8s
+  [66/195] home-assistant__core-142977@fa60db7      B ctx=  8520 found= 4 hit=1/1 $0.00128 18.3s
+  [66/195] home-assistant__core-142977@fa60db7      D ctx= 10356 found= 3 hit=1/1 $0.00105 8.7s
+  [67/195] home-assistant__core-146453@71eab0c      A ctx=     0 found= 7 hit=1/1 $0.00184 12.9s
+  [67/195] home-assistant__core-146453@71eab0c      B ctx=  7436 found= 7 hit=1/1 $0.00235 11.6s
+  [67/195] home-assistant__core-146453@71eab0c      D ctx=  7145 found= 8 hit=1/1 $0.00106 18.5s
+  [68/195] hpcaitech__ColossalAI-6059@802df11       A ctx=     0 found=13 hit=1/1 $0.00364 33.6s
+  [68/195] hpcaitech__ColossalAI-6059@802df11       B ctx=  4888 found= 8 hit=1/1 $0.00248 29.2s
+  [68/195] hpcaitech__ColossalAI-6059@802df11       D ctx=  5147 found= 8 hit=1/1 $0.00177 20.7s
+  [69/195] huggingface__accelerate-255@12e4b18      A ctx=     0 found=10 hit=1/3 $0.00863 386.9s
+  [69/195] huggingface__accelerate-255@12e4b18      B ctx=  8393 found= 8 hit=0/3 $0.00796 357.5s
+  [69/195] huggingface__accelerate-255@12e4b18      D ctx=  8296 found=11 hit=1/3 $0.00826 454.7s
+  [70/195] huggingface__datasets-2182@748e2e9       A ctx=     0 found= 5 hit=1/1 $0.00236 26.1s
+  [70/195] huggingface__datasets-2182@748e2e9       B ctx=  7295 found= 8 hit=1/1 $0.00178 15.2s
+  [70/195] huggingface__datasets-2182@748e2e9       D ctx=  8504 found= 6 hit=1/1 $0.00177 15.2s
+  [71/195] huggingface__datasets-3129@3d35ada       A ctx=     0 found=10 hit=1/1 $0.00116 16.5s
+  [71/195] huggingface__datasets-3129@3d35ada       B ctx=  7553 found= 9 hit=0/1 $0.00100 18.2s
+  [71/195] huggingface__datasets-3129@3d35ada       D ctx=  7022 found=10 hit=0/1 $0.00180 20.3s
+  [72/195] huggingface__datasets-4433@43a3326       A ctx=     0 found= 9 hit=0/1 $0.00172 59.8s
+  [72/195] huggingface__datasets-4433@43a3326       B ctx=  8346 found= 4 hit=0/1 $0.00120 22.0s
+  [72/195] huggingface__datasets-4433@43a3326       D ctx=  9458 found= 6 hit=0/1 $0.00140 37.0s
+  [73/195] huggingface__datasets-586@034c1c0        A ctx=     0 found= 8 hit=1/1 $0.00061 14.2s
+  [73/195] huggingface__datasets-586@034c1c0        B ctx= 10507 found= 7 hit=1/1 $0.00110 17.4s
+  [73/195] huggingface__datasets-586@034c1c0        D ctx=  8892 found= 7 hit=1/1 $0.00121 16.4s
+  [74/195] huggingface__diffusers-4015@c63a53a      A ctx=     0 found= 6 hit=0/1 $0.00116 9.5s
+  [74/195] huggingface__diffusers-4015@c63a53a      B ctx=  8660 found= 6 hit=0/1 $0.00187 13.4s
+  [74/195] huggingface__diffusers-4015@c63a53a      D ctx=  8360 found= 7 hit=0/1 $0.00105 16.1s
+  [75/195] huggingface__diffusers-792@90385bb       A ctx=     0 found= 5 hit=1/1 $0.00052 13.8s
+  [75/195] huggingface__diffusers-792@90385bb       B ctx=  7707 found= 4 hit=1/1 $0.00092 15.6s
+  [75/195] huggingface__diffusers-792@90385bb       D ctx=  1561 found= 3 hit=1/1 $0.00044 9.4s
+  [76/195] intel__ipex-llm-5097@9525134             A ctx=     0 found= 2 hit=1/1 $0.00022 7.4s
+  [76/195] intel__ipex-llm-5097@9525134             B ctx=  8826 found= 2 hit=1/1 $0.00104 31.3s
+  [76/195] intel__ipex-llm-5097@9525134             D ctx=  2130 found= 3 hit=1/1 $0.00037 9.4s
+  [77/195] jina-ai__serve-2037@792b165              A ctx=     0 found= 3 hit=1/1 $0.01316 602.8s
+  [77/195] jina-ai__serve-2037@792b165              B ctx=  6021 found= 4 hit=1/1 $0.00110 28.8s
+  [77/195] jina-ai__serve-2037@792b165              D ctx=  6756 found= 4 hit=1/1 $0.00091 31.5s
+  [78/195] jina-ai__serve-2297@e1aea7f              A ctx=     0 found= 9 hit=0/1 $0.00152 22.9s
+  [78/195] jina-ai__serve-2297@e1aea7f              B ctx=  4636 found= 8 hit=0/1 $0.00123 20.4s
+  [78/195] jina-ai__serve-2297@e1aea7f              D ctx=  4187 found= 8 hit=1/1 $0.00176 18.5s
+  [79/195] jina-ai__serve-4883@ca87c3e              A ctx=     0 found= 5 hit=1/1 $0.00135 9.9s
+  [79/195] jina-ai__serve-4883@ca87c3e              B ctx=  8471 found= 5 hit=1/1 $0.00097 10.0s
+  [79/195] jina-ai__serve-4883@ca87c3e              D ctx=  8914 found= 6 hit=0/1 $0.00199 12.5s
+  [80/195] keephq__keep-1984@e524fe8                A ctx=     0 found=13 hit=1/2 $0.00210 22.4s
+  [80/195] keephq__keep-1984@e524fe8                B ctx=  5128 found=11 hit=0/2 $0.00152 18.8s
+  [80/195] keephq__keep-1984@e524fe8                D ctx=  5111 found=10 hit=0/2 $0.00146 18.3s
+  [81/195] keephq__keep-4568@aaa03de                A ctx=     0 found= 7 hit=0/1 $0.00239 11.8s
+  [81/195] keephq__keep-4568@aaa03de                B ctx=  7795 found= 7 hit=1/1 $0.00298 16.1s
+  [81/195] keephq__keep-4568@aaa03de                D ctx=  7468 found= 8 hit=0/1 $0.00117 18.9s
+  [82/195] keephq__keep-625@767a6e3                 A ctx=     0 found=14 hit=1/1 $0.00731 240.5s
+  [82/195] keephq__keep-625@767a6e3                 B ctx=  9406 found=10 hit=1/1 $0.00174 55.4s
+  [82/195] keephq__keep-625@767a6e3                 D ctx=  7501 found=11 hit=1/1 $0.00182 60.2s
+  [83/195] letta-ai__letta-58@d3a3a21               A ctx=     0 found= 8 hit=1/1 $0.01350 315.2s
+  [83/195] letta-ai__letta-58@d3a3a21               B ctx=  9740 found= 8 hit=1/1 $0.00129 51.3s
+  [83/195] letta-ai__letta-58@d3a3a21               D ctx=  7057 found= 5 hit=1/1 $0.00149 58.7s
+  [84/195] localstack__localstack-12496@22b4c31 A: ERROR deepseek/deepseek-v3.2: giving up after 4 attempts: The read operation timed out
+  [84/195] localstack__localstack-12496@22b4c31     B ctx=  7035 found= 0 hit=0/1 $0.00272 32.1s
+  [84/195] localstack__localstack-12496@22b4c31 D: ERROR deepseek/deepseek-v3.2: giving up after 4 attempts: The read operation timed out
+  [85/195] marimo-team__marimo-3122@5536640         A ctx=     0 found= 5 hit=1/1 $0.00061 17.9s
+  [85/195] marimo-team__marimo-3122@5536640         B ctx=  7068 found= 5 hit=0/1 $0.00106 2706.5s
+  [85/195] marimo-team__marimo-3122@5536640         D ctx=  7559 found= 4 hit=0/1 $0.00087 4611.3s
+  [86/195] marimo-team__marimo-4080@8a73f89 A: ERROR deepseek/deepseek-v3.2: giving up after 4 attempts: The read operation timed out
+  [86/195] marimo-team__marimo-4080@8a73f89         B ctx=  6094 found=12 hit=1/1 $0.00483 8141.1s
+  [86/195] marimo-team__marimo-4080@8a73f89         D ctx=  6623 found= 8 hit=1/1 $0.00221 21.4s
+  [87/195] matplotlib__matplotlib-24111@3f99c20     A ctx=     0 found= 4 hit=1/1 $0.00093 6.3s
+  [87/195] matplotlib__matplotlib-24111@3f99c20     B ctx=  8056 found= 5 hit=1/1 $0.00133 12.4s
+  [87/195] matplotlib__matplotlib-24111@3f99c20     D ctx=  7700 found= 4 hit=1/1 $0.00118 6.6s
+  [88/195] matplotlib__matplotlib-27172@9f80d55     A ctx=     0 found= 6 hit=0/1 $0.00124 22.4s
+  [88/195] matplotlib__matplotlib-27172@9f80d55     B ctx=  6602 found= 4 hit=0/1 $0.00112 15.7s
+  [88/195] matplotlib__matplotlib-27172@9f80d55     D ctx=  6067 found= 5 hit=0/1 $0.00116 17.3s
+  [89/195] matplotlib__matplotlib-30199@b5dfb32     A ctx=     0 found= 8 hit=1/1 $0.00044 23.2s
+  [89/195] matplotlib__matplotlib-30199@b5dfb32     B ctx=  9388 found= 8 hit=1/1 $0.00105 31.4s
+  [89/195] matplotlib__matplotlib-30199@b5dfb32     D ctx=  4537 found= 5 hit=1/1 $0.00097 47.3s
+  [90/195] matplotlib__matplotlib-8938@d670a4f      A ctx=     0 found= 5 hit=0/1 $0.00053 23.3s
+  [90/195] matplotlib__matplotlib-8938@d670a4f      B ctx=  7973 found= 5 hit=0/1 $0.00113 20.0s
+  [90/195] matplotlib__matplotlib-8938@d670a4f      D ctx=  6462 found= 5 hit=0/1 $0.00096 29.5s
+  [91/195] microsoft__autogen-1616@7f23912          A ctx=     0 found= 7 hit=0/1 $0.00071 27.4s
+  [91/195] microsoft__autogen-1616@7f23912          B ctx=  9493 found= 7 hit=0/1 $0.00110 29.5s
+  [91/195] microsoft__autogen-1616@7f23912          D ctx=  8430 found= 9 hit=0/1 $0.00102 21.6s
+  [92/195] microsoft__autogen-2225@9cf65ed          A ctx=     0 found=10 hit=1/1 $0.00293 53.9s
+  [92/195] microsoft__autogen-2225@9cf65ed          B ctx=  4704 found=11 hit=1/1 $0.00189 51.7s
+  [92/195] microsoft__autogen-2225@9cf65ed          D ctx=  6476 found=10 hit=1/1 $0.00199 51.3s
+  [93/195] mlflow__mlflow-1658@3f53b0b              A ctx=     0 found= 2 hit=1/1 $0.00026 10.6s
+  [93/195] mlflow__mlflow-1658@3f53b0b              B ctx=  9535 found= 2 hit=1/1 $0.00086 6.8s
+  [93/195] mlflow__mlflow-1658@3f53b0b              D ctx=  9923 found= 2 hit=1/1 $0.00437 194.4s
+  [94/195] modin-project__modin-2801@64caea0        A ctx=     0 found=14 hit=1/1 $0.00134 29.9s
+  [94/195] modin-project__modin-2801@64caea0        B ctx=  2850 found= 9 hit=1/1 $0.00204 89.4s
+  [94/195] modin-project__modin-2801@64caea0        D ctx=  2874 found=11 hit=1/1 $0.00128 36.2s
+  [95/195] modin-project__modin-3765@d2d8bd2        A ctx=     0 found=18 hit=0/2 $0.00138 65.6s
+  [95/195] modin-project__modin-3765@d2d8bd2        B ctx=  9247 found=13 hit=0/2 $0.00148 64.4s
+  [95/195] modin-project__modin-3765@d2d8bd2        D ctx=  6605 found=14 hit=0/2 $0.00133 40.5s
+  [96/195] modin-project__modin-4215@69f9652        A ctx=     0 found= 1 hit=0/1 $0.00029 5.2s
+  [96/195] modin-project__modin-4215@69f9652        B ctx=  3506 found= 2 hit=1/1 $0.00061 8.2s
+  [96/195] modin-project__modin-4215@69f9652        D ctx=  5507 found= 3 hit=1/1 $0.00065 21.2s
+  [97/195] netbox-community__netbox-13373@1d02196   A ctx=     0 found=17 hit=4/4 $0.00091 36.8s
+  [97/195] netbox-community__netbox-13373@1d02196   B ctx=  9623 found=15 hit=4/4 $0.00125 43.3s
+  [97/195] netbox-community__netbox-13373@1d02196   D ctx= 10717 found=16 hit=3/4 $0.00149 46.9s
+  [98/195] netbox-community__netbox-13563@4da93f4   A ctx=     0 found= 4 hit=2/2 $0.00055 17.5s
+  [98/195] netbox-community__netbox-13563@4da93f4   B ctx=  9736 found= 4 hit=2/2 $0.00109 82.6s
+  [98/195] netbox-community__netbox-13563@4da93f4   D ctx=  7947 found= 4 hit=2/2 $0.00112 28.2s
+  [99/195] netbox-community__netbox-14047@0ec158d   A ctx=     0 found= 6 hit=0/1 $0.00095 22.1s
+  [99/195] netbox-community__netbox-14047@0ec158d   B ctx=  9879 found= 4 hit=0/1 $0.00165 17.7s
+  [99/195] netbox-community__netbox-14047@0ec158d   D ctx=  7939 found= 9 hit=0/1 $0.00150 30.0s
+  [100/195] netbox-community__netbox-14754@44cf93a   A ctx=     0 found= 8 hit=1/1 $0.00084 23.6s
+  [100/195] netbox-community__netbox-14754@44cf93a   B ctx=  8479 found=11 hit=1/1 $0.00113 34.1s
+  [100/195] netbox-community__netbox-14754@44cf93a   D ctx=  9247 found= 7 hit=1/1 $0.00111 22.0s
+  [101/195] netbox-community__netbox-17716@8a8c328   A ctx=     0 found= 7 hit=1/1 $0.00135 25.9s
+  [101/195] netbox-community__netbox-17716@8a8c328   B ctx=  6830 found= 6 hit=1/1 $0.00119 21.9s
+  [101/195] netbox-community__netbox-17716@8a8c328   D ctx=  6747 found= 6 hit=0/1 $0.00120 20.4s
+  [102/195] networkx__networkx-4602@b2da108          A ctx=     0 found= 3 hit=1/1 $0.00050 10.3s
+  [102/195] networkx__networkx-4602@b2da108          B ctx=  7566 found= 3 hit=1/1 $0.00085 9.6s
+  [102/195] networkx__networkx-4602@b2da108          D ctx=  5980 found= 3 hit=1/1 $0.00104 17.2s
+  [103/195] networkx__networkx-5305@072b960          A ctx=     0 found= 4 hit=0/3 $0.00159 16.1s
+  [103/195] networkx__networkx-5305@072b960          B ctx=  7265 found= 9 hit=1/3 $0.00151 22.7s
+  [103/195] networkx__networkx-5305@072b960          D ctx=  6427 found=10 hit=1/3 $0.00155 33.6s
+  [104/195] networkx__networkx-5371@b446ef1          A ctx=     0 found= 4 hit=1/1 $0.00035 15.2s
+  [104/195] networkx__networkx-5371@b446ef1          B ctx=  1067 found= 3 hit=1/1 $0.00041 11.1s
+  [104/195] networkx__networkx-5371@b446ef1          D ctx=   626 found= 4 hit=1/1 $0.00032 13.3s
+  [105/195] networkx__networkx-7159@7e65b7d          A ctx=     0 found= 1 hit=1/1 $0.00016 6.2s
+  [105/195] networkx__networkx-7159@7e65b7d          B ctx=  9164 found= 3 hit=1/1 $0.00112 19.5s
+  [105/195] networkx__networkx-7159@7e65b7d          D ctx=  8010 found= 2 hit=1/1 $0.00089 19.9s
+  [106/195] numba__numba-4282@a062e23                A ctx=     0 found= 5 hit=1/1 $0.00070 18.5s
+  [106/195] numba__numba-4282@a062e23                B ctx=  8783 found= 5 hit=1/1 $0.00123 17.1s
+  [106/195] numba__numba-4282@a062e23                D ctx=  8065 found= 5 hit=1/1 $0.00120 18.5s
+  [107/195] numba__numba-9144@74a4cd4                A ctx=     0 found= 4 hit=1/1 $0.00039 13.1s
+  [107/195] numba__numba-9144@74a4cd4                B ctx=  7789 found= 5 hit=1/1 $0.00096 25.4s
+  [107/195] numba__numba-9144@74a4cd4                D ctx=  7401 found= 4 hit=1/1 $0.00084 20.7s
+  [108/195] numpy__numpy-20310@a4daaf5               A ctx=     0 found=12 hit=0/1 $0.00136 22.1s
+  [108/195] numpy__numpy-20310@a4daaf5 B: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [108/195] numpy__numpy-20310@a4daaf5 D: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [109/195] numpy__numpy-8423@0ec089a                A ctx=     0 found= 8 hit=1/1 $0.00139 29.1s
+  [109/195] numpy__numpy-8423@0ec089a                B ctx=  6489 found= 6 hit=1/1 $0.00125 23.4s
+  [109/195] numpy__numpy-8423@0ec089a                D ctx=  4179 found= 7 hit=1/1 $0.00122 35.8s
+  [110/195] optuna__optuna-1087@4177569              A ctx=     0 found=16 hit=1/1 $0.00083 50.1s
+  [110/195] optuna__optuna-1087@4177569              B ctx=  7649 found= 3 hit=1/1 $0.00077 17.3s
+  [110/195] optuna__optuna-1087@4177569              D ctx=  6261 found= 1 hit=1/1 $0.00064 5.8s
+  [111/195] optuna__optuna-3629@f4f6b5f              A ctx=     0 found= 6 hit=1/1 $0.00127 18.0s
+  [111/195] optuna__optuna-3629@f4f6b5f              B ctx=  7915 found= 7 hit=1/1 $0.00134 13.9s
+  [111/195] optuna__optuna-3629@f4f6b5f              D ctx=  7095 found= 7 hit=1/1 $0.00149 35.1s
+  [112/195] optuna__optuna-972@1f4813a               A ctx=     0 found= 1 hit=0/1 $0.00028 9.3s
+  [112/195] optuna__optuna-972@1f4813a               B ctx=  9129 found= 2 hit=0/1 $0.00091 27.3s
+  [112/195] optuna__optuna-972@1f4813a               D ctx=  6753 found= 2 hit=0/1 $0.00065 10.8s
+  [113/195] pandas-dev__pandas-14737@8e4adbb         A ctx=     0 found=18 hit=1/1 $0.00132 53.2s
+  [113/195] pandas-dev__pandas-14737@8e4adbb         B ctx=  8388 found=12 hit=1/1 $0.00131 36.8s
+  [113/195] pandas-dev__pandas-14737@8e4adbb         D ctx=  4806 found=15 hit=1/1 $0.00141 75.1s
+  [114/195] pandas-dev__pandas-16744@b8a6007         A ctx=     0 found= 3 hit=1/1 $0.00022 13.9s
+  [114/195] pandas-dev__pandas-16744@b8a6007         B ctx= 11162 found= 3 hit=1/1 $0.00086 17.6s
+  [114/195] pandas-dev__pandas-16744@b8a6007         D ctx=  8226 found= 3 hit=1/1 $0.00080 19.0s
+  [115/195] pandas-dev__pandas-18440@65fbc91         A ctx=     0 found=10 hit=1/1 $0.00153 29.3s
+  [115/195] pandas-dev__pandas-18440@65fbc91         B ctx=  7754 found= 9 hit=1/1 $0.00153 22.1s
+  [115/195] pandas-dev__pandas-18440@65fbc91         D ctx=  7383 found=11 hit=1/1 $0.00187 44.0s
+  [116/195] pandas-dev__pandas-18604@8c9061b         A ctx=     0 found= 3 hit=1/1 $0.00034 15.7s
+  [116/195] pandas-dev__pandas-18604@8c9061b         B ctx= 10496 found= 2 hit=1/1 $0.00084 17.1s
+  [116/195] pandas-dev__pandas-18604@8c9061b         D ctx=  9836 found= 3 hit=1/1 $0.00079 16.9s
+  [117/195] pandas-dev__pandas-20550@c1dfe56         A ctx=     0 found= 8 hit=1/1 $0.00039 18.7s
+  [117/195] pandas-dev__pandas-20550@c1dfe56         B ctx=  9268 found= 7 hit=1/1 $0.00085 21.5s
+  [117/195] pandas-dev__pandas-20550@c1dfe56         D ctx=  7688 found= 7 hit=1/1 $0.00095 20.0s
+  [118/195] pandas-dev__pandas-23141@1c22791         A ctx=     0 found= 7 hit=1/1 $0.00118 22.5s
+  [118/195] pandas-dev__pandas-23141@1c22791         B ctx=  7646 found= 5 hit=0/1 $0.00131 21.0s
+  [118/195] pandas-dev__pandas-23141@1c22791         D ctx=  5916 found= 6 hit=0/1 $0.00132 26.1s
+  [119/195] pandas-dev__pandas-23480@ab05b87         A ctx=     0 found= 2 hit=1/1 $0.00040 24.6s
+  [119/195] pandas-dev__pandas-23480@ab05b87         B ctx= 10781 found= 2 hit=1/1 $0.00100 9.8s
+  [119/195] pandas-dev__pandas-23480@ab05b87         D ctx=  7392 found= 2 hit=1/1 $0.00093 11.1s
+  [120/195] pandas-dev__pandas-23886@d6a2d5b         A ctx=     0 found= 9 hit=0/1 $0.00330 32.4s
+  [120/195] pandas-dev__pandas-23886@d6a2d5b         B ctx=  3842 found= 6 hit=0/1 $0.00216 23.6s
+  [120/195] pandas-dev__pandas-23886@d6a2d5b         D ctx=  3842 found= 9 hit=0/1 $0.00231 48.9s
+  [121/195] pandas-dev__pandas-24968@0ea6653         A ctx=     0 found= 6 hit=0/1 $0.00078 38.4s
+  [121/195] pandas-dev__pandas-24968@0ea6653         B ctx=  8457 found= 5 hit=0/1 $0.00134 25.3s
+  [121/195] pandas-dev__pandas-24968@0ea6653         D ctx=  8274 found= 7 hit=0/1 $0.00142 43.5s
+  [122/195] pandas-dev__pandas-25914@87c183e         A ctx=     0 found= 5 hit=1/1 $0.00056 35.1s
+  [122/195] pandas-dev__pandas-25914@87c183e         B ctx=  9301 found= 5 hit=1/1 $0.00122 30.1s
+  [122/195] pandas-dev__pandas-25914@87c183e         D ctx=  6016 found= 5 hit=1/1 $0.00104 19.3s
+  [123/195] pandas-dev__pandas-28802@33c889c         A ctx=     0 found= 4 hit=2/2 $0.00070 22.1s
+  [123/195] pandas-dev__pandas-28802@33c889c         B ctx=  7727 found= 6 hit=2/2 $0.00136 39.2s
+  [123/195] pandas-dev__pandas-28802@33c889c         D ctx=  6249 found= 5 hit=2/2 $0.00126 20.6s
+  [124/195] pandas-dev__pandas-31538@33e24a3         A ctx=     0 found= 4 hit=1/1 $0.00052 8.1s
+  [124/195] pandas-dev__pandas-31538@33e24a3         B ctx=  9089 found= 3 hit=1/1 $0.00108 6.3s
+  [124/195] pandas-dev__pandas-31538@33e24a3         D ctx=  7231 found= 4 hit=1/1 $0.00118 6.5s
+  [125/195] pandas-dev__pandas-33962@fc4993f         A ctx=     0 found= 6 hit=1/1 $0.00078 17.5s
+  [125/195] pandas-dev__pandas-33962@fc4993f         B ctx=  7629 found= 8 hit=1/1 $0.00139 24.5s
+  [125/195] pandas-dev__pandas-33962@fc4993f         D ctx=  6257 found= 6 hit=1/1 $0.00137 24.0s
+  [126/195] pandas-dev__pandas-34056@d001e97         A ctx=     0 found= 5 hit=1/1 $0.00060 17.7s
+  [126/195] pandas-dev__pandas-34056@d001e97         B ctx=  9137 found= 6 hit=1/1 $0.00118 24.2s
+  [126/195] pandas-dev__pandas-34056@d001e97         D ctx=  8314 found= 6 hit=1/1 $0.00099 21.3s
+  [127/195] pandas-dev__pandas-34363@f3c7e18         A ctx=     0 found= 4 hit=1/2 $0.00091 10.5s
+  [127/195] pandas-dev__pandas-34363@f3c7e18         B ctx=  9482 found= 2 hit=1/2 $0.00128 41.8s
+  [127/195] pandas-dev__pandas-34363@f3c7e18         D ctx=  6544 found= 3 hit=1/2 $0.00084 15.3s
+  [128/195] pandas-dev__pandas-34933@de64663         A ctx=     0 found= 3 hit=0/1 $0.00025 8.7s
+  [128/195] pandas-dev__pandas-34933@de64663         B ctx= 10294 found= 3 hit=0/1 $0.00087 9.6s
+  [128/195] pandas-dev__pandas-34933@de64663         D ctx=  8634 found= 3 hit=0/1 $0.00077 11.3s
+  [129/195] pandas-dev__pandas-35231@2f4902c         A ctx=     0 found= 5 hit=1/1 $0.00051 11.9s
+  [129/195] pandas-dev__pandas-35231@2f4902c         B ctx=  8818 found= 6 hit=1/1 $0.00099 19.0s
+  [129/195] pandas-dev__pandas-35231@2f4902c         D ctx=  7035 found= 6 hit=1/1 $0.00095 13.8s
+  [130/195] pandas-dev__pandas-35974@d0a8a68         A ctx=     0 found=11 hit=1/1 $0.00143 26.7s
+  [130/195] pandas-dev__pandas-35974@d0a8a68         B ctx=  5655 found=12 hit=1/1 $0.00134 41.3s
+  [130/195] pandas-dev__pandas-35974@d0a8a68         D ctx=  5312 found=11 hit=1/1 $0.00135 47.4s
+  [131/195] pandas-dev__pandas-37676@22a6bff         A ctx=     0 found= 2 hit=0/1 $0.00078 7.2s
+  [131/195] pandas-dev__pandas-37676@22a6bff         B ctx=  9196 found= 3 hit=0/1 $0.00089 15.4s
+  [131/195] pandas-dev__pandas-37676@22a6bff         D ctx=  7382 found= 2 hit=0/1 $0.00080 13.5s
+  [132/195] pandas-dev__pandas-40372@51fe758         A ctx=     0 found= 5 hit=0/1 $0.00229 14.7s
+  [132/195] pandas-dev__pandas-40372@51fe758         B ctx=  2725 found= 5 hit=0/1 $0.00321 14.8s
+  [132/195] pandas-dev__pandas-40372@51fe758         D ctx=  2725 found= 2 hit=1/1 $0.00390 90.1s
+  [133/195] pandas-dev__pandas-42635@59d4145         A ctx=     0 found= 3 hit=2/2 $0.00782 408.9s
+  [133/195] pandas-dev__pandas-42635@59d4145         B ctx=  8854 found= 4 hit=2/2 $0.00253 118.1s
+  [133/195] pandas-dev__pandas-42635@59d4145         D ctx=  7782 found= 3 hit=2/2 $0.00331 253.5s
+  [134/195] pandas-dev__pandas-55938@b36d8d1         A ctx=     0 found= 1 hit=1/1 $0.00090 44.2s
+  [134/195] pandas-dev__pandas-55938@b36d8d1         B ctx=  8453 found= 1 hit=1/1 $0.00107 43.7s
+  [134/195] pandas-dev__pandas-55938@b36d8d1         D ctx=  6277 found= 1 hit=1/1 $0.00134 55.2s
+  [135/195] pydantic__pydantic-7677@b6bbdcc          A ctx=     0 found= 7 hit=1/1 $0.00642 358.3s
+  [135/195] pydantic__pydantic-7677@b6bbdcc          B ctx=  7701 found= 4 hit=1/1 $0.00126 35.7s
+  [135/195] pydantic__pydantic-7677@b6bbdcc          D ctx=  6525 found= 4 hit=1/1 $0.00098 26.1s
+  [136/195] python-telegram-bot__python-telegram-bot A ctx=     0 found= 3 hit=1/1 $0.00034 18.2s
+  [136/195] python-telegram-bot__python-telegram-bot B ctx=  8774 found= 3 hit=1/1 $0.00094 60.9s
+  [136/195] python-telegram-bot__python-telegram-bot D ctx=  7921 found= 3 hit=1/1 $0.00082 20.2s
+  [137/195] python-telegram-bot__python-telegram-bot A ctx=     0 found= 3 hit=0/1 $0.01325 1221.5s
+  [137/195] python-telegram-bot__python-telegram-bot B ctx=  9392 found= 7 hit=0/1 $0.01514 604.1s
+  [137/195] python-telegram-bot__python-telegram-bot D ctx=  9490 found= 3 hit=0/1 $0.00142 35.7s
+  [138/195] python__mypy-14517@78b0f55               A ctx=     0 found= 5 hit=0/1 $0.00191 20.9s
+  [138/195] python__mypy-14517@78b0f55               B ctx=  5241 found= 7 hit=1/1 $0.00195 24.0s
+  [138/195] python__mypy-14517@78b0f55               D ctx=  6059 found=10 hit=1/1 $0.00149 39.3s
+  [139/195] python__mypy-15353@65efb01               A ctx=     0 found= 6 hit=1/1 $0.00105 22.0s
+  [139/195] python__mypy-15353@65efb01               B ctx=  9905 found= 5 hit=1/1 $0.00127 26.2s
+  [139/195] python__mypy-15353@65efb01               D ctx=  9887 found= 5 hit=1/1 $0.00166 54.8s
+  [140/195] python__mypy-17309@b3c328e               A ctx=     0 found= 6 hit=1/1 $0.00039 17.0s
+  [140/195] python__mypy-17309@b3c328e               B ctx=  9780 found= 4 hit=1/1 $0.00092 24.5s
+  [140/195] python__mypy-17309@b3c328e               D ctx=  7983 found= 2 hit=1/1 $0.00078 11.7s
+  [141/195] python__mypy-4000@358ca96                A ctx=     0 found= 5 hit=1/1 $0.00154 33.5s
+  [141/195] python__mypy-4000@358ca96                B ctx=  9331 found= 5 hit=1/1 $0.00212 85.6s
+  [141/195] python__mypy-4000@358ca96                D ctx=  8903 found= 5 hit=1/1 $0.00145 18.3s
+  [142/195] python__mypy-4341@2456414                A ctx=     0 found=12 hit=1/1 $0.00203 27.7s
+  [142/195] python__mypy-4341@2456414                B ctx=  5833 found=12 hit=1/1 $0.00164 32.4s
+  [142/195] python__mypy-4341@2456414                D ctx=  6349 found=12 hit=1/1 $0.00187 55.0s
+  [143/195] python__mypy-6803@8e6a9b8                A ctx=     0 found= 5 hit=1/1 $0.00041 15.7s
+  [143/195] python__mypy-6803@8e6a9b8                B ctx= 11274 found= 3 hit=0/1 $0.00094 13.7s
+  [143/195] python__mypy-6803@8e6a9b8                D ctx= 11318 found= 4 hit=1/1 $0.00096 20.6s
+  [144/195] python__mypy-9629@13dc4d2                A ctx=     0 found= 2 hit=1/1 $0.00043 7.4s
+  [144/195] python__mypy-9629@13dc4d2                B ctx= 11294 found= 3 hit=1/1 $0.00096 15.6s
+  [144/195] python__mypy-9629@13dc4d2                D ctx= 11090 found= 2 hit=1/1 $0.00109 10.8s
+  [145/195] pytorch__vision-2988@7ea166d             A ctx=     0 found=10 hit=1/1 $0.00248 80.7s
+  [145/195] pytorch__vision-2988@7ea166d             B ctx=  6197 found=10 hit=1/1 $0.00193 52.8s
+  [145/195] pytorch__vision-2988@7ea166d             D ctx=  6567 found=10 hit=1/1 $0.00198 63.8s
+  [146/195] pytorch__vision-4457@231054c             A ctx=     0 found= 3 hit=1/1 $0.00042 13.3s
+  [146/195] pytorch__vision-4457@231054c             B ctx=  7379 found= 6 hit=1/1 $0.00119 21.6s
+  [146/195] pytorch__vision-4457@231054c             D ctx=  3645 found= 6 hit=1/1 $0.00090 25.9s
+  [147/195] pytorch__vision-8316@92ec2fb             A ctx=     0 found= 7 hit=0/1 $0.00133 77.1s
+  [147/195] pytorch__vision-8316@92ec2fb             B ctx=  6815 found= 6 hit=0/1 $0.00188 43.1s
+  [147/195] pytorch__vision-8316@92ec2fb             D ctx=  6792 found= 6 hit=0/1 $0.00127 30.9s
+  [148/195] qutebrowser__qutebrowser-5981@7f4897f    A ctx=     0 found= 4 hit=1/1 $0.00050 19.9s
+  [148/195] qutebrowser__qutebrowser-5981@7f4897f    B ctx=   262 found= 3 hit=1/1 $0.00035 13.7s
+  [148/195] qutebrowser__qutebrowser-5981@7f4897f    D ctx=  9077 found= 3 hit=1/1 $0.00093 13.0s
+  [149/195] qutebrowser__qutebrowser-7003@3656345    A ctx=     0 found= 6 hit=0/1 $0.00076 25.8s
+  [149/195] qutebrowser__qutebrowser-7003@3656345    B ctx=  8952 found= 6 hit=0/1 $0.00165 19.6s
+  [149/195] qutebrowser__qutebrowser-7003@3656345    D ctx=  8749 found=10 hit=0/1 $0.00139 40.8s
+  [150/195] ray-project__ray-49918@04cf1ee           A ctx=     0 found= 5 hit=0/1 $0.00204 22.7s
+  [150/195] ray-project__ray-49918@04cf1ee           B ctx=  6693 found= 7 hit=0/1 $0.00204 32.2s
+  [150/195] ray-project__ray-49918@04cf1ee           D ctx=  7199 found= 0 hit=0/1 $0.00108 3.5s
+  [151/195] ray-project__ray-50590@3dad0b2           A ctx=     0 found=10 hit=0/1 $0.00147 42.5s
+  [151/195] ray-project__ray-50590@3dad0b2           B ctx=  7214 found= 9 hit=0/1 $0.00129 37.2s
+  [151/195] ray-project__ray-50590@3dad0b2           D ctx=  6777 found= 9 hit=0/1 $0.00177 71.9s
+  [152/195] reflex-dev__reflex-4406@5ec2c11          A ctx=     0 found= 0 hit=0/1 $0.00100 26.4s
+  [152/195] reflex-dev__reflex-4406@5ec2c11          B ctx=  6796 found= 8 hit=1/1 $0.00127 32.8s
+  [152/195] reflex-dev__reflex-4406@5ec2c11          D ctx=  7013 found=10 hit=1/1 $0.00182 19.2s
+  [153/195] run-llama__llama_index-19234@e7810e8     A ctx=     0 found= 6 hit=0/1 $0.00077 26.8s
+  [153/195] run-llama__llama_index-19234@e7810e8     B ctx=  6673 found= 6 hit=0/1 $0.00122 31.0s
+  [153/195] run-llama__llama_index-19234@e7810e8     D ctx=  7391 found= 6 hit=1/1 $0.00166 44.4s
+  [154/195] saleor__saleor-4617@9c2907b              A ctx=     0 found= 8 hit=0/1 $0.00304 25.7s
+  [154/195] saleor__saleor-4617@9c2907b              B ctx=  4887 found=13 hit=0/1 $0.00285 62.6s
+  [154/195] saleor__saleor-4617@9c2907b              D ctx=  5278 found=10 hit=0/1 $0.00293 43.0s
+  [155/195] scikit-learn__scikit-learn-12486@15a4397 A ctx=     0 found= 4 hit=1/1 $0.00045 21.9s
+  [155/195] scikit-learn__scikit-learn-12486@15a4397 B ctx=  9504 found= 3 hit=0/1 $0.00117 8.8s
+  [155/195] scikit-learn__scikit-learn-12486@15a4397 D ctx=  8456 found= 4 hit=0/1 $0.00108 33.7s
+  [156/195] scikit-learn__scikit-learn-14427@0f2047d A ctx=     0 found= 1 hit=1/1 $0.00013 5.4s
+  [156/195] scikit-learn__scikit-learn-14427@0f2047d B ctx=   116 found= 1 hit=1/1 $0.00015 5.4s
+  [156/195] scikit-learn__scikit-learn-14427@0f2047d D ctx=  9883 found= 3 hit=1/1 $0.00107 45.9s
+  [157/195] scikit-learn__scikit-learn-14660@850cd0a A ctx=     0 found= 1 hit=1/1 $0.00017 7.3s
+  [157/195] scikit-learn__scikit-learn-14660@850cd0a B ctx= 10010 found= 2 hit=1/1 $0.00087 14.5s
+  [157/195] scikit-learn__scikit-learn-14660@850cd0a D ctx=  9858 found= 2 hit=1/1 $0.00081 9.7s
+  [158/195] scikit-learn__scikit-learn-23370@1dde56f A ctx=     0 found= 4 hit=0/1 $0.00041 16.2s
+  [158/195] scikit-learn__scikit-learn-23370@1dde56f B ctx=  9696 found= 4 hit=0/1 $0.00087 10.7s
+  [158/195] scikit-learn__scikit-learn-23370@1dde56f D ctx=  7253 found= 4 hit=0/1 $0.00098 20.8s
+  [159/195] scikit-learn__scikit-learn-23548@cc5e175 A ctx=     0 found= 6 hit=1/1 $0.00084 13.4s
+  [159/195] scikit-learn__scikit-learn-23548@cc5e175 B ctx=  9551 found= 5 hit=1/1 $0.00120 21.0s
+  [159/195] scikit-learn__scikit-learn-23548@cc5e175 D ctx=  6520 found= 7 hit=1/1 $0.00110 33.9s
+  [160/195] scikit-learn__scikit-learn-29401@819e167 A ctx=     0 found= 3 hit=0/1 $0.00057 12.3s
+  [160/195] scikit-learn__scikit-learn-29401@819e167 B ctx=  9158 found= 3 hit=0/1 $0.00088 17.3s
+  [160/195] scikit-learn__scikit-learn-29401@819e167 D ctx=  8648 found= 3 hit=0/1 $0.00090 14.9s
+  [161/195] scikit-learn__scikit-learn-8835@4bef1da  A ctx=     0 found= 8 hit=1/1 $0.00119 53.8s
+  [161/195] scikit-learn__scikit-learn-8835@4bef1da  B ctx=  8498 found= 7 hit=1/1 $0.00142 36.9s
+  [161/195] scikit-learn__scikit-learn-8835@4bef1da  D ctx=  7506 found=10 hit=1/1 $0.00162 53.3s
+  [162/195] scikit-learn__scikit-learn-9802@5c7da54  A ctx=     0 found= 5 hit=1/1 $0.00044 15.5s
+  [162/195] scikit-learn__scikit-learn-9802@5c7da54  B ctx= 10675 found= 5 hit=1/1 $0.00099 27.1s
+  [162/195] scikit-learn__scikit-learn-9802@5c7da54  D ctx=  2348 found= 4 hit=1/1 $0.00045 14.1s
+  [163/195] scipy__scipy-10410@3a58e13               A ctx=     0 found= 8 hit=0/1 $0.00060 27.1s
+  [163/195] scipy__scipy-10410@3a58e13               B ctx=  5012 found= 8 hit=1/1 $0.00079 37.0s
+  [163/195] scipy__scipy-10410@3a58e13               D ctx=  6667 found= 6 hit=0/1 $0.00135 56.1s
+  [164/195] scipy__scipy-13893@4fcbd8b               A ctx=     0 found=11 hit=1/2 $0.00142 41.9s
+  [164/195] scipy__scipy-13893@4fcbd8b               B ctx=  8269 found= 9 hit=1/2 $0.00156 122.9s
+  [164/195] scipy__scipy-13893@4fcbd8b               D ctx=  5728 found=12 hit=1/2 $0.00131 136.5s
+  [165/195] scipy__scipy-13918@c98fbe5               A ctx=     0 found=13 hit=2/3 $0.00128 53.2s
+  [165/195] scipy__scipy-13918@c98fbe5               B ctx=  5488 found= 0 hit=0/3 $0.00120 56.7s
+  [165/195] scipy__scipy-13918@c98fbe5               D ctx=  8219 found=10 hit=1/3 $0.00127 25.1s
+  [166/195] scipy__scipy-15905@171e94e               A ctx=     0 found= 7 hit=1/1 $0.00052 18.8s
+  [166/195] scipy__scipy-15905@171e94e               B ctx=  7797 found= 7 hit=1/1 $0.00111 21.4s
+  [166/195] scipy__scipy-15905@171e94e               D ctx=  6897 found= 8 hit=1/1 $0.00100 18.9s
+  [167/195] scipy__scipy-16508@3d7cf12               A ctx=     0 found=15 hit=1/1 $0.00312 96.6s
+  [167/195] scipy__scipy-16508@3d7cf12               B ctx=  6476 found=10 hit=0/1 $0.00178 25.3s
+  [167/195] scipy__scipy-16508@3d7cf12               D ctx=  4785 found= 8 hit=0/1 $0.00165 21.4s
+  [168/195] scipy__scipy-7353@0a59715                A ctx=     0 found=10 hit=0/1 $0.00133 33.5s
+  [168/195] scipy__scipy-7353@0a59715                B ctx=  8014 found= 8 hit=0/1 $0.00138 31.3s
+  [168/195] scipy__scipy-7353@0a59715                D ctx=  7195 found= 9 hit=0/1 $0.00133 22.0s
+  [169/195] scipy__scipy-9488@9e81f03                A ctx=     0 found=16 hit=1/1 $0.00212 86.3s
+  [169/195] scipy__scipy-9488@9e81f03                B ctx=  6589 found=10 hit=1/1 $0.00171 50.7s
+  [169/195] scipy__scipy-9488@9e81f03                D ctx=  4463 found=15 hit=1/1 $0.00190 63.8s
+  [170/195] skypilot-org__skypilot-1144@36893af      A ctx=     0 found=10 hit=2/3 $0.00156 39.4s
+  [170/195] skypilot-org__skypilot-1144@36893af      B ctx= 10285 found=10 hit=1/3 $0.00176 46.4s
+  [170/195] skypilot-org__skypilot-1144@36893af      D ctx= 10370 found=11 hit=1/3 $0.00162 39.5s
+  [171/195] skypilot-org__skypilot-1297@fd5782f      A ctx=     0 found= 8 hit=1/1 $0.00120 26.5s
+  [171/195] skypilot-org__skypilot-1297@fd5782f      B ctx= 10199 found= 8 hit=1/1 $0.00149 30.4s
+  [171/195] skypilot-org__skypilot-1297@fd5782f      D ctx=  8927 found=10 hit=1/1 $0.00132 29.3s
+  [172/195] skypilot-org__skypilot-1427@b01cb79      A ctx=     0 found= 8 hit=1/1 $0.00195 20.7s
+  [172/195] skypilot-org__skypilot-1427@b01cb79      B ctx=  8505 found=10 hit=1/1 $0.00177 37.0s
+  [172/195] skypilot-org__skypilot-1427@b01cb79      D ctx= 10049 found= 7 hit=1/1 $0.00174 26.7s
+  [173/195] skypilot-org__skypilot-1505@e7e933d      A ctx=     0 found= 6 hit=0/1 $0.00067 15.3s
+  [173/195] skypilot-org__skypilot-1505@e7e933d      B ctx=  2460 found= 6 hit=0/1 $0.00067 20.3s
+  [173/195] skypilot-org__skypilot-1505@e7e933d      D ctx=  7991 found= 6 hit=0/1 $0.00100 23.8s
+  [174/195] skypilot-org__skypilot-1718@1b51ae2      A ctx=     0 found=10 hit=2/3 $0.00221 37.7s
+  [174/195] skypilot-org__skypilot-1718@1b51ae2      B ctx=  4310 found=10 hit=2/3 $0.00248 25.9s
+  [174/195] skypilot-org__skypilot-1718@1b51ae2      D ctx=  3715 found=10 hit=2/3 $0.00158 35.3s
+  [175/195] skypilot-org__skypilot-5435@50d9632      A ctx=     0 found= 7 hit=0/1 $0.00175 20.3s
+  [175/195] skypilot-org__skypilot-5435@50d9632      B ctx=  7523 found= 7 hit=1/1 $0.00141 20.5s
+  [175/195] skypilot-org__skypilot-5435@50d9632      D ctx=  6996 found=11 hit=1/1 $0.00157 56.7s
+  [176/195] sqlfluff__sqlfluff-1803@a822a1f          A ctx=     0 found= 4 hit=1/1 $0.00052 14.2s
+  [176/195] sqlfluff__sqlfluff-1803@a822a1f          B ctx=  8252 found= 2 hit=0/1 $0.00080 8.4s
+  [176/195] sqlfluff__sqlfluff-1803@a822a1f          D ctx=  8021 found= 4 hit=1/1 $0.00085 17.3s
+  [177/195] sqlfluff__sqlfluff-494@554c74a           A ctx=     0 found= 9 hit=1/1 $0.00156 23.4s
+  [177/195] sqlfluff__sqlfluff-494@554c74a           B ctx=  9629 found= 9 hit=0/1 $0.00151 26.5s
+  [177/195] sqlfluff__sqlfluff-494@554c74a           D ctx=  8465 found=12 hit=0/1 $0.00160 41.5s
+  [178/195] sympy__sympy-16133@82bdbae               A ctx=     0 found= 8 hit=2/2 $0.00077 22.3s
+  [178/195] sympy__sympy-16133@82bdbae               B ctx=  7610 found= 8 hit=2/2 $0.00123 45.4s
+  [178/195] sympy__sympy-16133@82bdbae               D ctx=  7566 found= 8 hit=2/2 $0.00136 40.3s
+  [179/195] sympy__sympy-18410@189871b               A ctx=     0 found= 3 hit=1/1 $0.00041 33.0s
+  [179/195] sympy__sympy-18410@189871b               B ctx=  8387 found= 4 hit=1/1 $0.00097 17.3s
+  [179/195] sympy__sympy-18410@189871b               D ctx=  6798 found= 3 hit=1/1 $0.00108 33.2s
+  [180/195] sympy__sympy-18605@a356458               A ctx=     0 found= 3 hit=1/1 $0.00032 12.8s
+  [180/195] sympy__sympy-18605@a356458 B: ERROR deepseek/deepseek-v3.2: reply was cut off (finish_reason='length', 4096 output tokens) — not scored
+  [180/195] sympy__sympy-18605@a356458               D ctx=  5491 found= 1 hit=1/1 $0.00078 22.6s
+  [181/195] sympy__sympy-18630@9ca7e3a               A ctx=     0 found= 5 hit=2/2 $0.00029 16.0s
+  [181/195] sympy__sympy-18630@9ca7e3a               B ctx=  7817 found= 8 hit=2/2 $0.00098 35.9s
+  [181/195] sympy__sympy-18630@9ca7e3a               D ctx=  7926 found= 8 hit=2/2 $0.00094 29.6s
+  [182/195] sympy__sympy-19254@8adfdbe               A ctx=     0 found= 6 hit=1/1 $0.00036 229.8s
+  [182/195] sympy__sympy-19254@8adfdbe               B ctx=  6248 found= 7 hit=1/1 $0.00095 27.3s
+  [182/195] sympy__sympy-19254@8adfdbe               D ctx=  4721 found= 7 hit=1/1 $0.00102 32.7s
+  [183/195] sympy__sympy-19913@d466e06               A ctx=     0 found= 2 hit=1/1 $0.00025 10.0s
+  [183/195] sympy__sympy-19913@d466e06               B ctx=  7663 found= 2 hit=1/1 $0.00071 6.4s
+  [183/195] sympy__sympy-19913@d466e06               D ctx=  7106 found= 3 hit=1/1 $0.00084 11.4s
+  [184/195] sympy__sympy-21459@382ea94               A ctx=     0 found=17 hit=0/1 $0.00447 117.0s
+  [184/195] sympy__sympy-21459@382ea94               B ctx=  4567 found=21 hit=0/1 $0.00399 155.3s
+  [184/195] sympy__sympy-21459@382ea94               D ctx=  4486 found=19 hit=0/1 $0.00360 101.3s
+  [185/195] sympy__sympy-21883@418efae               A ctx=     0 found=11 hit=1/1 $0.00138 71.9s
+  [185/195] sympy__sympy-21883@418efae               B ctx=  6449 found= 8 hit=1/1 $0.00127 79.0s
+  [185/195] sympy__sympy-21883@418efae               D ctx=  4902 found= 6 hit=0/1 $0.00129 31.5s
+  [186/195] sympy__sympy-22426@05cec82               A ctx=     0 found=20 hit=1/1 $0.00223 80.5s
+  [186/195] sympy__sympy-22426@05cec82               B ctx=  2411 found=19 hit=1/1 $0.00173 325.0s
+  [186/195] sympy__sympy-22426@05cec82               D ctx=  8349 found= 8 hit=0/1 $0.00168 29.6s
+  [187/195] sympy__sympy-27352@b3187d6               A ctx=     0 found= 8 hit=2/2 $0.00145 32.0s
+  [187/195] sympy__sympy-27352@b3187d6               B ctx=  4339 found= 8 hit=2/2 $0.00134 41.4s
+  [187/195] sympy__sympy-27352@b3187d6               D ctx=  3809 found= 8 hit=2/2 $0.00160 59.7s
+  [188/195] tobymao__sqlglot-1123@23610af            A ctx=     0 found= 5 hit=1/1 $0.00109 17.2s
+  [188/195] tobymao__sqlglot-1123@23610af            B ctx=  4662 found= 5 hit=1/1 $0.00186 50.0s
+  [188/195] tobymao__sqlglot-1123@23610af            D ctx=  4606 found= 7 hit=1/1 $0.00172 26.3s
+  [189/195] tobymao__sqlglot-1729@8be14c1            A ctx=     0 found= 4 hit=0/1 $0.00044 14.0s
+  [189/195] tobymao__sqlglot-1729@8be14c1            B ctx=  8646 found= 3 hit=0/1 $0.00086 12.7s
+  [189/195] tobymao__sqlglot-1729@8be14c1            D ctx=  8138 found= 3 hit=0/1 $0.00081 13.6s
+  [190/195] tobymao__sqlglot-2096@1794bf3            A ctx=     0 found= 8 hit=1/3 $0.00228 25.1s
+  [190/195] tobymao__sqlglot-2096@1794bf3            B ctx=  2437 found= 7 hit=1/3 $0.00147 22.8s
+  [190/195] tobymao__sqlglot-2096@1794bf3            D ctx=  2601 found= 8 hit=1/3 $0.00260 43.5s
+  [191/195] tobymao__sqlglot-5284@3f57fcd            A ctx=     0 found=10 hit=1/1 $0.00078 32.1s
+  [191/195] tobymao__sqlglot-5284@3f57fcd            B ctx=  8786 found=10 hit=1/1 $0.00114 37.4s
+  [191/195] tobymao__sqlglot-5284@3f57fcd            D ctx=  7952 found= 7 hit=1/1 $0.00104 35.5s
+  [192/195] vega__altair-3426@b0d0e5c                A ctx=     0 found=19 hit=0/1 $0.00329 88.1s
+  [192/195] vega__altair-3426@b0d0e5c                B ctx=  2173 found=20 hit=0/1 $0.00241 95.6s
+  [192/195] vega__altair-3426@b0d0e5c                D ctx=  1920 found=11 hit=0/1 $0.00164 29.9s
+  [193/195] voxel51__fiftyone-4236@2af48de           A ctx=     0 found= 5 hit=1/1 $0.00069 15.4s
+  [193/195] voxel51__fiftyone-4236@2af48de           B ctx=  8279 found= 5 hit=1/1 $0.00125 23.4s
+  [193/195] voxel51__fiftyone-4236@2af48de           D ctx=  6581 found= 5 hit=1/1 $0.00168 9.3s
+  [194/195] xorbitsai__inference-1168@f3ada96        A ctx=     0 found=10 hit=6/8 $0.00164 27.9s
+  [194/195] xorbitsai__inference-1168@f3ada96        B ctx=  5380 found=15 hit=6/8 $0.00150 61.1s
+  [194/195] xorbitsai__inference-1168@f3ada96        D ctx=  7430 found=16 hit=6/8 $0.00222 49.0s
+  [195/195] zulip__zulip-25349@67de2a4               A ctx=     0 found=14 hit=1/3 $0.00195 37.3s
+  [195/195] zulip__zulip-25349@67de2a4               B ctx=  6392 found=13 hit=0/3 $0.00159 76.5s
+  [195/195] zulip__zulip-25349@67de2a4               D ctx=  6118 found=13 hit=1/3 $0.00150 37.0s
+
+total wall time: 100593s
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+A         192      242    156   64.5%    [58.0%, 70.3%]   11.7%   0.20   0.0024
+B         193      244    150   61.5%    [54.7%, 68.0%]   11.9%   0.20   0.0023
+D         193      244    149   61.1%    [54.0%, 67.4%]   11.7%   0.20   0.0020
+
+  B vs A: -2.5% (95% CI -6.9% to +2.6%) — not distinguishable at this sample size
+  D vs A: -3.3% (95% CI -7.9% to +1.7%) — not distinguishable at this sample size
+
+total cost: $1.0189

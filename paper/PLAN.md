@@ -1196,3 +1196,13 @@ analysis, each pass is relaunched once with the runner's resume logic, which ski
 recorded pair and calls only the missing ones; the recorded rows are not touched. A pair that
 fails again stays missing and is reported as missing. The first-pass logs are kept as
 `run-pass1.log` beside the retry logs. No setting changed.
+
+**Outcome, 3 November 2026 (`results/ccrab-deepseek/`).** 975 calls plus 15 retries, $2.15.
+Primary, 65 paired of the 77 ids: B 67.7% against Cx 75.4%, B − Cx **−7.7** [−17.8, +3.6]
+repository bootstrap, [−18.5, +1.5] task bootstrap; spans zero, sign reversed from run 4's
++12.5. Exact line B − Cx −13.8 [−24.7, −1.4], excludes zero in Cx's favour. Secondary (a),
+103 paired loose outside-diff defects: B − Cx −8.7 [−17.2, 0.0]. All 245 paired defects:
+A 64.5, B 61.6, C 66.9, Cx 66.9, D 60.8; B − Cx −5.3 [−12.0, +0.8]; B − A −2.9 [−6.6, +0.9];
+B − C −5.3 [−9.8, −1.4]. Every condition 18 to 28 points above random-line chance at
+tolerance 5. Evidence recall unchanged from run 4 (context does not depend on the model).
+The run-4 lead does not replicate on the second model; the paper reports it so.

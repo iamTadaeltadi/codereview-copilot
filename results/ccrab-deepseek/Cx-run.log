@@ -1,0 +1,24 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : deepseek/deepseek-v3.2
+conditions: ['C']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+resuming  : 184 task/condition pairs already recorded
+  [21/195] ansible__ansible-54268@403b068           C ctx=  9460 found= 8 hit=0/1 $0.00152 46.4s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12          C ctx=  5853 found= 4 hit=1/1 $0.00156 14.4s
+  [69/195] huggingface__accelerate-255@12e4b18      C ctx=  7842 found=13 hit=3/3 $0.00196 36.0s
+  [97/195] netbox-community__netbox-13373@1d02196   C ctx=  7551 found=13 hit=3/4 $0.00134 38.8s
+  [108/195] numpy__numpy-20310@a4daaf5 C: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [120/195] pandas-dev__pandas-23886@d6a2d5b         C ctx=  3842 found= 9 hit=0/1 $0.00335 31.2s
+  [121/195] pandas-dev__pandas-24968@0ea6653         C ctx=  9270 found= 6 hit=0/1 $0.00135 36.9s
+  [164/195] scipy__scipy-13893@4fcbd8b               C ctx=  7155 found=10 hit=1/2 $0.00184 31.0s
+  [170/195] skypilot-org__skypilot-1144@36893af      C ctx=  9907 found= 8 hit=1/3 $0.00227 44.9s
+  [175/195] skypilot-org__skypilot-5435@50d9632      C ctx=  7970 found= 9 hit=1/1 $0.00172 22.5s
+  [187/195] sympy__sympy-27352@b3187d6               C ctx=  5148 found= 9 hit=2/2 $0.00126 21.4s
+
+total wall time: 325s
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+C          10       19     12   63.2%    [35.7%, 87.0%]   13.5%   0.22   0.0015
+
+total cost: $0.0182

@@ -1,0 +1,207 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : deepseek/deepseek-v3.2
+conditions: ['C']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+  [1/195] Avaiga__taipy-1042@a76a34b               C ctx=  7083 found= 9 hit=1/1 $0.00163 39.2s
+  [2/195] Avaiga__taipy-833@24559da                C ctx=  4084 found= 8 hit=1/1 $0.00359 127.8s
+  [3/195] Lightning-AI__pytorch-lightning-4654@89b C ctx=  5389 found= 4 hit=1/1 $0.00098 19.3s
+  [4/195] Lightning-AI__pytorch-lightning-7351@7b3 C ctx=  6292 found= 6 hit=1/1 $0.00158 20.5s
+  [5/195] Lightning-AI__pytorch-lightning-866@5a0c C ctx=  7571 found= 7 hit=1/1 $0.00121 56.2s
+  [6/195] ManimCommunity__manim-509@1cbc24f        C ctx=  2770 found= 2 hit=1/1 $0.00035 11.2s
+  [7/195] OpenMined__PySyft-5385@0af54a4           C ctx=  6744 found= 6 hit=2/2 $0.00097 65.7s
+  [8/195] PostHog__posthog-4868@1372f68            C ctx=  4807 found=11 hit=1/1 $0.00252 40.2s
+  [9/195] PostHog__posthog-8874@960dad4            C ctx=  7479 found= 5 hit=1/1 $0.00099 25.7s
+  [10/195] PrefectHQ__prefect-14392@aac04aa         C ctx=   884 found=10 hit=0/1 $0.00710 275.9s
+  [11/195] PrefectHQ__prefect-18444@1ffae47         C ctx=  3458 found= 6 hit=0/1 $0.00332 33.7s
+  [12/195] RasaHQ__rasa-5341@d8b1c24                C ctx=  8209 found= 4 hit=1/1 $0.00138 84.7s
+  [13/195] RasaHQ__rasa-5818@693ab41                C ctx=  6455 found= 5 hit=0/2 $0.01280 687.4s
+  [14/195] ansible__ansible-27435@da1a331           C ctx=  9154 found= 6 hit=1/3 $0.00969 465.4s
+  [15/195] ansible__ansible-36996@4b45ffc           C ctx=  9050 found= 2 hit=1/1 $0.00110 27.1s
+  [16/195] ansible__ansible-39963@85a7d65           C ctx=  9517 found= 3 hit=0/1 $0.00106 21.2s
+  [17/195] ansible__ansible-42145@12c0d66           C ctx=  8768 found= 4 hit=2/3 $0.00116 28.2s
+  [18/195] ansible__ansible-42456@b29e00e           C ctx=  5756 found= 5 hit=1/1 $0.00131 35.4s
+  [19/195] ansible__ansible-49873@10ef1a3           C ctx=  7846 found= 3 hit=0/1 $0.00173 51.4s
+  [20/195] ansible__ansible-51415@fb988f5           C ctx= 10267 found= 3 hit=1/1 $0.00109 19.6s
+  [21/195] ansible__ansible-54268@403b068 C: ERROR reply began as JSON but did not parse — treating as truncated
+  [22/195] ansible__ansible-55379@060b0e9           C ctx=  7259 found= 9 hit=0/1 $0.00782 350.7s
+  [23/195] ansible__ansible-59946@fbe8544           C ctx=  7960 found= 3 hit=1/1 $0.00168 66.4s
+  [24/195] ansible__ansible-60622@19d2ad7           C ctx=  9397 found= 4 hit=1/1 $0.00342 32.6s
+  [25/195] ansible__ansible-61603@5bf662a           C ctx=  4879 found=20 hit=1/1 $0.02160 802.7s
+  [26/195] ansible__ansible-71136@621cec5           C ctx=  7556 found= 3 hit=1/1 $0.00141 33.8s
+  [27/195] ansible__ansible-77944@0f6d2a8           C ctx=  7996 found= 6 hit=1/1 $0.00349 93.3s
+  [28/195] apache__airflow-16732@8ec4f26            C ctx=  8523 found= 5 hit=0/1 $0.00868 408.3s
+  [29/195] apache__airflow-26766@cf0c9a6            C ctx=  8075 found= 4 hit=1/1 $0.00897 382.5s
+  [30/195] apache__airflow-51237@6dd1634            C ctx=  8642 found= 4 hit=0/1 $0.00350 45.0s
+  [31/195] apache__airflow-8749@161c96c             C ctx=  2468 found= 3 hit=0/1 $0.00322 52.3s
+  [32/195] bridgecrewio__checkov-4155@48ecaf7       C ctx=  7405 found= 1 hit=1/1 $0.01293 435.3s
+  [33/195] ccxt__ccxt-14582@83f50a7                 C ctx=    95 found= 1 hit=1/1 $0.00029 10.2s
+  [34/195] ccxt__ccxt-14830@1d1701f                 C ctx=    90 found= 4 hit=1/1 $0.00045 15.3s
+  [35/195] ccxt__ccxt-16729@284cdce                 C ctx=    84 found= 2 hit=1/1 $0.01371 599.8s
+  [36/195] certbot__certbot-7270@65f464e            C ctx=  2639 found= 7 hit=0/1 $0.00301 55.2s
+  [37/195] certbot__certbot-9076@01f570d            C ctx=  1575 found= 4 hit=0/1 $0.00316 99.8s
+  [38/195] certbot__certbot-9208@2584184            C ctx=  8059 found= 4 hit=1/4 $0.00203 47.7s
+  [39/195] conan-io__conan-16942@e62c6eb            C ctx=  7040 found= 4 hit=0/2 $0.00156 36.9s
+  [40/195] conan-io__conan-6052@ca23055             C ctx=  6847 found= 8 hit=1/1 $0.02217 655.1s
+  [41/195] cvat-ai__cvat-1396@bd228e1               C ctx=  8214 found= 5 hit=1/1 $0.00183 62.3s
+  [42/195] dask__dask-7974@88a13f7                  C ctx=  8816 found= 2 hit=0/3 $0.00144 26.7s
+  [43/195] dask__dask-8869@24f8120                  C ctx=  7412 found= 6 hit=1/1 $0.00128 23.3s
+  [44/195] dbt-labs__dbt-core-1453@70206b1          C ctx=  5857 found= 4 hit=1/1 $0.00179 29.7s
+  [45/195] dbt-labs__dbt-core-5027@8dcfeb1          C ctx=  3221 found=14 hit=1/2 $0.00425 95.9s
+  [46/195] dbt-labs__dbt-core-7186@c6b5b12 C: ERROR reply began as JSON but did not parse — treating as truncated
+  [47/195] dbt-labs__dbt-core-8743@fb6f32f          C ctx=  5623 found= 8 hit=1/1 $0.00256 67.2s
+  [48/195] deepset-ai__haystack-1413@fc3b61a        C ctx= 10333 found= 4 hit=0/1 $0.00165 48.2s
+  [49/195] deepset-ai__haystack-1604@78e9795        C ctx=  5956 found= 5 hit=0/1 $0.00207 21.2s
+  [50/195] deepset-ai__haystack-3546@a260299        C ctx=  5503 found= 3 hit=0/1 $0.00372 73.8s
+  [51/195] deepset-ai__haystack-3837@e0d9ac8        C ctx= 10283 found= 3 hit=1/1 $0.00090 33.3s
+  [52/195] deepset-ai__haystack-5284@60a39ef        C ctx=  8245 found= 4 hit=1/1 $0.00142 45.8s
+  [53/195] deepset-ai__haystack-5467@cc8b6d5        C ctx=  3075 found= 5 hit=1/1 $0.01305 563.3s
+  [54/195] deepset-ai__haystack-8457@2dd3777        C ctx=  4860 found= 9 hit=1/1 $0.00324 57.6s
+  [55/195] deepset-ai__haystack-9290@3f511f6        C ctx=  8130 found= 6 hit=1/1 $0.00198 33.7s
+  [56/195] dmlc__dgl-3892@98afbd1                   C ctx=  4707 found= 8 hit=0/1 $0.03014 1256.7s
+  [57/195] dmlc__dgl-4620@5297d27                   C ctx=  5633 found= 6 hit=2/3 $0.02106 930.6s
+  [58/195] frappe__frappe-13065@dfc23eb             C ctx=  3459 found= 7 hit=1/1 $0.02236 748.8s
+  [59/195] frappe__frappe-16877@e78a251             C ctx=  6508 found= 4 hit=1/1 $0.00085 17.4s
+  [60/195] freqtrade__freqtrade-5846@da4344d        C ctx=  6889 found= 9 hit=1/1 $0.00309 42.6s
+  [61/195] geldata__gel-4469@95cccee                C ctx=  7341 found= 5 hit=1/2 $0.00281 66.7s
+  [62/195] geldata__gel-5130@2e5341f                C ctx=  8584 found= 5 hit=2/2 $0.01775 654.2s
+  [63/195] getsentry__sentry-78778@17b738e          C ctx=  8337 found=13 hit=1/1 $0.00157 23.0s
+  [64/195] gradio-app__gradio-5232@5b83994          C ctx=  7046 found=11 hit=1/1 $0.00321 49.0s
+  [65/195] home-assistant__core-121178@b09b3b5      C ctx=  8948 found= 4 hit=1/1 $0.00116 9.5s
+  [66/195] home-assistant__core-142977@fa60db7      C ctx=  9308 found= 7 hit=1/1 $0.00112 21.8s
+  [67/195] home-assistant__core-146453@71eab0c      C ctx=  7549 found= 6 hit=1/1 $0.00346 58.6s
+  [68/195] hpcaitech__ColossalAI-6059@802df11       C ctx=  4657 found= 6 hit=1/1 $0.01364 535.5s
+  [69/195] huggingface__accelerate-255@12e4b18 C: ERROR reply began as JSON but did not parse — treating as truncated
+  [70/195] huggingface__datasets-2182@748e2e9       C ctx=  7329 found= 5 hit=1/1 $0.01039 320.1s
+  [71/195] huggingface__datasets-3129@3d35ada       C ctx=  8164 found=10 hit=1/1 $0.00165 19.8s
+  [72/195] huggingface__datasets-4433@43a3326       C ctx=  7939 found= 4 hit=1/1 $0.01310 635.4s
+  [73/195] huggingface__datasets-586@034c1c0        C ctx=  9516 found= 8 hit=1/1 $0.00121 18.2s
+  [74/195] huggingface__diffusers-4015@c63a53a      C ctx=  2474 found= 8 hit=0/1 $0.00150 22.0s
+  [75/195] huggingface__diffusers-792@90385bb       C ctx=  6372 found= 1 hit=1/1 $0.00122 34.2s
+  [76/195] intel__ipex-llm-5097@9525134             C ctx=  5667 found= 4 hit=1/1 $0.00791 394.9s
+  [77/195] jina-ai__serve-2037@792b165              C ctx=  6282 found= 3 hit=1/1 $0.00131 22.4s
+  [78/195] jina-ai__serve-2297@e1aea7f              C ctx=  3654 found= 7 hit=0/1 $0.00106 219.3s
+  [79/195] jina-ai__serve-4883@ca87c3e              C ctx=  7818 found= 5 hit=0/1 $0.00090 216.7s
+  [80/195] keephq__keep-1984@e524fe8                C ctx=  4090 found= 8 hit=1/2 $0.00127 212.7s
+  [81/195] keephq__keep-4568@aaa03de                C ctx=  7615 found= 7 hit=0/1 $0.00293 14.5s
+  [82/195] keephq__keep-625@767a6e3                 C ctx=  8592 found=11 hit=1/1 $0.01017 211.3s
+  [83/195] letta-ai__letta-58@d3a3a21               C ctx=  8009 found= 5 hit=1/1 $0.00845 388.1s
+  [84/195] localstack__localstack-12496@22b4c31     C ctx=  4762 found= 0 hit=0/1 $0.00317 80.3s
+  [85/195] marimo-team__marimo-3122@5536640         C ctx=  8130 found= 4 hit=0/1 $0.00120 10.6s
+  [86/195] marimo-team__marimo-4080@8a73f89         C ctx=  6012 found=10 hit=1/1 $0.00074 242.4s
+  [87/195] matplotlib__matplotlib-24111@3f99c20     C ctx=  8290 found=15 hit=0/1 $0.00170 22.4s
+  [88/195] matplotlib__matplotlib-27172@9f80d55     C ctx=  5673 found= 5 hit=0/1 $0.00037 205.2s
+  [89/195] matplotlib__matplotlib-30199@b5dfb32     C ctx=  8771 found= 8 hit=1/1 $0.00108 12.1s
+  [90/195] matplotlib__matplotlib-8938@d670a4f      C ctx=  8345 found= 5 hit=0/1 $0.00102 6.4s
+  [91/195] microsoft__autogen-1616@7f23912          C ctx=  7255 found= 7 hit=0/1 $0.00126 21.6s
+  [92/195] microsoft__autogen-2225@9cf65ed          C ctx=  6805 found= 8 hit=1/1 $0.00335 18.5s
+  [93/195] mlflow__mlflow-1658@3f53b0b              C ctx=  9783 found= 3 hit=1/1 $0.00094 5.8s
+  [94/195] modin-project__modin-2801@64caea0        C ctx=  3039 found=10 hit=1/1 $0.00051 215.9s
+  [95/195] modin-project__modin-3765@d2d8bd2        C ctx=  7818 found=13 hit=0/2 $0.01395 493.2s
+  [96/195] modin-project__modin-4215@69f9652        C ctx=  8016 found= 2 hit=1/1 $0.00092 6.8s
+  [97/195] netbox-community__netbox-13373@1d02196 C: ERROR reply began as JSON but did not parse — treating as truncated
+  [98/195] netbox-community__netbox-13563@4da93f4   C ctx=  3604 found= 3 hit=2/2 $0.01003 408.3s
+  [99/195] netbox-community__netbox-14047@0ec158d   C ctx=  7425 found= 6 hit=0/1 $0.00153 24.3s
+  [100/195] netbox-community__netbox-14754@44cf93a   C ctx=  5417 found= 4 hit=1/1 $0.00226 64.0s
+  [101/195] netbox-community__netbox-17716@8a8c328   C ctx=  6673 found= 7 hit=1/1 $0.00194 12.6s
+  [102/195] networkx__networkx-4602@b2da108          C ctx=  6156 found= 4 hit=1/1 $0.01151 427.6s
+  [103/195] networkx__networkx-5305@072b960          C ctx=  8148 found=12 hit=1/3 $0.00242 54.1s
+  [104/195] networkx__networkx-5371@b446ef1          C ctx=  1067 found= 4 hit=1/1 $0.00048 5.8s
+  [105/195] networkx__networkx-7159@7e65b7d          C ctx=  7812 found= 1 hit=1/1 $0.00052 604.0s
+  [106/195] numba__numba-4282@a062e23                C ctx=  7315 found= 5 hit=1/1 $0.00115 12.5s
+  [107/195] numba__numba-9144@74a4cd4                C ctx=  8152 found= 4 hit=1/1 $0.00091 13.2s
+  [108/195] numpy__numpy-20310@a4daaf5 C: SKIP numpy/numpy@a4daaf5a: no source files fetched
+  [109/195] numpy__numpy-8423@0ec089a                C ctx=  6795 found=10 hit=1/1 $0.00247 38.8s
+  [110/195] optuna__optuna-1087@4177569              C ctx=  7061 found= 1 hit=1/1 $0.00375 123.3s
+  [111/195] optuna__optuna-3629@f4f6b5f              C ctx=  7400 found= 6 hit=1/1 $0.00150 4816.0s
+  [112/195] optuna__optuna-972@1f4813a               C ctx=  8982 found= 2 hit=1/1 $0.00093 3304.2s
+  [113/195] pandas-dev__pandas-14737@8e4adbb         C ctx=  7603 found=13 hit=1/1 $0.00210 24.6s
+  [114/195] pandas-dev__pandas-16744@b8a6007         C ctx= 10238 found= 4 hit=1/1 $0.00050 3477.9s
+  [115/195] pandas-dev__pandas-18440@65fbc91         C ctx=  7413 found=10 hit=1/1 $0.00153 3470.8s
+  [116/195] pandas-dev__pandas-18604@8c9061b         C ctx=  9228 found= 3 hit=1/1 $0.00078 8.2s
+  [117/195] pandas-dev__pandas-20550@c1dfe56         C ctx=  7872 found= 7 hit=1/1 $0.00089 2820.5s
+  [118/195] pandas-dev__pandas-23141@1c22791         C ctx=  6865 found= 7 hit=1/1 $0.00147 2305.9s
+  [119/195] pandas-dev__pandas-23480@ab05b87         C ctx=  9376 found= 2 hit=1/1 $0.00098 51.2s
+  [120/195] pandas-dev__pandas-23886@d6a2d5b C: ERROR deepseek/deepseek-v3.2: giving up after 4 attempts: <urlopen error [Errno 60] Operation timed out>
+  [121/195] pandas-dev__pandas-24968@0ea6653 C: ERROR deepseek/deepseek-v3.2: giving up after 4 attempts: The read operation timed out
+  [122/195] pandas-dev__pandas-25914@87c183e         C ctx=  9330 found= 3 hit=1/1 $0.00166 3991.7s
+  [123/195] pandas-dev__pandas-28802@33c889c         C ctx=  7407 found= 2 hit=1/2 $0.00248 70.7s
+  [124/195] pandas-dev__pandas-31538@33e24a3         C ctx=  8445 found= 4 hit=1/1 $0.00126 14.9s
+  [125/195] pandas-dev__pandas-33962@fc4993f         C ctx=  7702 found= 4 hit=1/1 $0.00197 52.0s
+  [126/195] pandas-dev__pandas-34056@d001e97         C ctx=  7459 found= 5 hit=1/1 $0.00109 19.1s
+  [127/195] pandas-dev__pandas-34363@f3c7e18         C ctx=  9594 found= 1 hit=1/2 $0.00159 49.6s
+  [128/195] pandas-dev__pandas-34933@de64663         C ctx=  9755 found= 3 hit=0/1 $0.00091 21.3s
+  [129/195] pandas-dev__pandas-35231@2f4902c         C ctx=  8649 found= 6 hit=1/1 $0.00112 17.1s
+  [130/195] pandas-dev__pandas-35974@d0a8a68         C ctx=  5970 found= 6 hit=1/1 $0.04207 1635.5s
+  [131/195] pandas-dev__pandas-37676@22a6bff         C ctx=  9985 found= 1 hit=0/1 $0.00297 119.4s
+  [132/195] pandas-dev__pandas-40372@51fe758         C ctx=  2725 found= 3 hit=1/1 $0.01523 589.3s
+  [133/195] pandas-dev__pandas-42635@59d4145         C ctx=  9100 found= 5 hit=2/2 $0.00093 16.6s
+  [134/195] pandas-dev__pandas-55938@b36d8d1         C ctx=  7908 found= 1 hit=1/1 $0.00111 35.9s
+  [135/195] pydantic__pydantic-7677@b6bbdcc          C ctx=  8023 found= 4 hit=1/1 $0.00894 475.6s
+  [136/195] python-telegram-bot__python-telegram-bot C ctx=  9253 found= 4 hit=1/1 $0.00107 22.2s
+  [137/195] python-telegram-bot__python-telegram-bot C ctx=  9257 found= 4 hit=0/1 $0.00124 10.4s
+  [138/195] python__mypy-14517@78b0f55               C ctx=  7574 found= 7 hit=1/1 $0.00208 24.8s
+  [139/195] python__mypy-15353@65efb01               C ctx=  6351 found= 7 hit=1/1 $0.00156 21.7s
+  [140/195] python__mypy-17309@b3c328e               C ctx=  8509 found= 3 hit=1/1 $0.00095 9.2s
+  [141/195] python__mypy-4000@358ca96                C ctx=  7364 found= 4 hit=1/1 $0.00364 105.6s
+  [142/195] python__mypy-4341@2456414                C ctx=  5469 found=14 hit=1/1 $0.00261 37.2s
+  [143/195] python__mypy-6803@8e6a9b8                C ctx=  6779 found= 4 hit=1/1 $0.00085 12.1s
+  [144/195] python__mypy-9629@13dc4d2                C ctx=  9580 found= 2 hit=1/1 $0.00103 7.7s
+  [145/195] pytorch__vision-2988@7ea166d             C ctx=  5653 found= 7 hit=1/1 $0.00272 18.6s
+  [146/195] pytorch__vision-4457@231054c             C ctx=  7808 found= 3 hit=1/1 $0.00101 21.3s
+  [147/195] pytorch__vision-8316@92ec2fb             C ctx=  6769 found=12 hit=1/1 $0.00226 57.7s
+  [148/195] qutebrowser__qutebrowser-5981@7f4897f    C ctx=   262 found= 3 hit=1/1 $0.00047 8.3s
+  [149/195] qutebrowser__qutebrowser-7003@3656345    C ctx=  8030 found= 6 hit=0/1 $0.01341 597.1s
+  [150/195] ray-project__ray-49918@04cf1ee           C ctx=  7680 found= 6 hit=1/1 $0.00252 14.1s
+  [151/195] ray-project__ray-50590@3dad0b2           C ctx=  6859 found= 8 hit=0/1 $0.00349 124.6s
+  [152/195] reflex-dev__reflex-4406@5ec2c11          C ctx=  7086 found= 5 hit=1/1 $0.01071 447.5s
+  [153/195] run-llama__llama_index-19234@e7810e8     C ctx=  6148 found= 6 hit=0/1 $0.00751 300.2s
+  [154/195] saleor__saleor-4617@9c2907b              C ctx=  4223 found= 9 hit=0/1 $0.00263 33.2s
+  [155/195] scikit-learn__scikit-learn-12486@15a4397 C ctx=  8932 found= 4 hit=1/1 $0.00140 33.7s
+  [156/195] scikit-learn__scikit-learn-14427@0f2047d C ctx=   116 found= 1 hit=1/1 $0.00251 135.6s
+  [157/195] scikit-learn__scikit-learn-14660@850cd0a C ctx= 10368 found= 2 hit=1/1 $0.00086 7.8s
+  [158/195] scikit-learn__scikit-learn-23370@1dde56f C ctx=  7464 found= 5 hit=1/1 $0.00097 11.7s
+  [159/195] scikit-learn__scikit-learn-23548@cc5e175 C ctx=  9067 found= 6 hit=1/1 $0.00104 18.8s
+  [160/195] scikit-learn__scikit-learn-29401@819e167 C ctx=  7540 found= 3 hit=0/1 $0.00106 10.0s
+  [161/195] scikit-learn__scikit-learn-8835@4bef1da  C ctx=  8491 found= 8 hit=1/1 $0.00149 28.6s
+  [162/195] scikit-learn__scikit-learn-9802@5c7da54  C ctx=  9660 found= 8 hit=1/1 $0.00168 24.4s
+  [163/195] scipy__scipy-10410@3a58e13               C ctx=  8672 found= 7 hit=0/1 $0.00117 18.3s
+  [164/195] scipy__scipy-13893@4fcbd8b C: ERROR deepseek/deepseek-v3.2: reply was cut off (finish_reason='error', 4096 output tokens) — not scored
+  [165/195] scipy__scipy-13918@c98fbe5               C ctx=  6904 found=10 hit=2/3 $0.00159 33.1s
+  [166/195] scipy__scipy-15905@171e94e               C ctx=  6754 found= 5 hit=1/1 $0.00141 14.0s
+  [167/195] scipy__scipy-16508@3d7cf12               C ctx=  4809 found= 4 hit=0/1 $0.01463 745.7s
+  [168/195] scipy__scipy-7353@0a59715                C ctx=  7096 found= 9 hit=0/1 $0.01476 461.3s
+  [169/195] scipy__scipy-9488@9e81f03                C ctx=  6624 found= 6 hit=1/1 $0.00433 144.6s
+  [170/195] skypilot-org__skypilot-1144@36893af C: ERROR reply began as JSON but did not parse — treating as truncated
+  [171/195] skypilot-org__skypilot-1297@fd5782f      C ctx=  9165 found= 8 hit=1/1 $0.00180 26.4s
+  [172/195] skypilot-org__skypilot-1427@b01cb79      C ctx=  7679 found= 5 hit=0/1 $0.00282 55.7s
+  [173/195] skypilot-org__skypilot-1505@e7e933d      C ctx=  3735 found= 6 hit=0/1 $0.00098 17.8s
+  [174/195] skypilot-org__skypilot-1718@1b51ae2      C ctx=  3586 found=11 hit=2/3 $0.00264 43.8s
+  [175/195] skypilot-org__skypilot-5435@50d9632 C: ERROR deepseek/deepseek-v3.2: reply was cut off (finish_reason='length', 13697 output tokens) — not scored
+  [176/195] sqlfluff__sqlfluff-1803@a822a1f          C ctx=  7150 found= 4 hit=1/1 $0.00934 423.2s
+  [177/195] sqlfluff__sqlfluff-494@554c74a           C ctx=  8304 found= 8 hit=1/1 $0.00204 22.4s
+  [178/195] sympy__sympy-16133@82bdbae               C ctx=  7940 found= 8 hit=2/2 $0.00132 23.0s
+  [179/195] sympy__sympy-18410@189871b               C ctx=  7491 found= 1 hit=0/1 $0.00084 9.6s
+  [180/195] sympy__sympy-18605@a356458               C ctx=  7452 found= 1 hit=1/1 $0.00077 5.5s
+  [181/195] sympy__sympy-18630@9ca7e3a               C ctx=  8066 found= 3 hit=2/2 $0.01339 683.6s
+  [182/195] sympy__sympy-19254@8adfdbe               C ctx=  6824 found= 8 hit=1/1 $0.00107 24.0s
+  [183/195] sympy__sympy-19913@d466e06               C ctx=  8665 found= 1 hit=0/1 $0.00093 19.2s
+  [184/195] sympy__sympy-21459@382ea94               C ctx=  4866 found=30 hit=0/1 $0.00725 217.3s
+  [185/195] sympy__sympy-21883@418efae               C ctx=  6656 found= 8 hit=1/1 $0.00190 58.3s
+  [186/195] sympy__sympy-22426@05cec82               C ctx=  1775 found= 5 hit=0/1 $0.00984 427.6s
+  [187/195] sympy__sympy-27352@b3187d6 C: ERROR reply began as JSON but did not parse — treating as truncated
+  [188/195] tobymao__sqlglot-1123@23610af            C ctx=  4968 found= 2 hit=1/1 $0.01371 678.3s
+  [189/195] tobymao__sqlglot-1729@8be14c1            C ctx=  6315 found= 4 hit=0/1 $0.00141 44.1s
+  [190/195] tobymao__sqlglot-2096@1794bf3            C ctx=  3005 found= 5 hit=2/3 $0.00300 55.6s
+  [191/195] tobymao__sqlglot-5284@3f57fcd            C ctx=  8325 found= 1 hit=1/1 $0.00123 20.7s
+  [192/195] vega__altair-3426@b0d0e5c                C ctx=  2314 found= 8 hit=0/1 $0.02489 1051.7s
+  [193/195] voxel51__fiftyone-4236@2af48de           C ctx=  8553 found= 5 hit=1/1 $0.00181 15.1s
+  [194/195] xorbitsai__inference-1168@f3ada96        C ctx=  7759 found=17 hit=6/8 $0.00219 44.4s
+  [195/195] zulip__zulip-25349@67de2a4               C ctx=  6105 found=10 hit=1/3 $0.00232 30.2s
+
+total wall time: 67863s
+
+cond    tasks  defects   hits   recall            95% CI    prec     F1    $/hit
+--------------------------------------------------------------------------------
+C         184      226    152   67.3%    [60.7%, 73.2%]   14.3%   0.24   0.0052
+
+total cost: $0.7865

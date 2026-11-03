@@ -1,0 +1,19 @@
+c-CRAB, test-verified real defects, deepseek-v3.2, replication of run 4 on 1 Nov 2026 (PLAN.md s12): plain code-block context, callers-first graph walk, no test files, numbered diff, budget 3000 tokens — SECONDARY subset, exact line
+=== exact line (tolerance 0) ===
+paired defects: 103
+  B  graph                              36.9%
+  Cx random, other files                49.5%
+  A  diff only                          43.7%
+  C  random, any file                   39.8%
+  D  lexical                            35.9%
+
+  B − Cx      -12.6%  repo-clustered [-21.5%, -3.1%]  task-clustered [-21.4%, -4.9%]  excludes zero
+  B − A        -6.8%  repo-clustered [-13.5%, +0.0%]  task-clustered [-14.6%, +1.0%]  spans zero
+  Cx − A       +5.8%  repo-clustered [-2.5%, +13.6%]  task-clustered [-1.9%, +13.6%]  spans zero
+  B − C        -2.9%  repo-clustered [-10.4%, +4.4%]  task-clustered [-10.7%, +4.9%]  spans zero
+  B − D        +1.0%  repo-clustered [-4.9%, +6.7%]  task-clustered [-4.9%, +6.8%]  spans zero
+  C − A        -3.9%  repo-clustered [-11.0%, +4.0%]  task-clustered [-10.7%, +2.9%]  spans zero
+  D − A        -7.8%  repo-clustered [-15.4%, +0.0%]  task-clustered [-15.5%, +0.0%]  spans zero
+  C − Cx       -9.7%  repo-clustered [-17.0%, -2.0%]  task-clustered [-17.5%, -1.9%]  excludes zero
+  D − Cx      -13.6%  repo-clustered [-22.2%, -4.3%]  task-clustered [-21.4%, -5.8%]  excludes zero
+  D − C        -3.9%  repo-clustered [-11.6%, +3.7%]  task-clustered [-10.7%, +2.9%]  spans zero

@@ -1,0 +1,8 @@
+benchmark : {"tasks": 195, "defects": 246, "confirmed": 246, "in_supported_source": 246, "repos": 63, "languages": {"python": 195}, "defects_per_task": 1.26}
+model     : deepseek/deepseek-v3.2
+conditions: ['C']   budget=3000 depth=3
+graph mode: sparse (diff files + 1 import hop)
+resuming  : 194 task/condition pairs already recorded
+  [108/195] numpy__numpy-20310@a4daaf5 C: SKIP numpy/numpy@a4daaf5a: no source files fetched
+
+no new results

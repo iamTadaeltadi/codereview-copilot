@@ -1,0 +1,9 @@
+line accuracy of quoted tokens, results/ccrab-deepseek
+
+  cond  findings  quoting  located   exact     <=5      >5  median
+  A         1355      770      688   74.7%   95.3%    4.7%       0
+  B         1261      740      662   74.8%   95.5%    4.5%       0
+  C         1358      888      809   77.4%   97.0%    3.0%       0
+  Cx        1153      613      557   74.5%   95.2%    4.8%       0
+  D         1275      803      725   72.0%   95.9%    4.1%       0
+  all       6402     3814     3441   74.7%   95.8%    4.2%       0
