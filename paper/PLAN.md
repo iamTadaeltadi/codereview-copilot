@@ -1185,3 +1185,14 @@ its installed packages (`ModuleNotFoundError: git`, `networkx`). The one recorde
 discarded (`runs/ccrab-deepseek-*` deleted) and the launcher now points at a project
 interpreter (`.venv`, git-ignored) built from `requirements-dev.txt`. No setting, prompt,
 budget, model or condition changed. The run restarts from zero under §12 as written.
+
+**Amendment after the run, 3 November 2026, 13:40.** The run completed all three passes
+(975 calls, $2.13 recorded). The machine slept for long stretches on 1–2 November, and 15
+calls returned no scorable reply: 7 gave up after four attempts on a read timeout, 5 began a
+JSON reply that did not parse, 3 were cut off at the output limit. The runner writes no row
+for such a call, so 5 task–condition pairs are missing from the main pass (gel-4469 A,
+localstack-12496 A and D, marimo-4080 A, sympy-18605 B) and 10 from the Cx pass. Before any
+analysis, each pass is relaunched once with the runner's resume logic, which skips every
+recorded pair and calls only the missing ones; the recorded rows are not touched. A pair that
+fails again stays missing and is reported as missing. The first-pass logs are kept as
+`run-pass1.log` beside the retry logs. No setting changed.
