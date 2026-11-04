@@ -111,6 +111,30 @@ Balanced accuracy is the mean of the hit rate on defects and the clear rate on t
 
 Every arm that carries the caller's code or a statement about the dependency has d′ at or below the diff's 0.37, and for the attributed and wrong links d′ is below zero: the model flags the safe twin more often than the defect. The criterion moves from +0.71, a model that needs persuading, to −1.07, one that flags by default; the difference in c from the diff excludes zero for every evidence arm (−0.69 [−0.85, −0.54] for the caller alone, −1.78 [−2.00, −1.60] for the attributed link), while the difference in d′ excludes zero only for the attributed and wrong links, downward (−0.72 [−1.13, −0.29] and −0.68 [−1.09, −0.28]). The only arm that raises d′ by an interval excluding zero carries no evidence at all, the header alone (+0.32 [+0.06, +0.59]). Dependency context in this experiment moves the threshold, not the sensitivity.
 
+**The same on a second model.** §13 of the plan pre-registered the defects under the neutral prompt on deepseek-v3.2, whose neutral-prompt twins already existed, with the primary fixed as two conditions on the attributed link against the diff: the criterion falls by an interval excluding zero, and d′ does not rise by one. The run was stopped by its $1.50 cost rule at 244 of 277 defects paired on all nine arms (`results/v3-neutral-deepseek/`, three shards, $1.51; 26 defects never reached, 5 calls lost to the network, not resumed because resuming would change a stop rule after a look at the data), and is reported as partial.
+
+| Arm, neutral prompt, deepseek-v3.2 (244 defects, 158 twins) | H | F | d′ [95%] | c [95%] | defects hit | twins cleared | balanced accuracy |
+|---|---|---|---|---|---|---|---|
+| 1 diff only | 0.44 | 0.11 | 1.08 [+0.67, +1.61] | +0.70 [+0.48, +0.98] | 43.0% | 89.2% | 66.1% |
+| 8 header only | 0.48 | 0.12 | 1.12 [+0.72, +1.65] | +0.61 [+0.36, +0.94] | 47.1% | 88.0% | 67.6% |
+| 7 foreign code, same length | 0.53 | 0.10 | 1.38 [+0.91, +2.07] | +0.62 [+0.38, +0.99] | 51.6% | 90.5% | 71.1% |
+| 2 tolerant caller shown | 0.59 | 0.13 | 1.34 [+0.99, +1.76] | +0.45 [+0.20, +0.74] | 58.2% | 86.7% | 72.5% |
+| 3 caller + bare link | 0.62 | 0.19 | 1.19 [+0.88, +1.56] | +0.28 [+0.06, +0.52] | 61.5% | 81.0% | 71.2% |
+| 4 caller + typed link | 0.64 | 0.23 | 1.09 [+0.74, +1.51] | +0.20 [−0.02, +0.44] | 63.1% | 77.2% | 70.2% |
+| 6 caller + wrong link | 0.64 | 0.18 | 1.28 [+0.93, +1.71] | +0.29 [+0.06, +0.53] | 63.1% | 82.3% | 72.7% |
+| 5 caller + attributed link | 0.61 | 0.21 | 1.09 [+0.70, +1.55] | +0.27 [+0.04, +0.54] | 60.2% | 79.1% | 69.7% |
+
+| Comparison, neutral prompt, deepseek-v3.2 | d′ − d′(diff) | c − c(diff) | defects hit | balanced accuracy |
+|---|---|---|---|---|
+| tolerant caller − diff only | +0.25 [−0.18, +0.64] | **−0.25 [−0.43, −0.06]** | **+15.2 [+6.9, +22.1]** | **+6.3 [+0.8, +11.3]** |
+| foreign code − diff only | +0.29 [−0.11, +0.83] | −0.07 [−0.24, +0.15] | +8.6 [+1.2, +15.6] | +4.9 [−0.2, +10.0] |
+| header only − diff only | +0.03 [−0.28, +0.40] | −0.08 [−0.21, +0.09] | +4.1 [−1.9, +9.8] | +1.4 [−2.7, +5.4] |
+| bare link − caller alone | | | +3.3 [+0.4, +6.4] | −1.2 [−4.3, +1.6] |
+| wrong link − caller alone | | | +4.9 [+0.4, +9.3] | +0.2 [−3.1, +3.5] |
+| attributed link − diff only | **+0.00 [−0.40, +0.39]** | **−0.43 [−0.62, −0.25]** | **+17.2 [+9.1, +23.9]** | +3.5 [−2.0, +9.0] |
+
+Both pre-registered conditions hold: with the relation named the criterion falls by 0.43 and d′ changes by 0.00. Every arm that carries the caller or a statement about the dependency lowers c by an interval excluding zero and leaves d′ within noise, as on gpt-4o-mini; no arm raises d′ by an interval excluding zero, not even the header, which did on the first model. The two models differ in what the caller costs. deepseek-v3.2 starts three times more sensitive (d′ 1.08 against 0.37) and the caller costs it 2.5 points on the twins rather than 27, so the 15-point gain on the defects survives into balanced accuracy, +6.3 [+0.8, +11.3], where on gpt-4o-mini it did not; foreign code of the same length gains 8.6 points of detection on this model, half the caller's. Everything stated about the dependency on top of the caller adds nothing on either model: the bare link −1.2 and the wrong link +0.2 points of balanced accuracy here, −1.9 and −7.3 there. What the second model adds, then, is a bound on the first reading: code that a stronger model can use does move balanced accuracy, by six points; the metadata about it moves the threshold on both models and the sensitivity on neither.
+
 ## 4.4 Test verification of the generated defects
 
 Of the second version's defects, 86 were run against their repositories' own test suites (`results/test-verified/`): 17 are test-verified, meaning a test that passed before the mutation fails after it; 28 are not caught by the tests selected for the mutated module; 24 repositories could not be installed in the sandbox (native builds, a Python 3.13 requirement); 11 had no passing test before the mutation and 6 had no test to select. Among the 45 that could be run to a verdict, 38% are caught by an existing test. The test-verified defects are 9 default flips, 6 tuple reorderings and 2 `None` sentinels, from eight repositories. The same check on all 277 third-version defects (`results/test-verified/summary-v3.txt`) reaches a verdict for 59: 32 are test-verified and 27 are not caught, so 54% of those with a verdict, and 12% of all 277, are caught by an existing test. The rest could not be run: 159 repositories failed to install in the sandbox, the third version's pools include heavier projects than the second's, 46 modules had no passing test before the mutation, 7 had no test to select, and 6 timed out or errored. The test-verified defects are 16 default flips, 15 tuple reorderings and one `None` sentinel, from nine repositories; their task identifiers are listed in the summary file, so a reader who wants the executable subset has it.

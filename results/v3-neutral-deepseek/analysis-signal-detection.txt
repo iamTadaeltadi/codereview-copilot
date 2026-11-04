@@ -1,0 +1,13 @@
+signal detection: results/v3-neutral-deepseek/structure-shard0.jsonl results/v3-neutral-deepseek/structure-shard1.jsonl results/v3-neutral-deepseek/structure-shard2.jsonl results/v3twins-neutral-deepseek/structure-shard0.jsonl results/v3twins-neutral-deepseek/structure-shard1.jsonl results/v3twins-neutral-deepseek/structure-shard2.jsonl
+repositories: 37; defects: 251; twins: 158; bootstrap over repositories, 6000 trials, seed 0
+
+  arm                 H      F  d-prime  95%                      c  95%                d'-d'(diff) 95%        c-c(diff) 95%
+  1-diff          0.438  0.108     1.08  [+0.67, +1.61]     0.70  [+0.48, +0.98]  +0.00 [+0.00, +0.00]  +0.00 [+0.00, +0.00]
+  2-evidence      0.588  0.133     1.34  [+0.99, +1.76]     0.45  [+0.20, +0.74]  +0.25 [-0.18, +0.64]  -0.25 [-0.43, -0.06]
+  2b-snippets     0.614  0.209     1.10  [+0.75, +1.48]     0.26  [+0.05, +0.49]  +0.02 [-0.35, +0.32]  -0.44 [-0.61, -0.30]
+  3-topology      0.624  0.190     1.19  [+0.88, +1.56]     0.28  [+0.06, +0.52]  +0.11 [-0.30, +0.45]  -0.42 [-0.60, -0.25]
+  4-typed         0.636  0.228     1.09  [+0.74, +1.51]     0.20  [-0.02, +0.44]  +0.01 [-0.51, +0.45]  -0.50 [-0.70, -0.32]
+  5-attributed    0.609  0.209     1.09  [+0.70, +1.55]     0.27  [+0.04, +0.54]  +0.00 [-0.40, +0.39]  -0.43 [-0.62, -0.25]
+  6-corrupted     0.639  0.177     1.28  [+0.93, +1.71]     0.29  [+0.06, +0.53]  +0.20 [-0.26, +0.58]  -0.41 [-0.59, -0.25]
+  7-random        0.526  0.095     1.38  [+0.91, +2.07]     0.62  [+0.38, +0.99]  +0.29 [-0.11, +0.83]  -0.07 [-0.24, +0.15]
+  8-header        0.478  0.120     1.12  [+0.72, +1.65]     0.61  [+0.36, +0.94]  +0.03 [-0.28, +0.40]  -0.08 [-0.21, +0.09]

@@ -1218,3 +1218,14 @@ The run-4 lead does not replicate on the second model; the paper reports it so.
 **Secondary.** H per arm with its interval (`analyse_structure.py --metric hit`); balanced accuracy per arm against the diff (`--metric correct` over defects and twins together); the precise-line rate. *Disclosure:* on gpt-4o-mini the primary reads c −1.78 [−2.00, −1.60] and d′ −0.72 [−1.13, −0.29]; the deepseek twin F values are known (diff 0.108, attributed 0.209), the H values are not.
 
 **Stop rule.** $1.50 recorded; the twins run cost $0.55 for 1,422 replies, so 2,439 replies are expected near $1.00; the account holds about $1.9, and credit exhaustion is reported as such. Afterwards the result goes into 4.3 beside the gpt-4o-mini table, whatever its sign.
+
+**Outcome, 4 November 2026 (`results/v3-neutral-deepseek/`, PARTIAL).** The $1.50 rule stopped the
+run at $1.51 and 2,243 replies: the cost per reply was $0.00067, not the $0.00039 of the twins. 244 of
+277 defects are paired on all nine arms, 26 were never reached, 5 calls failed on the network; the
+run was not resumed, since that would change a stop rule after seeing the data, and the 244 are
+reported as partial. Primary, both parts hold: attributed − diff c −0.43 [−0.62, −0.25], d′ +0.00
+[−0.40, +0.39]; every arm with caller code or metadata lowers c by an interval excluding zero and
+leaves d′ within noise. Secondary: diff H 0.43, d′ 1.08 (gpt-4o-mini 0.30, 0.37); the tolerant
+caller raises balanced accuracy by 6.3 [+0.8, +11.3] on this model, where it lowered it on
+gpt-4o-mini, because the caller costs this model 2.5 points on the twins, not 27; metadata on top
+of the caller adds nothing on either model. Goes into 4.3 beside the gpt-4o-mini tables.

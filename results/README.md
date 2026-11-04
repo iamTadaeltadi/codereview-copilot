@@ -43,4 +43,5 @@ review found five instrument defects; see `WITHDRAWN-v2-structure.md` and
 | `v3twins-neutral-gpt4omini/` | the same twins under the neutral prompt (`--neutral-prompt`), gpt-4o-mini |
 | `v3-neutral-gpt4omini/` | the 277 defects under the neutral prompt, gpt-4o-mini; `analysis-balanced-with-twins.txt` combines it with the neutral twins into balanced accuracy |
 | `v3twins-neutral-deepseek/` | the same twins under the neutral prompt, deepseek-v3.2, three parallel shards of one file (see its README) |
+| `v3-neutral-deepseek/` | PARTIAL, stopped by the $1.50 rule at 244 of 277 defects paired: the 277 defects under the neutral prompt on deepseek-v3.2 (PLAN.md §13), nine arms, three shards; with `v3twins-neutral-deepseek/` gives d′/c on a second model: attributed − diff c −0.43 [−0.62, −0.25], d′ +0.00 [−0.40, +0.39]; balanced accuracy +6.3 [+0.8, +11.3] for the caller alone |
 | `test-verified/` | each repository's own tests run before and after each mutation; `summary.txt` has the funnel |
