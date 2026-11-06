@@ -1332,7 +1332,7 @@ Currently the only test that throws this warning now is ``test_restore_models/te
          self.current_epoch = checkpoint['epoch']
  
 +        # Deals with peculiarity of different global step for odd vs even num_training_batches
-+        if abs((self.global_step + 1) % self.num_training_batches) > 1:",wrong-reason,,
++        if abs((self.global_step + 1) % self.num_training_batches) > 1:",wrong-reason,no,
 45,Cx,certbot__certbot-9208@2584184,certbot__certbot-9208@2584184#1,certbot/certbot/_internal/auth_handler.py,112,"@user1:
 I think it's probably worth moving this block into its own function, which summarizes the challenges as a string.",115,The notification message is constructed without considering the case where no challenges are present. This could lead to misleading output.,"@@ -87,9 +87,34 @@ def handle_authorizations(self, orderr: messages.OrderResource,
  
@@ -1360,7 +1360,7 @@ I think it's probably worth moving this block into its own function, which summa
 +                            msg.append(""\nThe following FQDNs should return a TXT resource ""
 +                                       ""record with the value mentioned:\n"")
 +                            for fqdn, token in dns01_achalls.items():
-+                                msg.append(f""{fqdn}: {token}"")",,,
++                                msg.append(f""{fqdn}: {token}"")",wrong-reason,no,
 46,B,home-assistant__core-121178@b09b3b5,home-assistant__core-121178@b09b3b5#0,homeassistant/components/shelly/sensor.py,998,"@user1:
 Shouldn't we test for get('freq') is None like we do for xfreq ?
 
@@ -1382,7 +1382,7 @@ yup, `percent `and `xpercent` for **analog**, `freq` and `xfreq` for **count**",
          state_class=SensorStateClass.MEASUREMENT,
 -        value=lambda status, _: status[""freq""],
 -        removal_condition=lambda config, status, key: (config[key][""enable""] is False),
-+        removal_condition=lambda config, _, key: (config[key][""enable""] is False),",,,
++        removal_condition=lambda config, _, key: (config[key][""enable""] is False),",wrong-reason,no,
 47,A,voxel51__fiftyone-4236@2af48de,voxel51__fiftyone-4236@2af48de#0,fiftyone/__init__.py,32,"@user1:
 @author can you explain why the docs build is causing us problems here? Would love to avoid needing `_FIFTYONE_FORCE_DB_CONNECT_ON_IMPORT` if at all possible
 
@@ -1429,7 +1429,7 @@ I thought I had tried that too but oh well glad it works!",35,"The import of fif
 +# The old way of doing things, migrating database on import. If we
 +#   REALLY need to do this, for example doc build, we can.
 +if (
-+    _os.environ.get(""FIFTYONE_DISABLE_SERVICES"", ""0"") != ""1""",,,
++    _os.environ.get(""FIFTYONE_DISABLE_SERVICES"", ""0"") != ""1""",wrong-reason,no,
 48,C,matplotlib__matplotlib-24111@3f99c20,matplotlib__matplotlib-24111@3f99c20#0,lib/matplotlib/cm.py,210,"@user1:
 We may want to transform this into a ValueError. `get_cmap` is less a lookup and more a transformation function.
 
@@ -1461,7 +1461,7 @@ If you're going to check strings, then I'd think it would be `if isinstance(cmap
 +
 +        Raises
 +        ------
-+        KeyError",,,
++        KeyError",wrong-reason,no,
 49,D,sympy__sympy-16133@82bdbae,sympy__sympy-16133@82bdbae#0,sympy/logic/boolalg.py,1873,"@user1:
 You can use/modify `ibin` from iterables.
 
@@ -1471,7 +1471,7 @@ Thanks!",1878,"The function _binary_from_list_or_number does not handle cases wh
      return essential
  
 +def _binary_from_list_or_number(lon, bits):
-+        def tobin(n, bits):",,,
++        def tobin(n, bits):",wrong-reason,no,
 50,C,sympy__sympy-19254@8adfdbe,sympy__sympy-19254@8adfdbe#0,sympy/polys/factortools.py,140,"@user1:
 `binomial` is not defined.
 
@@ -1503,4 +1503,4 @@ If you want to resolve the circular import issue, you should import inside the f
 +    eucl_norm = K.sqrt( sum( [cf**2 for cf in f] ) )
 +
 +    # biggest values of binomial coefficients (p. 538 of reference)
-+    t1 = binomial( delta - 1, _ceil( delta / 2 ) )",,,
++    t1 = binomial( delta - 1, _ceil( delta / 2 ) )",wrong-reason,no,
