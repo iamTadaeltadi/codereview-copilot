@@ -1,0 +1,45 @@
+Hand-label summary: 50 hits from c-CRAB run 4 (results/ccrab-final/hand-label-hits.csv)
+Human labels: labels-tadael.csv (Tadael Shewarega, blind). LLM labels: labels-llm.csv (claude-fable-5-1, 1 = explains, 0 = not).
+Generated 2026-11-06. Labelling by one author only; no second human labeller.
+
+Rows with a human label: 44 of 50. Missing (not received): 45, 46, 47, 48, 49, 50.
+Pending recheck (human 'explains' with ai_point_valid = no, self-contradictory): 2, 34. Kept as labelled below.
+Rows with a label but no ai_point_valid: 44.
+All statistics below are over the labelled rows only.
+
+Human label counts: explains 6, partial 2, wrong-reason 36
+ai_point_valid counts: blank 1, no 33, yes 10
+
+(1) Agreement, human 'explains' vs LLM 1  (n = 44)
+  agreement 95.5%  Cohen's kappa 0.831
+                 LLM 1   LLM 0
+  human yes          6       0
+  human no           2      36
+  disagreements: 30, 38
+
+(1b) Agreement, human 'explains'+'partial' vs LLM 1  (n = 44)
+  agreement 100.0%  Cohen's kappa 1.000
+                 LLM 1   LLM 0
+  human yes          8       0
+  human no           0      36
+  disagreements: none
+
+(2) 'explains' rate, Wilson 95%
+  group   k/n     rate    95% interval
+  all     6/44    13.6%  [  6.4,  26.7]
+  A       1/9     11.1%  [  2.0,  43.5]
+  B       1/9     11.1%  [  2.0,  43.5]
+  C       2/8     25.0%  [  7.1,  59.1]
+  Cx      2/9     22.2%  [  6.3,  54.7]
+  D       0/9      0.0%  [  0.0,  29.9]
+
+(3) 'explains'+'partial' rate, Wilson 95%
+  group   k/n     rate    95% interval
+  all     8/44    18.2%  [  9.5,  32.0]
+  A       1/9     11.1%  [  2.0,  43.5]
+  B       3/9     33.3%  [ 12.1,  64.6]
+  C       2/8     25.0%  [  7.1,  59.1]
+  Cx      2/9     22.2%  [  6.3,  54.7]
+  D       0/9      0.0%  [  0.0,  29.9]
+
+Note: condition A has no cross-file context (diff only); B/C/Cx/D are the context conditions. Per-condition n is at most 10, so the intervals are wide.

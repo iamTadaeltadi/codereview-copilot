@@ -5,6 +5,12 @@ checks whether a hit also states the reviewer's problem. 50 hits, ten per condit
 drawn with `random.Random(0)` from run 4's matched findings and shuffled; the condition column is kept
 so the result can be split by condition afterwards, but label without looking at it.
 
+Labelling is done by one author only (Tadael Shewarega), blind. There is no second human labeller.
+Files: `labels-blank.csv` (the unlabelled sheet), `labels-tadael-raw.csv` (the author's labels as
+submitted), `labels-tadael.csv` (merged into the sheet, with an `ai_point_valid` column), `labels-llm.csv`
+(claude-fable-5-1's labels, recorded separately for an agreement check only, not as a second annotator),
+`hand-label-summary.txt` (agreement, kappa, Wilson intervals).
+
 Columns: `reference_comment` is the human review comment (the ground truth); `model_finding` is the
 model's matched finding; `defect_line` / `model_line` / `line_distance` say where each sits; `hunk` is
 the reviewed hunk for context. Fill `label` with one of:

@@ -1,0 +1,1506 @@
+sample_id,condition,task_id,defect_id,path,defect_line,reference_comment,model_line,model_finding,hunk,label,ai_point_valid,note
+1,D,sympy__sympy-18410@189871b,sympy__sympy-18410@189871b#0,sympy/solvers/tests/test_ode.py,3843,"@user1:
+Since these ODEs can already be solved on master these tests should specify the hint as in `hint='nth_..._undetermined_coefficients'`.
+
+@author:
+> What happens if the rhs includes both a hyperbolic function and exp(x)? Does it get confused? We should add a test for this.
+
+It treats them seperately and i have added test for this .",3844,The assertion for the dsolve result involving sinh(3*x) may not be valid if the underlying logic for handling sinh has not been properly tested or validated in the context of the changes made.,"@@ -3830,3 +3830,15 @@ def test_issue_15996():
+     sol = Eq(f(x), C1 + (C2 + C3*x - x**2/8 + 5*exp(2*I*x)/16)*sin(x) + (C4 + C5*x + I*x**2/8 + 5*I*exp(2*I*x)/16)*cos(x) - I*exp(I*x))
+     assert sol == dsolve(eq, hint='nth_linear_constant_coeff_variation_of_parameters')
+     assert checkodesol(eq, sol) == (True, 0)
++
++
++def test_issue_18408():
++    eq = f(x).diff(x, 3) - f(x).diff(x) - sinh(x)
++    sol = Eq(f(x), C1 + C2*exp(-x) + C3*exp(x) + x*sinh(x)/2)
++    assert sol == dsolve(eq)
++    assert checkodesol(eq, sol) == (True, 0)
++
++    eq = f(x).diff(x, 2) - 49*f(x) - sinh(3*x)
++    sol = Eq(f(x), C1*exp(-7*x) + C2*exp(7*x) - sinh(3*x)/40)
++    assert sol == dsolve(eq)",wrong-reason,no,
+2,A,ray-project__ray-49918@04cf1ee,ray-project__ray-49918@04cf1ee#0,python/ray/tests/test_actor_failures.py,1010,"@user1:
+is this intended to be deleted or uncommented?
+
+@author:
+fixed",1010,The commented-out assertions in the test case may indicate incomplete testing of the exit behavior for async actors.,"@@ -910,83 +911,175 @@ def f():
+     ):
+         ray.get(f.remote())
+ 
+-    """"""
+-    Verify the basic case.
+-    """"""
++
++def test_exit_actor_normal_actor_raise_immediately(shutdown_only, tmp_path):
++    temp_file_atexit = tmp_path / ""atexit.log""
++    temp_file_after_exit_actor = tmp_path / ""after_exit_actor.log""
++    assert not temp_file_atexit.exists()
++    assert not temp_file_after_exit_actor.exists()
+ 
+     @ray.remote
+     class Actor:
+-        def exit(self):
+-            exit_actor()
++        def __init__(self):
++            def f():
++                temp_file_atexit.touch()
+ 
+-    @ray.remote
+-    class AsyncActor:
+-        async def exit(self):
++            atexit.register(f)
++
++        def exit(self):
+             exit_actor()
++            # The following code should not be executed.
++            temp_file_after_exit_actor.touch()
+ 
+     a = Actor.remote()
+     ray.get(a.__ray_ready__.remote())
+     with pytest.raises(ray.exceptions.RayActorError) as exc_info:
+         ray.get(a.exit.remote())
+     assert ""exit_actor()"" in str(exc_info.value)
+ 
+-    b = AsyncActor.remote()
+-    ray.get(b.__ray_ready__.remote())
+-    with pytest.raises(ray.exceptions.RayActorError) as exc_info:
+-        ray.get(b.exit.remote())
+-    assert ""exit_actor()"" in str(exc_info.value)
++    def verify():
++        return temp_file_atexit.exists()
+ 
+-    """"""
+-    Verify atexit handler is called correctly.
+-    """"""
+-    sync_temp_file = tmp_path / ""actor.log""
+-    async_temp_file = tmp_path / ""async_actor.log""
+-    sync_temp_file.touch()
+-    async_temp_file.touch()
++    wait_for_condition(verify)
++    time.sleep(3)
++    assert not temp_file_after_exit_actor.exists()
++
++
++def test_exit_actor_normal_actor_user_catch_err_should_still_exit(
++    shutdown_only, tmp_path
++):
++    temp_file = tmp_path / ""actor.log""
++    assert not temp_file.exists()
+ 
+     @ray.remote
+     class Actor:
+-        def __init__(self):
+-            def f():
+-                print(""atexit handler"")
+-                with open(sync_temp_file, ""w"") as f:
+-                    f.write(""Actor\n"")
++        def exit(self):
++            try:
++                exit_actor()
++            except SystemExit:
++                pass
+ 
+-            atexit.register(f)
++        def create(self):
++            temp_file.touch()
+ 
+-        def exit(self):
+-            exit_actor()
++    a = Actor.remote()
++    ray.get(a.__ray_ready__.remote())
++    with pytest.raises(ray.exceptions.RayActorError):
++        ray.get(a.exit.remote())
++
++    with pytest.raises(ray.exceptions.RayActorError):
++        ray.get(a.create.remote())
++
++    assert not temp_file.exists()
++
++
++def test_exit_actor_async_actor_raise_immediately(shutdown_only, tmp_path):
++    temp_file_atexit = tmp_path / ""atexit.log""
++    temp_file_after_exit_actor = tmp_path / ""after_exit_actor.log""
++    assert not temp_file_atexit.exists()
++    assert not temp_file_after_exit_actor.exists()
+ 
+     @ray.remote
+     class AsyncActor:
+         def __init__(self):
+             def f():
+-                print(""atexit handler"")
+-                with open(async_temp_file, ""w"") as f:
+-                    f.write(""Async Actor\n"")
++                temp_file_atexit.touch()
+ 
+             atexit.register(f)
+ 
+         async def exit(self):
+             exit_actor()
++            # The following code should not be executed.
++            temp_file_after_exit_actor.touch()
+ 
+-    a = Actor.remote()
++    a = AsyncActor.remote()
++    ray.get(a.__ray_ready__.remote())
++
++    try:
++        ray.get(a.exit.remote())
++    except Exception:
++        pass
++
++    # with pytest.raises(ray.exceptions.RayActorError) as exc_info:
++    #     ray.get(a.exit.remote())
++    # assert (
++    #     # Exited when task execution returns
++    #     ""exit_actor()"" in str(exc_info.value)
++    #     # Exited during periodical check in worker
++    #     or ""User requested to exit the actor"" in str(exc_info.value)
++    # )",explains,no,
+3,C,pandas-dev__pandas-18604@8c9061b,pandas-dev__pandas-18604@8c9061b#0,pandas/io/excel.py,230,"@user1:
+This is not generalizable.  What happens if I were to pass in an argument called ""Sheet"" ?  Your check wouldn't catch that.  You should develop a more general checker that checks for **any** keywords that don't correspond to ones that we accept.",229,"The error message for the unexpected keyword argument 'sheet' does not provide guidance on what the correct argument should be, which could confuse users.","@@ -225,6 +225,9 @@ def read_excel(io, sheet_name=0, header=0, skiprows=None, skip_footer=0,
+     elif 'sheetname' in kwds:
+         raise TypeError(""Cannot specify both `sheet_name` and `sheetname`. ""
+                         ""Use just `sheet_name`"")
++    if 'sheet' in kwds:
++        raise TypeError(""read_excel() got an unexpected keyword argument ""
++                        ""`sheet`"")",wrong-reason,no,
+4,B,certbot__certbot-9208@2584184,certbot__certbot-9208@2584184#1,certbot/certbot/_internal/auth_handler.py,112,"@user1:
+I think it's probably worth moving this block into its own function, which summarizes the challenges as a string.",115,"The notification message is constructed without ensuring that 'msg' is not empty. If both challenge types are absent, it may lead to misleading output.","@@ -87,9 +87,34 @@ def handle_authorizations(self, orderr: messages.OrderResource,
+ 
+                 # If debug is on, wait for user input before starting the verification process.
+                 if config.debug_challenges:
++                    msg = []
++                    if config.verbose_count > 0:
++                        http01_achalls = {}
++                        dns01_achalls = {}
++                        for achall in achalls:
++                            if isinstance(achall.chall, challenges.HTTP01):
++                                http01_achalls[achall.chall.uri(achall.domain)] = (
++                                    achall.validation(achall.account_key) + ""\n""
++                                )
++                            if isinstance(achall.chall, challenges.DNS01):
++                                dns01_achalls[achall.validation_domain_name(achall.domain)] = (
++                                    achall.validation(achall.account_key) + ""\n""
++                                )
++                        if http01_achalls:
++                            msg.append(""\nThe following URLs should be accessible from the world ""
++                                       ""wide web and return the value mentioned:\n"")
++                            for uri, token in http01_achalls.items():
++                                msg.append(f""{uri}: {token}"")
++                        if dns01_achalls:
++                            msg.append(""\nThe following FQDNs should return a TXT resource ""
++                                       ""record with the value mentioned:\n"")
++                            for fqdn, token in dns01_achalls.items():
++                                msg.append(f""{fqdn}: {token}"")",wrong-reason,no,
+5,Cx,optuna__optuna-3629@f4f6b5f,optuna__optuna-3629@f4f6b5f#0,optuna/study/study.py,966,"@user1:
+Should we prefer `atol=0.0` as described in https://numpy.org/doc/stable/reference/generated/numpy.isclose.html?
+
+```suggestion
+                    if np.isnan(param_value) or np.isclose(param_value, existing_param, atol=0.0):
+```",966,"Using np.isclose for comparing floating point values may not be appropriate in all cases, as it assumes a tolerance which might not be suitable for all parameters.","@@ -928,6 +945,31 @@ def _pop_waiting_trial_id(self) -> Optional[int]:
+ 
+         return None
+ 
++    def _should_skip_enqueue(self, params: Dict[str, Any]) -> bool:
++
++        for trial in self.get_trials(deepcopy=False):
++            trial_params = trial.system_attrs.get(""fixed_params"", trial.params)
++            if trial_params.keys() != params.keys():
++                # Can't have repeated trials if different params are suggested.
++                continue
++
++            for param_name, param_value in params.items():
++                existing_param = trial_params[param_name]
++                if not isinstance(param_value, type(existing_param)):
++                    # Enqueued param has distribution that does not match existing param
++                    # (e.g. trying to enqueue categorical to float param).
++                    # We are not doing anything about it here, since sanitization should
++                    # be handled regardless if `skip_if_exists` is `True`.
++                    continue
++
++                if isinstance(param_value, (float, np.floating)):
++                    if np.isnan(param_value) or np.isclose(param_value, existing_param):",explains,yes,
+6,B,tobymao__sqlglot-5284@3f57fcd,tobymao__sqlglot-5284@3f57fcd#0,sqlglot/dialects/databricks.py,91,"@user1:
+```suggestion
+            exp.GroupConcat: groupconcat_sql,
+```
+
+@author:
+right",91,"The lambda function for exp.GroupConcat may not handle all cases correctly, especially if 'e' does not conform to expected structure.","@@ -87,6 +88,7 @@ class Generator(Spark.Generator):
+                 e.this,
+             ),
+             exp.DatetimeTrunc: timestamptrunc_sql(),
++            exp.GroupConcat: lambda self, e: groupconcat_sql(self, e),",wrong-reason,no,
+7,A,localstack__localstack-12496@22b4c31,localstack__localstack-12496@22b4c31#0,localstack-core/localstack/services/stepfunctions/stepfunctions_utils.py,72,"@user1:
+small nit: we should have the same function already in [here](https://github.com/localstack/localstack/blob/4fac1ca9cbb2ea285204fb30f6da4f89bdeca402/localstack-core/localstack/services/sqs/utils.py#L189-L192). Could we maybe move it somewhere in the `utils` package and avoid this repetition?
+
+@author:
+Let me look into that
+
+@author:
+Moved to utils and updated sqs as well",72,tokenize_item function does not handle exceptions that may arise from base64 encoding.,"@@ -67,3 +67,9 @@ def assert_pagination_parameters_valid(
+         errors_message = ""; "".join(validation_errors)
+         message = f""{len(validation_errors)} validation {'errors' if len(validation_errors) > 1 else 'error'} detected: {errors_message}""
+         raise ValidationException(message)
++
++
++def tokenize_item(item: str) -> str:",wrong-reason,no,
+8,C,deepset-ai__haystack-5467@cc8b6d5,deepset-ai__haystack-5467@cc8b6d5#0,haystack/preview/components/file_converters/txt.py,216,"@user1:
+Is 0.4 some well-known ratio, perhaps it deserve a constant or more explanation, even parameter setting, idk?
+
+@author:
+This was hard-coded in v1, I guess it makes sense to parametrize it.",216,"The condition for identifying a numeric row may lead to incorrect results if the line contains no words, as it would cause a division by zero when calculating len(digits) / len(words). This case should be handled.","@@ -0,0 +1,234 @@
++import logging
++from pathlib import Path
++from typing import Optional, List, Union, Dict
++
++from canals.errors import PipelineRuntimeError
++from tqdm import tqdm
++
++from haystack import Document
++from haystack.lazy_imports import LazyImport
++from haystack.preview import component
++
++with LazyImport(""Run 'pip install farm-haystack[preprocessing]'"") as langdetect_import:
++    import langdetect
++
++
++logger = logging.getLogger(__name__)
++
++
++@component
++class TextfileToDocument:
++    """"""
++    A component for converting a text file to a Document.
++    """"""
++
++    @component.input
++    def input(self):
++        class Input:
++            """"""
++            Input data for the TextfileToDocument component.
++
++            :param paths: A list of paths to text files.
++            :param meta: Optional metadata to attach to the Documents. If a list is provided, the length of the list
++                         must match the number of paths.
++                         Default: `None`
++            :param encoding: The encoding of the text files. Default: `""utf-8""`
++            :param remove_numeric_tables: This option uses heuristics to remove numeric rows from the tables.
++                                          The tabular structures in documents might be noise for reader models if they
++                                          don't have table parsing capability for finding answers. However, tables
++                                          may also have long strings that could be possible candidates for answers.
++                                          The rows containing strings are thus retained in this option.
++                                          Default: `False`
++            :param valid_languages: Validate languages from a list of languages specified in the [ISO 639-1 format]((https://en.wikipedia.org/wiki/ISO_639-1)).
++                                    This option can be used to add a test for encoding errors. If the extracted text is
++                                    not one of the valid languages, then there might be an encoding error resulting
++                                    in garbled text.
++                                    Default: `None`
++            :param id_hash_keys: Generate the Document ID from a custom list of strings that refer to the Document's
++                                 attributes. If you want to ensure you don't have duplicate Documents in your
++                                 DocumentStore but texts are not unique, you can modify the metadata and pass e.g.
++                                 `""meta""` to this field (for example `[""content"", ""meta""]`).
++                                 In this case the ID will be generated by using the content and the defined metadata.
++                                 Default: `None`
++            :param progress_bar: Whether to show a progress bar for the conversion process.
++                                 Default: `True`
++            """"""
++
++            paths: List[Union[str, Path]]
++            meta: Optional[Union[Dict, List[Dict]]]
++            encoding: Optional[str]
++            remove_numeric_tables: Optional[bool]
++            valid_languages: Optional[List[str]]
++            id_hash_keys: Optional[List[str]]
++            progress_bar: Optional[bool]
++
++        return Input
++
++    @component.output
++    def output(self):
++        class Output:
++            """"""
++            Output data from the TextfileToDocument component.
++
++            :param documents: The converted documents.
++            """"""
++
++            documents: List[Document]
++
++        return Output
++
++    def __init__(
++        self,
++        encoding: str = ""utf-8"",
++        remove_numeric_tables: bool = False,
++        valid_languages: Optional[List[str]] = None,
++        id_hash_keys: Optional[List[str]] = None,
++        progress_bar: bool = True,
++    ):
++        """"""
++        Create a TextfileToDocument component.
++
++        :param encoding: The encoding of the text files. Default: `""utf-8""`
++        :param remove_numeric_tables: This option uses heuristics to remove numeric rows from the tables.
++                                      The tabular structures in documents might be noise for reader models if they
++                                      don't have table parsing capability for finding answers. However, tables
++                                      may also have long strings that could be possible candidates for answers.
++                                      The rows containing strings are thus retained in this option.
++                                      Default: `False`
++        :param valid_languages: Validate languages from a list of languages specified in the [ISO 639-1 format]((https://en.wikipedia.org/wiki/ISO_639-1)).
++                                This option can be used to add a test for encoding errors. If the extracted text is
++                                not one of the valid languages, then there might be an encoding error resulting
++                                in garbled text.
++                                Default: `None`
++        :param id_hash_keys: Generate the Document ID from a custom list of strings that refer to the Document's
++                             attributes. If you want to ensure you don't have duplicate Documents in your DocumentStore
++                             but texts are not unique, you can modify the metadata and pass e.g. `""meta""` to this field
++                             (for example `[""content"", ""meta""]`). In this case the ID will be generated by using the
++                             content and the defined metadata. Default: `None`
++        :param progress_bar: Whether to show a progress bar for the conversion process.
++                             Default: `True`
++        """"""
++        langdetect_import.check()
++
++        self.defaults = {
++            ""encoding"": encoding,
++            ""remove_numeric_tables"": remove_numeric_tables,
++            ""valid_languages"": valid_languages,
++            ""id_hash_keys"": id_hash_keys,
++            ""progress_bar"": progress_bar,
++        }
++
++    def run(self, data):
++        """"""
++        Convert text files to Documents.
++
++        :param data: Input data for the TextfileToDocument component.
++        """"""
++        file_paths = data.paths
++        metas = TextfileToDocument._prepare_metadata(data.meta, file_paths)
++
++        documents = []
++        for path, meta in tqdm(
++            zip(file_paths, metas), total=len(file_paths), desc=""Converting text files"", disable=not data.progress_bar
++        ):
++            text = TextfileToDocument._read_and_clean_file(
++                path=path, encoding=data.encoding, remove_numeric_tables=data.remove_numeric_tables
++            )
++
++            if data.valid_languages is not None:
++                if not TextfileToDocument._validate_language(text, data.valid_languages):
++                    logger.warning(
++                        ""Text from file %s is not in one of the valid languages: %s. ""
++                        ""The file may have been decoded incorrectly."",
++                        path,
++                        data.valid_languages,
++                    )
++
++            document = Document(content=text, meta=meta, id_hash_keys=data.id_hash_keys)
++            documents.append(document)
++
++        return self.output(documents=documents)
++
++    @staticmethod
++    def _prepare_metadata(meta: Optional[Union[Dict, List[Dict]]], file_paths: List[Union[str, Path]]) -> List[Dict]:
++        """"""
++        Prepare the metadata for the Documents.
++
++        :param meta: The metadata for the Documents.
++        :param file_paths: The paths to the text files.
++        """"""
++        if meta is None:
++            return [{""file_path"": str(path)} for path in file_paths]
++
++        if isinstance(meta, dict):
++            meta = [meta] * len(file_paths)
++
++        if len(meta) != len(file_paths):
++            raise PipelineRuntimeError(
++                f""The number of meta entries must match the number of paths if meta is a list. ""
++                f""Number of paths: {len(file_paths)}, number of meta entries: {len(meta)}""
++            )
++
++        return [{**m, ""file_path"": m.get(""file_path"", str(path))} for m, path in zip(meta, file_paths)]
++
++    @staticmethod
++    def _read_and_clean_file(path: Union[str, Path], encoding: str, remove_numeric_tables: bool) -> str:
++        """"""
++        Read and clean the text file.
++
++        :param path: The path to the text file.
++        :param encoding: The encoding of the text file.
++        :param remove_numeric_tables: Whether to remove numeric tables.
++        """"""
++        if not Path(path).exists():
++            raise PipelineRuntimeError(f""File at path {path} does not exist."")
++
++        with open(path, encoding=encoding) as file:
++            text = file.read()
++            pages = text.split(""\f"")
++            cleaned_pages = [TextfileToDocument._clean_page(page, remove_numeric_tables) for page in pages]
++            return ""\f"".join(cleaned_pages)
++
++    @staticmethod
++    def _clean_page(page: str, remove_numeric_tables: bool) -> str:
++        """"""
++        Clean a page of text from numeric tables if `remove_numeric_tables` is `True`.
++
++        :param page: The page of text.
++        :param remove_numeric_tables: Whether to remove numeric tables.
++        """"""
++        cleaned_lines = page.splitlines()
++        if remove_numeric_tables:
++            cleaned_lines = [line for line in cleaned_lines if not TextfileToDocument._is_numeric_row(line)]
++
++        return ""\n"".join(cleaned_lines)
++
++    @staticmethod
++    def _is_numeric_row(line: str) -> bool:
++        """"""
++        Check if a line is a numeric row. A line is considered a numeric row if it contains more than 40% digits and
++        does not end with a period.
++
++        :param line: The line to check.
++        """"""
++        words = line.split()
++        digits = [word for word in words if any(char.isdigit() for char in word)]
++        return len(digits) / len(words) > 0.4 and not line.strip().endswith(""."")",wrong-reason,yes,
+9,D,python__mypy-4341@2456414,python__mypy-4341@2456414#0,mypy/dmypy.py,180,"@user1:
+Should we display some information about the exception, since we are catching arbitrary exceptions? An exception could be caused by a bug in dmypy.",185,"The function wait_for_server does not handle the case where the daemon never starts, leading to a potential infinite loop.","@@ -196,14 +162,67 @@ def wait_for_server(timeout: float = 5.0) -> None:
+     sys.exit(""Timed out waiting for daemon to start"")
+ 
+ 
++@action(status_parser)
++def do_status(args: argparse.Namespace) -> None:
++    """"""Print daemon status.
++
++    This verifies that it is responsive to requests.
++    """"""
++    status = read_status()
++    if args.verbose:
++        show_stats(status)
++    check_status(status)
++    try:
++        response = request('status', timeout=5)
++    except BadStatus:
++        raise
++    except Exception as err:
++        print(""Daemon is stuck; consider %s kill"" % sys.argv[0])",wrong-reason,no,
+10,A,deepset-ai__haystack-9290@3f511f6,deepset-ai__haystack-9290@3f511f6#0,haystack/components/agents/agent.py,146,"@user1:
+I just realized we are only passing the streaming call back to the ToolInvoker at init time. Which means the ToolResult can't be streamed if the streaming call back is only provided at run time. 
+
+I think we should follow the pattern we use for our chat generator and only pass the streaming callback at run time for the ToolInvoker too. Could you add streaming_callback as an option to the runtime of the ToolInvoker and pass it at runtime in the agent?",146,"The streaming_callback is set to None if stream_tool_result is False, which may lead to unexpected behavior if the caller expects a callback to always be provided.","@@ -134,7 +140,11 @@ def __init__(
+ 
+         self._tool_invoker = None
+         if self.tools:
+-            self._tool_invoker = ToolInvoker(tools=self.tools, raise_on_failure=self.raise_on_tool_invocation_failure)
++            self._tool_invoker = ToolInvoker(
++                tools=self.tools,
++                raise_on_failure=self.raise_on_tool_invocation_failure,
++                streaming_callback=self.streaming_callback if stream_tool_result else None,",wrong-reason,no,
+11,Cx,sympy__sympy-16133@82bdbae,sympy__sympy-16133@82bdbae#0,sympy/logic/boolalg.py,1873,"@user1:
+You can use/modify `ibin` from iterables.
+
+@author:
+Thanks!",1878,"The function _binary_from_list_or_number does not handle cases where 'lon' is a list of lists or nested structures, which could lead to incorrect behavior when passing complex inputs.","@@ -1869,6 +1869,12 @@ def _rem_redundancy(l1, terms):
+ 
+     return essential
+ 
++def _binary_from_list_or_number(lon, bits):
++        def tobin(n, bits):",wrong-reason,no,
+12,Cx,certbot__certbot-7270@65f464e,certbot__certbot-7270@65f464e#0,certbot/tests/util_test.py,66,"@user1:
+This should be deleted.
+
+@author:
+Done.",70,"The context manager _fix_windows_runtime may not handle all edge cases for Windows file permissions, potentially leading to unreliable tests.","@@ -52,26 +53,26 @@ def _call(cls, exe):
+         from certbot.util import exe_exists
+         return exe_exists(exe)
+ 
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_full_path(self, mock_access, mock_isfile):
+-        mock_access.return_value = True
+-        mock_isfile.return_value = True
+-        self.assertTrue(self._call(""/path/to/exe""))
+-
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_on_path(self, mock_access, mock_isfile):
+-        mock_access.return_value = True
+-        mock_isfile.return_value = True
+-        self.assertTrue(self._call(""exe""))
+-
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_not_found(self, mock_access, mock_isfile):
+-        mock_access.return_value = False
+-        mock_isfile.return_value = True
+-        self.assertFalse(self._call(""exe""))
++    def test_exe_exists(self):
++        with mock.patch(""certbot.util.filesystem.is_executable"", return_value=True):
++            self.assertTrue(self._call(""/path/to/exe""))
++
++    def test_exe_not_exists(self):
++        with mock.patch(""certbot.util.filesystem.is_executable"", return_value=False):
++            self.assertFalse(self._call(""/path/to/exe""))
++
++
++@contextlib.contextmanager
++def _fix_windows_runtime():",wrong-reason,no,
+13,C,intel__ipex-llm-5097@9525134,intel__ipex-llm-5097@9525134#0,python/chronos/src/bigdl/chronos/model/autoformer/Autoformer.py,183,"@user1:
+I think we should allow users to set scheduler / milestones (I think this might be a better choice). Furthermore ,they may be allowed to disable scheduler.
+
+@author:
+done",183,"The scheduler is created with fixed milestones [3,4,5,6,7,8,9,10]. This may not be appropriate for all training scenarios, as the number of epochs or steps may vary. It should be configurable based on the training setup.","@@ -179,7 +179,9 @@ def predict_step(self, batch, batch_idx):
+         return outputs
+ 
+     def configure_optimizers(self):
+-        return getattr(optim, self.optim)(self.parameters(), lr=self.lr)
++        optimizer = getattr(optim, self.optim)(self.parameters(), lr=self.lr)
++        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[3,4,5,6,7,8,9,10], gamma=0.5, verbose=True)",explains,yes,
+14,D,pandas-dev__pandas-35974@d0a8a68,pandas-dev__pandas-35974@d0a8a68#1,pandas/io/excel/_xlrd.py,117,"@user1:
+Do we need to append the empty list here? Would be preferable to just continue
+
+@author:
+I removed `should_skip_row` entirely, I think the benefit from the original PR came from not reading all the rows into memory, rather than from optimising skipping rows",116,"The condition 'if self.should_skip_row(i, header, skiprows, nrows)' may incorrectly skip rows if 'nrows' is None, potentially leading to unexpected results.","@@ -98,9 +106,16 @@ def _parse_cell(cell_contents, cell_typ):
+                     cell_contents = val
+             return cell_contents
+ 
+-        data = []
++        data: List[List[Scalar]] = []
+ 
+-        for i in range(sheet.nrows):
++        sheet_nrows = sheet.nrows
++        if nrows is not None and isinstance(header, int) and isinstance(skiprows, int):
++            sheet_nrows = min(header + skiprows + nrows + 1, sheet_nrows)
++
++        for i in range(sheet_nrows):
++            if self.should_skip_row(i, header, skiprows, nrows):
++                data.append([])",wrong-reason,no,
+15,A,ansible__ansible-61603@5bf662a,ansible__ansible-61603@5bf662a#0,lib/ansible/modules/crypto/luks_device.py,244,"@user1:
+```suggestion
+        result = self._run_command([self._blkid_bin, '--uuid', uuid])
+```
+According to `man blkid` on my system, it is `--uuid` and not `--uid`.",240,"The uuid variable is being overwritten with the value of self._module.params['uuid'], which may lead to confusion and unintended behavior.","@@ -197,6 +234,30 @@ def __init__(self, module):
+     def _run_command(self, command):
+         return self._module.run_command(command)
+ 
++    def get_device_by_uuid(self, uuid):
++        ''' Returns the device that holds UUID passed by user
++        '''
++        self._blkid_bin = self._module.get_bin_path('blkid', True)
++        uuid = self._module.params.get('uuid')
++        if uuid is None:
++            return None
++        result = self._run_command([self._blkid_bin, '--uid', uuid])",wrong-reason,no,
+16,Cx,skypilot-org__skypilot-1718@1b51ae2,skypilot-org__skypilot-1718@1b51ae2#2,sky/skylet/providers/lambda_cloud/node_provider.py,123,"@user1:
+Do we want to raise an error and have more information in the error message to make it easier to debug in the future? We can use `subprocess_utils.handle_returncode()`
+
+@author:
+Good idea.
+
+@author:
+Done.",126,"The _extract_metadata function is defined twice, which can lead to confusion and unintended behavior.","@@ -51,80 +53,84 @@ def __init__(self, provider_config: Dict[str, Any],
+         self.lambda_client = lambda_utils.LambdaCloudClient()
+         self.cached_nodes = {}
+         self.metadata = lambda_utils.Metadata(TAG_PATH_PREFIX, cluster_name)
+-        vms = self._list_instances_in_cluster()
+-
+-        # The tag file for autodowned clusters is not autoremoved. Hence, if
+-        # a previous cluster was autodowned and has the same name as the
+-        # current cluster, then self.metadata might load the old tag file.
+-        # We prevent this by removing any old vms in the tag file.
+-        self.metadata.refresh([node['id'] for node in vms])
+-
+-        # If tag file does not exist on head, create it and add basic tags.
+-        # This is a hack to make sure that ray on head can access some
+-        # important tags.
+-        # TODO(ewzeng): change when Lambda Cloud adds tag support.
+-        ray_yaml_path = os.path.expanduser(REMOTE_RAY_YAML)
+-        if os.path.exists(ray_yaml_path) and not os.path.exists(
+-                self.metadata.path):
+-            config = common_utils.read_yaml(ray_yaml_path)
+-            # Ensure correct cluster so sky launch on head node works correctly
+-            if config['cluster_name'] != cluster_name:
+-                return
+-            # Compute launch hash
+-            head_node_config = config.get('head_node', {})
+-            head_node_type = config.get('head_node_type')
+-            if head_node_type:
+-                head_config = config['available_node_types'][head_node_type]
+-                head_node_config.update(head_config[""node_config""])
+-            launch_hash = hash_launch_conf(head_node_config, config['auth'])
+-            # Populate tags
+-            for node in vms:
++        self.ssh_key_path = os.path.expanduser(auth.PRIVATE_SSH_KEY_PATH)
++        remote_ssh_key = os.path.expanduser(REMOTE_RAY_SSH_KEY)
++        if os.path.exists(remote_ssh_key):
++            self.ssh_key_path = remote_ssh_key
++
++    def _guess_and_add_missing_tags(self, vms: Dict[str, Any]) -> None:
++        """"""Adds missing vms to local tag file and guesses their tags.""""""
++        for node in vms:
++            if self.metadata.exists(node['id']):
++                pass
++            elif node['name'] == f'{self.cluster_name}-head':
+                 self.metadata[node['id']] = {
+                     'tags': {
+-                        TAG_RAY_CLUSTER_NAME: cluster_name,
++                        TAG_RAY_CLUSTER_NAME: self.cluster_name,
+                         TAG_RAY_NODE_STATUS: STATUS_UP_TO_DATE,
+                         TAG_RAY_NODE_KIND: NODE_KIND_HEAD,
+                         TAG_RAY_USER_NODE_TYPE: 'ray_head_default',
+-                        TAG_RAY_NODE_NAME: f'ray-{cluster_name}-head',
+-                        TAG_RAY_LAUNCH_CONFIG: launch_hash,
++                        TAG_RAY_NODE_NAME: f'ray-{self.cluster_name}-head',
++                    }
++                }
++            elif node['name'] == f'{self.cluster_name}-worker':
++                self.metadata[node['id']] = {
++                    'tags': {
++                        TAG_RAY_CLUSTER_NAME: self.cluster_name,
++                        TAG_RAY_NODE_STATUS: STATUS_UP_TO_DATE,
++                        TAG_RAY_NODE_KIND: NODE_KIND_WORKER,
++                        TAG_RAY_USER_NODE_TYPE: 'ray_worker_default',
++                        TAG_RAY_NODE_NAME: f'ray-{self.cluster_name}-worker',
+                     }
+                 }
+ 
+     def _list_instances_in_cluster(self) -> Dict[str, Any]:
+         """"""List running instances in cluster.""""""
+         vms = self.lambda_client.list_instances()
+-        return [node for node in vms if node.get('name') == self.cluster_name]
++        possible_names = [
++            f'{self.cluster_name}-head', f'{self.cluster_name}-worker'
++        ]
++        return [node for node in vms if node.get('name') in possible_names]
+ 
+     @synchronized
+     def _get_filtered_nodes(self, tag_filters: Dict[str,
+                                                     str]) -> Dict[str, Any]:
+ 
+-        def match_tags(vm):
++        def _extract_metadata(vm: Dict[str, Any]) -> Dict[str, Any]:
++            metadata = {'id': vm['id'], 'status': vm['status'], 'tags': {}}
++            instance_info = self.metadata[vm['id']]
++            if instance_info is not None:
++                metadata['tags'] = instance_info['tags']
++            ip = vm['ip']
++            metadata['external_ip'] = ip
++            return metadata
++
++        def _match_tags(vm: Dict[str, Any]):
+             vm_info = self.metadata[vm['id']]
+             tags = {} if vm_info is None else vm_info['tags']
+             for k, v in tag_filters.items():
+                 if tags.get(k) != v:
+                     return False
+             return True
+ 
++        def _get_internal_ip(node: Dict[str, Any]):
++            runner = command_runner.SSHCommandRunner(node['external_ip'],
++                                                     'ubuntu',
++                                                     self.ssh_key_path)
++            out = runner.run(GET_INTERNAL_IP_CMD,
++                             require_outputs=True,
++                             stream_logs=False)
++            assert out[0] == 0",wrong-reason,no,
+17,B,ManimCommunity__manim-509@1cbc24f,ManimCommunity__manim-509@1cbc24f#0,manim/mobject/value_tracker.py,61,"@user1:
+I like this approach, but it creates a new instance of `ValueTracker` instead of mutating the existing one. This has two problems:
+- references to the old object won't see the change
+- it's inefficient to create a new object
+
+It might be better to instead use the `increment_value` method, and then return `self`. 
+
+@author:
+Thanks for the review! That is exactly what I was trying to figure out (not creating a new `ValueTracker`). Fixed in the next commit.",61,"The __iadd__ method creates a new ValueTracker instance instead of modifying the current instance, which contradicts the expected behavior of in-place addition.","@@ -57,6 +57,9 @@ def set_value(self, value):
+     def increment_value(self, d_value):
+         self.set_value(self.get_value() + d_value)
+ 
++    def __iadd__(self, d_value):
++        return ValueTracker(self.get_value() + d_value)",explains,yes,
+18,C,pandas-dev__pandas-55938@b36d8d1,pandas-dev__pandas-55938@b36d8d1#0,asv_bench/benchmarks/indexing.py,525,"@user1:
+Why is this assignment here? It's overriding the prior `self.df`",525,"The DataFrame is being overwritten with random values, losing the initial object dtype DataFrame created in line 524. This may lead to unexpected behavior in the benchmarking.","@@ -515,6 +515,19 @@ def time_setitem_list(self):
+         self.df[[100, 200, 300]] = 100
+ 
+ 
++class SetitemObjectDtype:
++    # GH#19299
++
++    def setup(self):
++        N = 1000
++        cols = 500
++        self.df = DataFrame(index=range(N), columns=range(cols), dtype=object)
++        self.df = DataFrame(np.random.rand(N, cols))",explains,yes,
+19,D,jina-ai__serve-2037@792b165,jina-ai__serve-2037@792b165#0,jina/docker/hubio.py,315,"@user1:
+So I think here it should be `_dockerfile_path = 'Dockerfile'`, or alternatively something like `_check_result['Dockerfile'].split('/')[-1]` (to be better prepared for different dockerfile names, such as the one for GPU). This could also be changed in `_check_completeness`
+
+This is because in the call to the client below, `path=self.args.path` is passed, which means that the `dockerfile` location will be relative to that `path`. However in `_check_completness` the dockerfile path is obtained by joining `self.args.path` and `Dockerfile`. I think this was the reason that #1732 broke the hub builds.
+
+@user1:
+Also, back then the issue was that CI didn't catch this error for some reason. I hope now it will
+
+@author:
+hmm, the tests actually work locally. I've put them into the integration tests and let's see how ci says.
+
+@user1:
+Aaaah I figured it out! 
+
+The reason test worked and hub build broke was because in tests `args.path` is specified with an absolute path - for example `hub_build_test` uses `os.path.join(cur_dir, 'hub-mwu')`, where `cur_dir` is an absolute path, while building in Jina Hub is done using relative paths, e.g. `encoders/audio/MFCCTimbreEncoder/`. 
+
+Tests worked absolutely fine, but they were only done for the absolute path - where both `path` and `dockerfile` are absolute paths. If both are relative, then docker SDK tries to join them together, which doesn't work unless `dockerfile` is really just the name of the file inside `args.path`.
+
+So yes, extracting the path using `os.path.basename` as you are doing now is the right way (btw you have to do it in another location in the file, that's why the CI is failing). All that should be added is a test where `args.path` is passed as a relative path, and we are good to go :D
+
+@author:
+Great catch! Added another test on the relative pathes.",315,"The variable _dockerfile_path is assigned from _check_result['Dockerfile'], but there is no check to ensure that 'Dockerfile' exists in _check_result, which could lead to a KeyError.","@@ -309,15 +309,18 @@ def build(self) -> Dict:
+ 
+             with TimeContext(f'building {colored(self.args.path, ""green"")}', self.logger) as tc:
+                 try:
+-                    self._check_completeness()
++                    _check_result = self._check_completeness()
+                     self._freeze_jina_version()
+ 
++                    _dockerfile_path = _check_result['Dockerfile']",wrong-reason,no,
+20,B,huggingface__diffusers-792@90385bb,huggingface__diffusers-792@90385bb#0,src/diffusers/pipelines/stable_diffusion/safety_checker.py,43,"@user1:
+I don't think we need an `if` statement here as `.float()` should always work and be correct (e.g. we can't do `fp16` on CPU either and doing `numpy()` will move it to `fp32` anyways
+
+@user2:
+@user1 why would `numpy()` move the arrays to `fp32`? I thought that numpy arrays support `fp16`?
+I believe we should use `.half()` instead which should work on CPU also?",44,Casting special_cos_dist and cos_dist to float before converting to numpy may not be necessary and could lead to performance issues.,"@@ -36,8 +36,16 @@ def forward(self, clip_input, images):
+         pooled_output = self.vision_model(clip_input)[1]  # pooled_output
+         image_embeds = self.visual_projection(pooled_output)
+ 
+-        special_cos_dist = cosine_distance(image_embeds, self.special_care_embeds).cpu().numpy()
+-        cos_dist = cosine_distance(image_embeds, self.concept_embeds).cpu().numpy()
++        special_cos_dist = cosine_distance(image_embeds, self.special_care_embeds).cpu()
++        cos_dist = cosine_distance(image_embeds, self.concept_embeds).cpu()
++
++        # cast to float32 to as numpy does not support bfloat16
++        if image_embeds.dtype == torch.bfloat16:",wrong-reason,no,
+21,B,huggingface__datasets-586@034c1c0,huggingface__datasets-586@034c1c0#0,datasets/text/text.py,14,"@user1:
+Let's merge the PR on multi-threaded `text` and add it in the new script before?
+
+@user2:
+Be careful by putting all these checks in `assert`s - that's not what they should be used for. ValueErrors or filenotfound errors might be better. the issue with using asserts everywhere is that users will miss out on these error messages when they run their scripts in optimized mode, which turns off asserts (which are basically debug statements). This is true for the whole code base - using asserts to check arguments is not always what you'd want from a usability perspective.
+
+I'd change it to:
+
+```python
+if not self.config.data_files:
+    raise ValueError(f""At least one data file must be specified, but got data_files={self.config.data_files}"")
+```
+
+@author:
+Yes indeed I'll change that",14,"The assertion checks if data_files is truthy, but it does not handle the case where data_files is an empty list, which is still considered truthy in Python.","@@ -11,6 +11,7 @@ def _split_generators(self, dl_manager):
+             If str or List[str], then the dataset returns only the 'train' split.
+             If dict, then keys should be from the `nlp.Split` enum.
+         """"""
++        assert bool(self.config.data_files), ""At least one data file must be specified, but got data_files={}"".format(self.config.data_files)",wrong-reason,no,
+22,C,scipy__scipy-15905@171e94e,scipy__scipy-15905@171e94e#0,scipy/stats/_stats_py.py,1018,"@author:
+@user1 thanks for your help today. This issue is related to that one (gh-10821) in that it also involves catastrophic cancellation when computing a moment from data.
+
+In gh-10821, you looked for the variance being zero (`< np.finfo(dtype).tiny`) and did something to compensate. When this happened, you didn't really need to calculate the variance very accurately because it signaled that the optimization need not consider that value of `lmbda`.
+
+This is general n-th order moment computation code, so there's not much we can do to compensate when precision loss occurs. So here, I'm looking for the relative difference between data and the mean being less than some tolerance, and I just want to warn the user that some sort of precision loss has occurred. I could probably be more specific about how much precision loss and exactly where it has occurred, but that can be left to a follow-up.
+
+Do you have any thoughts on this PR?
+
+@user1:
+It's a trade off to me. Adding a precision loss check adds more computational, but it gives warnings when something looks wrong. My concern is the heuristic for checking the precision loss and making sure that does not warn for valid input. For example, how was `1e6` decided when computing `eps`?
+
+As for the PR, if you want the bare mimumum change, one can directly detect the near constant case in `skew` and raise a specific warning for that.
+
+@author:
+Thanks @user1!  We already have an exact equality check in `skew` and `kurtosis`, but afterward we got a another report for which that check was insufficient. Also, we've gotten the same sort of issue in a few contexts, so I thought I'd treat more broadly. 
+`1e6` was arbitrary, but it corresponds with a loss of approximately 10 decimal digits of precision for `float64`. This may be too noisy, so I'll reduce it so that this only warns when there is almost complete loss of precision.
+Thanks!",1020,"The condition for precision loss checks if rel_diff is greater than 0 and less than eps, but it does not handle the case where mean is zero, which would lead to a division by zero error.","@@ -1013,6 +1013,16 @@ def _moment(a, moment, axis, *, mean=None):
+         # Starting point for exponentiation by squares
+         mean = a.mean(axis, keepdims=True) if mean is None else mean
+         a_zero_mean = a - mean
++
++        eps = np.finfo(a_zero_mean.dtype).resolution * 1e6
++        rel_diff = np.max(np.abs(a_zero_mean), axis=axis, keepdims=True)/mean",wrong-reason,yes,
+23,D,pandas-dev__pandas-18440@65fbc91,pandas-dev__pandas-18440@65fbc91#0,pandas/tests/indexes/test_multi.py,693,"@user1:
+use ``tm.assert_index_equal``, IOW construct the expected MI",698,"The test case does not cover the scenario where 'MultiIndex.from_arrays' is called with an empty list, which should raise a ValueError instead of TypeError.","@@ -681,6 +682,21 @@ def test_from_arrays(self):
+         assert result.levels[0].equals(Index([Timestamp('20130101')]))
+         assert result.levels[1].equals(Index(['a', 'b']))
+ 
++    def test_from_arrays_iterator(self):
++        # GH 18434
++        arrays = []
++        for lev, lab in zip(self.index.levels, self.index.labels):
++            arrays.append(np.asarray(lev).take(lab))
++
++        # iterator as input
++        result = MultiIndex.from_arrays(iter(arrays))
++        assert list(result) == list(self.index)",wrong-reason,no,
+24,A,xorbitsai__inference-1168@f3ada96,xorbitsai__inference-1168@f3ada96#8,xinference/deploy/cmdline.py,398,"@user1:
+Should this be `if api_key is None` ?
+Same as all other places.",398,"The client is initialized with an api_key, but there is no validation to ensure that the api_key is in the correct format before being used.","@@ -376,18 +376,27 @@ def worker(
+     is_flag=True,
+     help=""Persist the model configuration to the filesystem, retains the model registration after server restarts."",
+ )
++@click.option(
++    ""--api-key"",
++    ""-ak"",
++    default=None,
++    type=str,
++    help=""Api-Key for access xinference api with authorization."",
++)
+ def register_model(
+     endpoint: Optional[str],
+     model_type: str,
+     file: str,
+     persist: bool,
++    api_key: Optional[str],
+ ):
+     endpoint = get_endpoint(endpoint)
+     with open(file) as fd:
+         model = fd.read()
+ 
+-    client = RESTfulClient(base_url=endpoint)
+-    client._set_token(get_stored_token(endpoint, client))
++    client = RESTfulClient(base_url=endpoint, api_key=api_key)
++    if client._get_token() is None:",wrong-reason,no,
+25,A,python__mypy-4000@358ca96,python__mypy-4000@358ca96#0,mypy/semanal.py,1774,"@user1:
+This condition is hard to understand. Add a comment describing what it does at a high level and maybe also give some concrete examples. It's also worth trying to simplify the nested boolean expression. Ideas:
+
+* Make the top-level expression of form `e1 and (...) and not e2` instead of `e1 and not (...) and not e2` -- the first `not` operator makes this a bit harder to understand, I think.
+* Use a temp variable to hold the result of `self.type or self.is_func_scope()` and give it a semantically meaningful name.
+
+@author:
+OK, fixed. I replaced this with three ``if``s and thus saved one nesting level for the rest of the body.",1774,The condition 'not ((self.type or self.is_func_scope()) ...' may lead to incorrect behavior if 'self.type' is None but 'self.is_func_scope()' is True.,"@@ -1770,11 +1770,12 @@ def check_and_set_up_type_alias(self, s: AssignmentStmt) -> None:
+         lvalue = s.lvalues[0]
+         if not isinstance(lvalue, NameExpr):
+             return
+-        if (len(s.lvalues) == 1 and not self.is_func_scope() and
+-                not (self.type and isinstance(s.rvalue, NameExpr) and lvalue.is_def)
++        if (len(s.lvalues) == 1 and
++                not ((self.type or self.is_func_scope()) and",wrong-reason,no,
+26,A,scipy__scipy-15905@171e94e,scipy__scipy-15905@171e94e#0,scipy/stats/_stats_py.py,1018,"@author:
+@user1 thanks for your help today. This issue is related to that one (gh-10821) in that it also involves catastrophic cancellation when computing a moment from data.
+
+In gh-10821, you looked for the variance being zero (`< np.finfo(dtype).tiny`) and did something to compensate. When this happened, you didn't really need to calculate the variance very accurately because it signaled that the optimization need not consider that value of `lmbda`.
+
+This is general n-th order moment computation code, so there's not much we can do to compensate when precision loss occurs. So here, I'm looking for the relative difference between data and the mean being less than some tolerance, and I just want to warn the user that some sort of precision loss has occurred. I could probably be more specific about how much precision loss and exactly where it has occurred, but that can be left to a follow-up.
+
+Do you have any thoughts on this PR?
+
+@user1:
+It's a trade off to me. Adding a precision loss check adds more computational, but it gives warnings when something looks wrong. My concern is the heuristic for checking the precision loss and making sure that does not warn for valid input. For example, how was `1e6` decided when computing `eps`?
+
+As for the PR, if you want the bare mimumum change, one can directly detect the near constant case in `skew` and raise a specific warning for that.
+
+@author:
+Thanks @user1!  We already have an exact equality check in `skew` and `kurtosis`, but afterward we got a another report for which that check was insufficient. Also, we've gotten the same sort of issue in a few contexts, so I thought I'd treat more broadly. 
+`1e6` was arbitrary, but it corresponds with a loss of approximately 10 decimal digits of precision for `float64`. This may be too noisy, so I'll reduce it so that this only warns when there is almost complete loss of precision.
+Thanks!",1020,"The condition for precision loss may not correctly capture all cases of catastrophic cancellation, potentially leading to false negatives.","@@ -1013,6 +1013,16 @@ def _moment(a, moment, axis, *, mean=None):
+         # Starting point for exponentiation by squares
+         mean = a.mean(axis, keepdims=True) if mean is None else mean
+         a_zero_mean = a - mean
++
++        eps = np.finfo(a_zero_mean.dtype).resolution * 1e6
++        rel_diff = np.max(np.abs(a_zero_mean), axis=axis, keepdims=True)/mean",wrong-reason,no,
+27,D,Lightning-AI__pytorch-lightning-866@5a0ccf4,Lightning-AI__pytorch-lightning-866@5a0ccf4#0,pytorch_lightning/trainer/training_io.py,392,"@author:
+Is this known?
+
+@user1:
+the `abs` looks suspicious...
+
+@author:
+The check should be `!=0` if the global step matched for odd vs even number of training steps, so if that's worked out then we shouldn't need it. Unless it's intended, in which case I think just ``(self.global_step + 1) % self.num_training_batches`` is sufficient since global step matches num_training_batches in the even case. 
+
+Thinking about it, I should probably just remove the abs, it is fine without. 
+
+@author:
+I've removed the `abs` and made sure it handled accumulated batches properly. Can you think of anything else that might change the global step? 
+
+Currently the only test that throws this warning now is ``test_restore_models/test_dp_resume`` since this changes the percentage of train data used when resuming in a new trainer. Not much we can about that.",392,"The condition checks if abs((self.global_step + 1) % self.num_training_batches) > 1, which may not correctly handle the case when num_training_batches is None, leading to potential division by zero or incorrect logic.","@@ -388,6 +388,14 @@ def restore_training_state(self, checkpoint):
+         self.global_step = checkpoint['global_step']
+         self.current_epoch = checkpoint['epoch']
+ 
++        # Deals with peculiarity of different global step for odd vs even num_training_batches
++        if abs((self.global_step + 1) % self.num_training_batches) > 1:",wrong-reason,yes,Reviewer flags the redundant abs; AI flags num_training_batches being None/0. Zero case looks real (merged code guards != 0) though AI wrongly says None causes division by zero
+28,D,certbot__certbot-7270@65f464e,certbot__certbot-7270@65f464e#0,certbot/tests/util_test.py,66,"@user1:
+This should be deleted.
+
+@author:
+Done.",70,"The context manager _fix_windows_runtime may not handle all scenarios correctly, particularly if the mocked permissions do not reflect real-world conditions.","@@ -52,26 +53,26 @@ def _call(cls, exe):
+         from certbot.util import exe_exists
+         return exe_exists(exe)
+ 
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_full_path(self, mock_access, mock_isfile):
+-        mock_access.return_value = True
+-        mock_isfile.return_value = True
+-        self.assertTrue(self._call(""/path/to/exe""))
+-
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_on_path(self, mock_access, mock_isfile):
+-        mock_access.return_value = True
+-        mock_isfile.return_value = True
+-        self.assertTrue(self._call(""exe""))
+-
+-    @mock.patch(""certbot.util.os.path.isfile"")
+-    @mock.patch(""certbot.util.os.access"")
+-    def test_not_found(self, mock_access, mock_isfile):
+-        mock_access.return_value = False
+-        mock_isfile.return_value = True
+-        self.assertFalse(self._call(""exe""))
++    def test_exe_exists(self):
++        with mock.patch(""certbot.util.filesystem.is_executable"", return_value=True):
++            self.assertTrue(self._call(""/path/to/exe""))
++
++    def test_exe_not_exists(self):
++        with mock.patch(""certbot.util.filesystem.is_executable"", return_value=False):
++            self.assertFalse(self._call(""/path/to/exe""))
++
++
++@contextlib.contextmanager
++def _fix_windows_runtime():",wrong-reason,no,
+29,Cx,pandas-dev__pandas-34933@de64663,pandas-dev__pandas-34933@de64663#0,pandas/core/frame.py,6899,"@user1:
+include the type for ignore_index.
+
+@author:
+Got it, done.",6899,"The method signature for explode now includes 'ignore_index' but there is no validation for its type, which could lead to unexpected behavior if a non-boolean value is passed.","@@ -6896,7 +6896,7 @@ def stack(self, level=-1, dropna=True):
+         else:
+             return stack(self, level, dropna=dropna)
+ 
+-    def explode(self, column: Union[str, Tuple]) -> ""DataFrame"":
++    def explode(self, column: Union[str, Tuple], ignore_index=False) -> ""DataFrame"":",wrong-reason,no,
+30,B,huggingface__datasets-2182@748e2e9,huggingface__datasets-2182@748e2e9#0,src/datasets/arrow_dataset.py,659,"@user1:
+The `dataset_info.dataset_size` is the size of the dataset from `load_dataset`. If some users transform the dataset using `map` then `dataset_info.dataset_size` is not updated (we could add this feature though).
+Therefore currently using `is_small_dataset(dataset_info.dataset_size)` can only be used in `load_dataset`, not in `load_from_disk`. Here, you could instead check for the size of the arrow file.
+
+@author:
+Yes @user1, you are right: dataset_size is always None when `load_from_disk` is called. However, the argument passed to `load_from_disk` is a directory (not an Arrow file) and it might contain multiple subdirectories (train, test), with multiple Arrow files. Should I make a scan and sum up all Arrow data file sizes?
+
+@user1:
+I think the `is_small_dataset` check can be done only in `Dataset.load_from_disk` (`datasets.load.load_from_disk` amd `DatasetDict.load_from_disk` can just pass the `keep_in_memory ` argument). So yes I think you just need to take the list of arrow files and sum their sizes.
+
+In the code of `Dataset.load_from_disk` you can get the paths of the arrow files from `state[""_data_files""]`.
+For example the arrow files are used to load the table this way:
+
+https://github.com/huggingface/datasets/blob/2a05294e2f8bc66983137797f213b325c78737b5/src/datasets/arrow_dataset.py#L654-L657
+
+
+@author:
+Done @user1. However, note that for the test I have implemented, the file size is 512 while once loaded, the dataset size in-memory is just 148.
+
+@user1:
+Yea I guess this is because of how pyarrow does memory allocation, and also probably because of some metadata. The difference between the two values should stay close to a few KB.",659,"The logic for determining whether to keep the dataset in memory may not handle edge cases correctly, especially if dataset_info.dataset_size is None.","@@ -652,6 +656,7 @@ def load_from_disk(dataset_path: str, fs=None, keep_in_memory=False) -> ""Dataset
+         with open(Path(dataset_path, DATASET_INFO_FILENAME).as_posix(), ""r"", encoding=""utf-8"") as dataset_info_file:
+             dataset_info = DatasetInfo.from_dict(json.load(dataset_info_file))
+ 
++        keep_in_memory = keep_in_memory if keep_in_memory is not None else is_small_dataset(dataset_info.dataset_size)",partial,yes,
+31,C,scikit-learn__scikit-learn-12486@15a4397,scikit-learn__scikit-learn-12486@15a4397#0,sklearn/metrics/scorer.py,132,"@user1:
+should we say ""got predict_proba of shape""?
+
+@author:
+That seems like a good idea, because that is what is actually happening.  
+
+*But*, will the *user* understand that?  Is there some place in the documentation where we can write:
+>When obtaining predictions from a classifier, if it is only one class, the returned ValueError will be ""got predict_proba of shape"".  That means it returns one column all with same probabilities (equal to 1). 
+**Q:** How to fix this?
+**A:** Must use a classifier with 2 classes.
+
+Or will they be able to see it from the test below:  
+`with pytest.raises(ValueError, match=""use classifier with two classes"")`
+I would feel better if the user had explicit feedback on how to solve the error.
+
+cc:  @user2
+
+
+
+@user1:
+Are you saying the current error message is not informative enough? The test is just to make sure that the error that is raised is actually informative.
+I suggested adding the predict_proba shape to the error message, not replace the message that's there now.
+
+@author:
+That works.
+I tried making the update myself but ran into multiple problems:  [errors list](https://gist.github.com/reshamas/93af459fd61aed10ff3c162ca62a8a98)
+
+@author:
+ok, making progress.  Please let me know next steps. 
+
+cc:  @user2",130,"The condition checks if y_pred.shape[1] == 2, but it does not handle the case where y_pred might not have two dimensions, which could lead to an IndexError.","@@ -126,7 +126,12 @@ def __call__(self, clf, X, y, sample_weight=None):
+         y_type = type_of_target(y)
+         y_pred = clf.predict_proba(X)
+         if y_type == ""binary"":
+-            y_pred = y_pred[:, 1]
++            if y_pred.shape[1] == 2:
++                y_pred = y_pred[:, 1]
++            else:
++                raise ValueError('Must use classifier with two classes'",wrong-reason,no,
+32,D,pandas-dev__pandas-33962@fc4993f,pandas-dev__pandas-33962@fc4993f#1,pandas/io/json/_json.py,744,"@user1:
+Can you implement this at a lower level? I think should be done in the C extension to match behavior of other IO methods
+
+@author:
+I have not worked with lower-level extension till now. If it's to be done there, I will look into it
+Also, it would be very nice to get some direction on how to achieve it.
+
+@user2:
+I actually don't think we need to implement this on a lower level  (lines is not implemented that way currently).
+
+rather you need to slice this differently to avoid putting all of this into memory
+
+e.g. you can do this: https://stackoverflow.com/questions/3862010/is-there-a-generator-version-of-string-split-in-python
+
+to create a generator on the split rows, then islice them, process and repeat",740,"The logic for handling 'nrows' in the read method does not account for the case where 'nrows' is 0, which should return an empty DataFrame.","@@ -726,7 +740,10 @@ def read(self):
+             obj = concat(self)
+         elif self.lines:
+             data = ensure_str(self.data)
+-            obj = self._get_object_parser(self._combine_lines(data.split(""\n"")))
++            data = data.split(""\n"")
++            if self.nrows:",wrong-reason,yes,
+33,A,modin-project__modin-4215@69f9652,modin-project__modin-4215@69f9652#0,modin/experimental/core/execution/native/implementations/omnisci_on_native/test/test_dataframe.py,1727,"@user1:
+```suggestion
+        ""d"": pandas.to_datetime(
+            [
+                ""2018-10-26 12:00"",
+                ""2018-10-26 13:00:15"",
+                ""2020-10-26 04:00:15"",
+                ""2020-10-26"",
+            ]
+        ),
+```
+the ""d"" column has only 2 elements when others have 4. This makes the test fail silently at the DataFrames construction stage: [this piece of code](https://github.com/modin-project/modin/blob/0f5a47177025b069e74de9d8caff17e1e6b24fec/modin/experimental/core/execution/native/implementations/omnisci_on_native/test/utils.py#L261-L278) tries to build modin and pandas dataframes from the given data and considers that the test passes if they both raise an error (always happen if the data is incorrect).
+
+I think we have to add a parameter or smth else in a separate PR to explicitly turn this behavior on, so no implicit silent errors occur. 
+
+@author:
+Yeah, my bad...",1727,"The new 'd' datetime data does not include a time component for all entries, which may lead to inconsistencies when testing hour extraction.","@@ -1723,6 +1724,7 @@ class TestDateTime:
+         ""c"": pandas.to_datetime(
+             [""20190902"", ""20180913"", ""20190921"", ""20180903""], format=""%Y%m%d""
+         ),
++        ""d"": pandas.to_datetime([""2018-10-26 12:00"", ""2018-10-26 13:00:15""]),",wrong-reason,no,
+34,Cx,pandas-dev__pandas-28802@33c889c,pandas-dev__pandas-28802@33c889c#0,pandas/core/reshape/tile.py,446,"@author:
+@user1 Not entirely sure where this should go - Adding `x.astype(int)` under  `elif is_bool_dtype(x)` higher up throws an error in tests with the existing `np.where(x.notna(), x.view(np.int64), np.nan)` statement if x is ndarray - it passes if x is Series though.
+ `AttributeError: 'numpy.ndarray' object has no attribute 'isnan'`
+    
+It passes if adding i`s_bool_dtype(x)`  with new `np.where` condition using `~np.isnan(x)` like i've done here to account for x being an ndarray
+
+@user1:
+so don't use ``np.isnan``, change this to 
+
+```x = np.where(notna(x), x.astype(np.int64, copy=False), np.nan)```
+
+@author:
+I've gone with doing the integer conversion in the `elif` block higher up and leaving `dtype` as `None` as @user2 suggested, rather than making any changes here.",447,"The condition for handling boolean dtype is incorrect. It should not use np.isnan(x) since boolean arrays do not contain NaN values; instead, it should directly convert the boolean values to integers.","@@ -444,7 +444,7 @@ def _coerce_to_type(x):
+     if dtype is not None:
+         # GH 19768: force NaT to NaN during integer conversion
+         if is_bool_dtype(x):",explains,no,
+35,B,home-assistant__core-142977@fa60db7,home-assistant__core-142977@fa60db7#0,homeassistant/helpers/script.py,659,"@user1:
+If `enabled` is an attribute of a `Script`, it should ideally be checked there, probably in `Script.async_run`.
+
+@user1:
+Although the intention is to never use it for top-level script anyway, so if that is documented, then I guess moving the check simply to `_async_run_script` should also be OK.
+
+@author:
+@user1 fair warning this is my first PR in core so please feel free to hand hold a bit if you want... or shout at me for doing it wrong :) I am happy either way.
+
+when moving the check up to to `_async_run_script ` do you mean something like this?
+![image](https://github.com/user-attachments/assets/f8e704cc-eb94-4aa1-955e-f0643bc40e71)
+
+
+@user1:
+Yes, but:
+- do not move the docstring
+- check for just `script.enabled`, do not check for `parallel`
+- adjust the log by removing parallel
+
+@author:
+@user1 right, gotcha, so its more generic, like this?
+![image](https://github.com/user-attachments/assets/12e79249-ceda-4a74-a9a4-a76e9d3a3650)
+
+
+@user1:
+Yes
+
+@author:
+@user1 cool, I have updated. thanks for bearing with me. you also hinted that it should be documented that its intended only for use when running a non-top-level script. I am not sure exactly where that would go...
+
+@user1:
+You can put it in the docstring of the `__init__` method of `Script`.
+
+@author:
+@user1 forgive me being the n00b here but could you give me a hint on this one. 
+do you mean adding comment here?
+![image](https://github.com/user-attachments/assets/2634672d-851a-488a-8e47-e351cf23612d)
+or do you mean adding to this?
+![image](https://github.com/user-attachments/assets/900b8ed9-a1e1-4342-949f-0535eb30d5e9)
+or something else entirely?
+
+I am currently swinging wildly between feeling like an idiot and glad to be learning
+
+@user1:
+Add it here https://github.com/home-assistant/core/blob/195b1e85ccd7c55efcb8fffe6615d1be98aa1712/homeassistant/helpers/script.py#L1451 leaving one empty line of space.
+
+@author:
+@user1 like this?
+![image](https://github.com/user-attachments/assets/89f5a80f-b2b7-4576-9b6e-a078c8fc252e)
+
+
+
+@user1:
+It should look like this: https://github.com/home-assistant/core/blob/dev/homeassistant/core.py#L163-L166
+
+@author:
+@user1 okay that should be that sorted now",658,"The trace_set_result function is called with enabled=False, but it may not be clear to the caller that this indicates the script is disabled. This could lead to confusion if the caller expects a different behavior.","@@ -653,6 +653,10 @@ async def async_run_with_trace(idx: int, script: Script) -> None:
+             """"""Run a script with a trace path.""""""
+             trace_path_stack_cv.set(copy(trace_path_stack_cv.get()))
+             with trace_path([str(idx), ""sequence""]):
++                if not script.enabled:
++                    self._log(""Skipping disabled parallel script: %s"", script.name)
++                    trace_set_result(enabled=False)
++                    return",wrong-reason,no,
+36,A,dmlc__dgl-4620@5297d27,dmlc__dgl-4620@5297d27#1,tools/dispatch_data.py,46,"@user1:
+Do we have checks that the number of partitions is equal to the number of IPs?
+
+@author:
+I don't think so",42,"The calculation of 'num_parts' from 'args.num_parts' could lead to incorrect behavior if 'args.num_parts' is negative or zero, as it defaults to 'num_chunks'.","@@ -40,7 +40,10 @@ def submit_jobs(args) -> str:
+     with open(os.path.join(args.in_dir, schema_path)) as schema:
+         schema_map = json.load(schema)
+ 
+-    num_parts = len(schema_map[""num_nodes_per_chunk""][0])
++    num_chunks = len(schema_map[""num_nodes_per_chunk""][0])
++    if args.num_parts > num_chunks:
++        raise Exception('Number of partitions should be less/equal than number of chunks.')
++    num_parts = num_chunks if args.num_parts <= 0 else args.num_parts",wrong-reason,no,
+37,D,ccxt__ccxt-16729@284cdce,ccxt__ccxt-16729@284cdce#0,js/huobi.js,2945,"@user1:
+@author something is off here 
+```
+ p huobi balance
+Python v3.10.9
+CCXT v2.7.33
+{}
+huobi requires to release all resources with an explicit call to the .close() coroutine. If you are using the exchange instance with async coroutines, add `await exchange.close()` to your code into a place when you're done with the exchange and don't need the exchange instance anymore (at the end of your async coroutine).
+```
+
+
+@author:
+ah, forgot to place spot. please recheck now.
+all I wanted to mean is that, if someone uses `fetchBalance ({marginMode: 'isolated/cross'})` I mean that user is requesting spot margin balance (isolated/cross), without the need to place `margin:true` in params. is not that a correct expectation?
+
+@user1:
+>  fetchBalance ({marginMode: 'isolated/cross'}) I mean that user is requesting spot margin balance 
+@author yes I think that is correct unless we have the ambiguity between isolated/cross on the swap wallet as well",2945,"The condition for determining 'margin' is incorrect. It should only be true if 'type' is 'margin', not when 'cross' or 'isolated' are true.","@@ -2943,23 +2942,20 @@ module.exports = class huobi extends Exchange {
+         params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+         const isolated = (marginMode === 'isolated');
+         const cross = (marginMode === 'cross');
+-        if (spot) {
+-            if (isolated) {
+-                method = 'spotPrivateGetV1MarginAccountsBalance';
+-            } else if (cross) {
+-                method = 'spotPrivateGetV1CrossMarginAccountsBalance';
++        const margin = (type === 'margin') || cross || isolated;",wrong-reason,no,
+38,B,pandas-dev__pandas-16744@b8a6007,pandas-dev__pandas-16744@b8a6007#0,pandas/tests/series/test_datetime_values.py,418,"@user1:
+This test will always pass, since
+
+- if there's no exception originally, everything is fine
+- If there is an exception, the `assert 'data type ""datetime"" not understood'` is True, so no AssertionError is raised
+
+It's best to assign `result = ` that operation, construct an expected series `expected = pd.Series(pd.to_datetime(['2011-12-26', '2011-12-27', '2011-12-28'])` and then compare them with `tm.assert_series_equal(result, expected)`
+
+@author:
+You are right. My bad!
+
+Please check now.",418,"The assertion in the exception handling block is incorrect; it should use 'assert' to check if the exception message matches the expected string, but it currently does not check the exception message properly.","@@ -409,3 +409,11 @@ def test_date_tz(self):
+                            date(2015, 11, 22)])
+         assert_series_equal(s.dt.date, expected)
+         assert_series_equal(s.apply(lambda x: x.date()), expected)
++
++    def test_datetime_understood(self):
++        # Ensures it doesn't throw an exception reported in #16726
++        try:
++            pd.Series(pd.date_range(""2012-01-01"", periods=3)) - pd.offsets.DateOffset(days=6)
++        except Exception:
++            assert 'data type ""datetime"" not understood'",partial,yes,
+39,Cx,python__mypy-4000@358ca96,python__mypy-4000@358ca96#0,mypy/semanal.py,1774,"@user1:
+This condition is hard to understand. Add a comment describing what it does at a high level and maybe also give some concrete examples. It's also worth trying to simplify the nested boolean expression. Ideas:
+
+* Make the top-level expression of form `e1 and (...) and not e2` instead of `e1 and not (...) and not e2` -- the first `not` operator makes this a bit harder to understand, I think.
+* Use a temp variable to hold the result of `self.type or self.is_func_scope()` and give it a semantically meaningful name.
+
+@author:
+OK, fixed. I replaced this with three ``if``s and thus saved one nesting level for the rest of the body.",1774,"The condition in line 1774 may incorrectly allow types that should not be aliased, as it checks for 'not (self.type or self.is_func_scope())' instead of ensuring 'self.type' is not None.","@@ -1770,11 +1770,12 @@ def check_and_set_up_type_alias(self, s: AssignmentStmt) -> None:
+         lvalue = s.lvalues[0]
+         if not isinstance(lvalue, NameExpr):
+             return
+-        if (len(s.lvalues) == 1 and not self.is_func_scope() and
+-                not (self.type and isinstance(s.rvalue, NameExpr) and lvalue.is_def)
++        if (len(s.lvalues) == 1 and
++                not ((self.type or self.is_func_scope()) and",wrong-reason,no,
+40,C,xorbitsai__inference-1168@f3ada96,xorbitsai__inference-1168@f3ada96#1,xinference/client/restful/restful_client.py,659,"@user1:
+`if api_key is not None and self._cluster_authed`",660,"The initialization of headers does not handle the case where 'api_key' is provided but is invalid or empty, which could lead to unauthorized requests.","@@ -651,11 +651,13 @@ def translations(
+ 
+ 
+ class Client:
+-    def __init__(self, base_url):
++    def __init__(self, base_url, api_key: Optional[str] = None):
+         self.base_url = base_url
+-        self._headers = {}
++        self._headers: Dict[str, str] = {}
+         self._cluster_authed = False
+         self._check_cluster_authenticated()
++        if api_key is not None:",wrong-reason,no,
+41,Cx,jina-ai__serve-4883@ca87c3e,jina-ai__serve-4883@ca87c3e#0,jina/parsers/orchestrate/pod.py,110,"@user1:
+it should be 3 right? plus wrong comment
+
+@author:
+Wrong comment, true, thanks for the catch.
+
+But I would leave the default to `None`, which allows to keep the previous policy in place: Try at least three times, but if there are more than 3 replicas, try every replica at least once. That seems reasonable to me, because otherwise there might be a healthy replica but the call still fails. If the default is 3, we don't know if it was user set, and can't implement the default policy.
+
+An alternative would be to always try every replica at least once, regardless of what the user puts in (`actual_num_retries = max(retries, num_replicas)`). But it feels a bit off to me to take that control away from the user.
+
+Edit: `None` doesn't work, changed it to `-1` with the same semantics",39,The retries parameter is accepted but not validated; it could lead to issues if an invalid value is passed.,"@@ -103,3 +103,11 @@ def mixin_pod_parser(parser):
+         dest='port_monitoring',
+         help=f'The port on which the prometheus server is exposed, default port is {__default_port_monitoring__} ',
+     )
++
++    gp.add_argument(
++        '--retries',
++        type=int,
++        default=None,  # default prometheus server port",wrong-reason,no,
+42,B,dask__dask-8869@24f8120,dask__dask-8869@24f8120#0,dask/dataframe/groupby.py,1030,"@author:
+@user1-r-rose Is this way of dropping columns alright? I noticed there is a `drop_columns` dataframe-method, would it make sense to use that instead?
+
+https://github.com/dask/dask/blob/1b1a96b4ddf31d0879e718be463a731af7f1d086/dask/dataframe/methods.py#L379-L382
+
+@author:
+And, I'm also not sure about bundling drop-column logic in the top-level `def _fillna_groups()`. is this OK, or would it be better to do this in `fillna()` (line 2014)?
+
+@author:
+Just to note: I'm yet to add doctrings and comments :)
+
+@user2:
+I think using `df.drop` directly is okay. It looks like the `drop_columns` utility is primarily used for `map_partitions`, which doesn't really apply here.
+
+However, I think always dropping the zeroth column doesn't quite do what we want:
+1. The column we want to drop might not be the first one.
+2. The user might be grouping by multiple columns
+
+What if instead we also included a `by` argument in `_fillna_group` for the column(s) by which we are grouping, the dataframe can pass in `self.by`, and then we can drop them?
+
+@author:
+> What if instead we also included a by argument in _fillna_group for the column(s) by which we are grouping, the dataframe can pass in self.by, and then we can drop them?
+
+Yes! Thanks for this suggestion!",1028,"The fillna method does not handle the case where 'axis' is not 0 or 1, which could lead to unexpected behavior.","@@ -1023,6 +1023,15 @@ def _cumcount_aggregate(a, b, fill_value=None):
+     return a.add(b, fill_value=fill_value) + 1
+ 
+ 
++def _fillna_groups(groups, axis, **kwargs):
++    if axis == 0:
++        return groups.fillna(axis=axis, **kwargs)
++    else:
++        return groups.drop(columns=groups.columns[0], axis=1).fillna(",wrong-reason,no,
+43,C,ansible__ansible-60622@19d2ad7,ansible__ansible-60622@19d2ad7#0,lib/ansible/modules/cloud/docker/docker_image_info.py,28,"@user1:
+O() doesn't exist right? Typo?
+https://docs.ansible.com/ansible/latest/dev_guide/developing_modules_documenting.html#linking-within-module-documentation
+
+@author:
+Typo indeed! Should have been `C(...)`. Thanks for spotting!",28,"The description states that the module will not attempt to pull images from registries, but it does not clarify what happens if the images are not found locally, which could lead to confusion.","@@ -22,6 +22,11 @@
+ 
+ description:
+      - Provide one or more image names, and the module will inspect each, returning an array of inspection results.
++     - Non-existing images will not be added to the result list. I.e. if you want to check whether an image exists
++       locally, you can call the module with this image, and check whether the result list is empty (image does not
++       exist) or has one element (the image exists locally).
++     - The module will not attempt to pull images from registries. Use M(docker_image) with I(source) set to O(pull)",wrong-reason,no,
+44,Cx,Lightning-AI__pytorch-lightning-866@5a0ccf4,Lightning-AI__pytorch-lightning-866@5a0ccf4#0,pytorch_lightning/trainer/training_io.py,392,"@author:
+Is this known?
+
+@user1:
+the `abs` looks suspicious...
+
+@author:
+The check should be `!=0` if the global step matched for odd vs even number of training steps, so if that's worked out then we shouldn't need it. Unless it's intended, in which case I think just ``(self.global_step + 1) % self.num_training_batches`` is sufficient since global step matches num_training_batches in the even case. 
+
+Thinking about it, I should probably just remove the abs, it is fine without. 
+
+@author:
+I've removed the `abs` and made sure it handled accumulated batches properly. Can you think of anything else that might change the global step? 
+
+Currently the only test that throws this warning now is ``test_restore_models/test_dp_resume`` since this changes the percentage of train data used when resuming in a new trainer. Not much we can about that.",128,"num_training_batches is initialized to None but is used in restore_training_state without a check for None, which can lead to a TypeError.","@@ -388,6 +388,14 @@ def restore_training_state(self, checkpoint):
+         self.global_step = checkpoint['global_step']
+         self.current_epoch = checkpoint['epoch']
+ 
++        # Deals with peculiarity of different global step for odd vs even num_training_batches
++        if abs((self.global_step + 1) % self.num_training_batches) > 1:",wrong-reason,,
+45,Cx,certbot__certbot-9208@2584184,certbot__certbot-9208@2584184#1,certbot/certbot/_internal/auth_handler.py,112,"@user1:
+I think it's probably worth moving this block into its own function, which summarizes the challenges as a string.",115,The notification message is constructed without considering the case where no challenges are present. This could lead to misleading output.,"@@ -87,9 +87,34 @@ def handle_authorizations(self, orderr: messages.OrderResource,
+ 
+                 # If debug is on, wait for user input before starting the verification process.
+                 if config.debug_challenges:
++                    msg = []
++                    if config.verbose_count > 0:
++                        http01_achalls = {}
++                        dns01_achalls = {}
++                        for achall in achalls:
++                            if isinstance(achall.chall, challenges.HTTP01):
++                                http01_achalls[achall.chall.uri(achall.domain)] = (
++                                    achall.validation(achall.account_key) + ""\n""
++                                )
++                            if isinstance(achall.chall, challenges.DNS01):
++                                dns01_achalls[achall.validation_domain_name(achall.domain)] = (
++                                    achall.validation(achall.account_key) + ""\n""
++                                )
++                        if http01_achalls:
++                            msg.append(""\nThe following URLs should be accessible from the world ""
++                                       ""wide web and return the value mentioned:\n"")
++                            for uri, token in http01_achalls.items():
++                                msg.append(f""{uri}: {token}"")
++                        if dns01_achalls:
++                            msg.append(""\nThe following FQDNs should return a TXT resource ""
++                                       ""record with the value mentioned:\n"")
++                            for fqdn, token in dns01_achalls.items():
++                                msg.append(f""{fqdn}: {token}"")",,,
+46,B,home-assistant__core-121178@b09b3b5,home-assistant__core-121178@b09b3b5#0,homeassistant/components/shelly/sensor.py,998,"@user1:
+Shouldn't we test for get('freq') is None like we do for xfreq ?
+
+@author:
+According to the documentation `freq` is always a number
+![obraz](https://github.com/home-assistant/core/assets/478555/99adf272-2067-4f60-aa1a-4afc3e7967bb)
+But I think we need here to check the type of the input. If I understand correctly `freq` is available only for the type `count`
+https://shelly-api-docs.shelly.cloud/gen2/ComponentsAndServices/Input#status
+
+@user1:
+yup, `percent `and `xpercent` for **analog**, `freq` and `xfreq` for **count**",998,"The removal_condition lambda function does not handle cases where 'config[key]' may not exist, which could lead to a KeyError.","@@ -991,20 +991,18 @@ class RestSensorDescription(RestEntityDescription, SensorEntityDescription):
+     ),
+     ""counter_frequency"": RpcSensorDescription(
+         key=""input"",
+-        sub_key=""counts"",
++        sub_key=""freq"",
+         name=""Pulse counter frequency"",
+         native_unit_of_measurement=UnitOfFrequency.HERTZ,
+         state_class=SensorStateClass.MEASUREMENT,
+-        value=lambda status, _: status[""freq""],
+-        removal_condition=lambda config, status, key: (config[key][""enable""] is False),
++        removal_condition=lambda config, _, key: (config[key][""enable""] is False),",,,
+47,A,voxel51__fiftyone-4236@2af48de,voxel51__fiftyone-4236@2af48de#0,fiftyone/__init__.py,32,"@user1:
+@author can you explain why the docs build is causing us problems here? Would love to avoid needing `_FIFTYONE_FORCE_DB_CONNECT_ON_IMPORT` if at all possible
+
+@author:
+Yeah I really hate it also 😫😫
+
+Basically it is a mongoengine problem.
+
+Autodoc tries to go in and touch every member and inherited member of each class. Which includes a field on the mongoengine document called ""objects"" which has a getter that requires the db connection 🤬
+
+So it goes in, the connection has not been made, the ""objects"" getter fails, and then doc build fails.
+
+I tried to play with autodoc settings including to ignore inherited members or specifically skip ""objects"", but didn't come up with anything that worked.
+
+I'll try to think of other solutions, but brainstorming welcome
+
+@user1:
+I see. One way to clean up a bit would be to only call `migrate_database_if_necessary()` inside `establish_db_conn()`.
+
+To limit the number of places that `_FIFTYONE_FORCE_DB_CONNECT_ON_IMPORT` needs to exist.
+
+@user1:
+you tried added `exclude-members` [to the conf](https://github.com/voxel51/fiftyone/blob/85339fcecf03978435fed6fd94565d1c63f58dd6/docs/source/conf.py#L73
+)? 
+
+
+```py
+autodoc_default_options = {
+    ...
+    ""exclude-members"": ""objects""
+}
+```
+
+
+@author:
+Ok perhaps I do not understand sphinx directives like I thought I did, but adding to `conf.py` works where directly to the automodule directive did not.
+I thought I had tried that too but oh well glad it works!",35,"The import of fiftyone.migrations is conditional, but the migration function is called unconditionally if the condition is met, which may lead to unexpected behavior.","@@ -25,9 +25,15 @@
+ from fiftyone.__public__ import *
+ 
+ import fiftyone.core.logging as _fol
+-import fiftyone.migrations as _fom
+ 
+-_fol.init_logging()
++# The old way of doing things, migrating database on import. If we
++#   REALLY need to do this, for example doc build, we can.
++if (
++    _os.environ.get(""FIFTYONE_DISABLE_SERVICES"", ""0"") != ""1""",,,
+48,C,matplotlib__matplotlib-24111@3f99c20,matplotlib__matplotlib-24111@3f99c20#0,lib/matplotlib/cm.py,210,"@user1:
+We may want to transform this into a ValueError. `get_cmap` is less a lookup and more a transformation function.
+
+@author:
+I have a slight preference for `KeyError` to mirror `__getitem__`.  Maybe it should raise both and add another check that `cmap` is actually a string and then raise a `ValueError`?  There are ways to call this now that will get ""not hashable"" errors etc.
+
+@user2:
+If you're going to check strings, then I'd think it would be `if isinstance(cmap, str): return valid or raise ValueError; else: raise TypeError`, and maybe no `KeyError` at all?",206,"The docstring states 'Colormap' as the return type, but it should specify that it returns an instance of `matplotlib.colors.Colormap`.","@@ -193,6 +187,39 @@ def unregister(self, name):
+                              ""colormap."")
+         self._cmaps.pop(name, None)
+ 
++    def get_cmap(self, cmap):
++        """"""
++        Ensure that at given object is a converted to a color map.
++
++        If *cmap* in `None`, returns the Colormap named by :rc:`image.cmap`.
++
++        Parameters
++        ----------
++        cmap : str, Colormap, None
++
++            - if a `~matplotlib.colors.Colormap`, return it
++            - if a string, look it up in mpl.colormaps
++            - if None, look up the default color map in mpl.colormaps
++
++        Returns
++        -------
++        Colormap
++
++        Raises
++        ------
++        KeyError",,,
+49,D,sympy__sympy-16133@82bdbae,sympy__sympy-16133@82bdbae#0,sympy/logic/boolalg.py,1873,"@user1:
+You can use/modify `ibin` from iterables.
+
+@author:
+Thanks!",1878,"The function _binary_from_list_or_number does not handle cases where lon is a list of integers or nested lists properly. It assumes that if lon is not an int, it can be directly converted to a list, which may not be valid.","@@ -1869,6 +1869,12 @@ def _rem_redundancy(l1, terms):
+ 
+     return essential
+ 
++def _binary_from_list_or_number(lon, bits):
++        def tobin(n, bits):",,,
+50,C,sympy__sympy-19254@8adfdbe,sympy__sympy-19254@8adfdbe#0,sympy/polys/factortools.py,140,"@user1:
+`binomial` is not defined.
+
+@author:
+You are right, checking the log now i see: ""ImportError: cannot import name 'binomial' from partially initialized module 'sympy' (most likely due to a circular import)""
+What is the correct way of importing the binomial function?
+
+@user2:
+If you want to resolve the circular import issue, you should import inside the function block itself.",140,Using _ceil on delta/2 may lead to incorrect binomial coefficient calculations if delta is odd.,"@@ -124,13 +124,29 @@ def dmp_trial_division(f, factors, u, K):
+ 
+ 
+ def dup_zz_mignotte_bound(f, K):
+-    """"""Mignotte bound for univariate polynomials in `K[x]`. """"""
+-    a = dup_max_norm(f, K)
+-    b = abs(dup_LC(f, K))
+-    n = dup_degree(f)
+-
+-    return K.sqrt(K(n + 1))*2**n*a*b
++    """"""
++    The Knuth-Cohen variant of Mignotte bound for
++    univariate polynomials in `K[x]`.
+ 
++    Reference: John Abbott, Journal of Symbolic Computation 50 (2013) 532–563.
++    """"""
++    d = dup_degree(f)
++    delta = _ceil( d / 2 )
++    
++    # euclidean-norm
++    eucl_norm = K.sqrt( sum( [cf**2 for cf in f] ) )
++
++    # biggest values of binomial coefficients (p. 538 of reference)
++    t1 = binomial( delta - 1, _ceil( delta / 2 ) )",,,

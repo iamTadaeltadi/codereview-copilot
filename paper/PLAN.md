@@ -1229,3 +1229,12 @@ leaves d′ within noise. Secondary: diff H 0.43, d′ 1.08 (gpt-4o-mini 0.30, 0
 caller raises balanced accuracy by 6.3 [+0.8, +11.3] on this model, where it lowered it on
 gpt-4o-mini, because the caller costs this model 2.5 points on the twins, not 27; metadata on top
 of the caller adds nothing on either model. Goes into 4.3 beside the gpt-4o-mini tables.
+
+## 14. Amendment: hand labelling by one author (6 November 2026)
+
+Every earlier mention of a second annotator or "the author + one person" (§5.1, §6 Phase B, §8, and
+the judge-validation row of the open-items table) is withdrawn: no second person labels anything in
+this study. The 50-hit "right line, right reason" check on run 4 (`results/ccrab-final/`) is labelled
+blind by the one author. An LLM label set (`labels-llm.csv`) is kept only to report agreement with the
+author's labels; it is not a second annotator and no adjudication takes place. The pre-registered text
+above is left as written.
