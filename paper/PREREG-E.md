@@ -183,3 +183,94 @@ a dot, begins another seed's name.
   the Python parser only, so CIS indexes no symbol there. They run with no CIS entity. Building
   with the `ts-javascript` feature would change the pre-registered build and is not done.
 - In one sympy task the changed file, `bin/coverage_doctest.py`, has no symbol in CIS's index.
+
+## Second amendment before any model call, 6 November 2026
+
+Written after the coverage report and before any model call for E or the new control. No model
+has been called for either.
+
+### What files CIS indexed
+
+"The same source files our graph was built from" means the cached pool of `collect_sources` in
+`experiments/sparse.py`: the files the diff touches, then the files those import, followed
+outward only, up to three hops and at most 60 files, at the reviewed head commit. It is neither
+the full repository nor the files B delivered. From `results/ccrab-cis/file-pool.txt`
+(`experiments/cis_file_pool.py`), per task:
+
+| files per task | median | min | max |
+|---|---|---|---|
+| cached pool (what CIS indexed) | 56 | 1 | 60 |
+| full repository at the head commit, source files (.py .js .java .c) | 747 | 24 | 14,484 |
+| full repository at the head commit, all files | 1,434.5 | 44 | 20,866 |
+| files B's run-4 context showed | 5 | 1 | 23 |
+
+The full-repository counts come from the GitHub tree listing run 4 cached for each task (194 of
+194 tasks with a pool). The pool is a median 6.41% of the repository's source files; 36 tasks
+reached the 60-file cap. The pool is larger than the set of files B showed in 180 of 194 tasks
+and contains every file B showed in all 194.
+
+So E's symbols, edges and ranking are CIS's own, but the files it could choose from were chosen
+by our import walk, and they are the same files B, C, Cx, CxE and D draw from. Because the walk
+follows imports outward, a caller in a file that imports a changed file is in the pool only when
+the walk reached that file some other way. This limits E's callers-first rule as it limits B's.
+A full-repository E is not part of this pre-registration.
+
+### New control CxE: random code from other files, matched to E's size
+
+E delivers a median 1,197 tokens against 1,725 for Cx (`coverage.txt`), so E − Cx mixes which
+code is chosen with how much is shown. CxE holds the amount fixed.
+
+- **Draw.** Cx's own sampler, rerun step by step in `experiments/cxe_context.py`:
+  `build_random_context_tool` with run 4's settings (other files only, test files excluded, the
+  type mix of B's walk, seed 0, 80-candidate cap, 40-line cut, the same seeds). The rerun's
+  3,000-token context is identical to the frozen run-4 Cx context in 194 of 194 tasks for
+  gpt-4o-mini and 194 of 194 for deepseek-v3.2.
+- **Order.** Cx's draw, then the other-file function and class entities Cx did not draw, in a
+  seeded random order (`random.Random("0:<query>:CxE")`), with the same test-file and
+  other-file rules, up to 80 candidates.
+- **Matching.** Per task, CxE keeps the prefix of that order whose rendered text, counted with
+  tiktoken `cl100k_base`, is closest to E's delivered text for the same task; ties go to the
+  shorter prefix. A task with an empty E context gets an empty CxE context.
+- **Budget.** The match is on the text the model sees, so the 3,000-token cap on the serialised
+  payload is not applied to CxE. Where E and Cx both fill that cap, E's fewer, larger entities
+  carry less JSON overhead and show more code (in 60 tasks Cx's whole context is smaller than
+  E's). In 32 tasks CxE therefore goes past Cx's 3,000-token cut, still within Cx's own draw. In
+  1 task it goes beyond Cx's draw. In 29 tasks CxE's payload is above 3,000 tokens with at least
+  one entity, at most 3,502.
+- **Result of the matching** (`results/ccrab-cis/cxe-matching.txt`). Median delivered tokens:
+  E 1,197, CxE 1,175, Cx 1,725. Median per-task CxE − E 0 tokens, median absolute difference 35.
+  CxE is larger than E in 83 tasks, smaller in 84, and equal in 28. CxE is a prefix of Cx's
+  delivered context in 161 tasks. Median entities: CxE 6, Cx 10. CxE shows no entity in 29
+  tasks, E in 25.
+- **Same prompt.** CxE's header line is identical to E's in 194 of 194 tasks. Built through
+  `build_context` and `build_messages`, E's and CxE's prompts are identical apart from the
+  context block in 195 of 195 tasks, tool clause included.
+
+### Tests, replacing the primary above
+
+- **Primary: E − CxE**, in the same four cells (tolerance 5 and exact line; all paired defects
+  and the pre-registered subset). The decision cell remains tolerance 5 on the pre-registered
+  subset. E is said to beat size-matched random code only if the repository-clustered 95%
+  interval of E − CxE lies wholly above zero on **both** models in the decision cell. An interval
+  that includes zero on either model is no detectable gain. An interval wholly below zero on both
+  is E doing worse than size-matched random code.
+- **Secondary, not used for the claim:** E − Cx (formerly primary), E − B and E − A, in the same
+  four cells.
+- **Described, not tested:** CxE − Cx, the effect of Cx's extra random code.
+
+E and CxE run on the same date with the same models. E − CxE is therefore free of the date
+difference disclosed for the comparisons with the frozen A, B and Cx records.
+
+### Runs
+
+CxE runs through the same harness and is recorded as condition `CXE`, because condition names
+are upper-cased, with `--external-context results/ccrab-cis/context-CxE-delivered.json`. There
+are four runs: E and CxE on gpt-4o-mini, then on deepseek-v3.2
+(`experiments/launch_ccrab_cis.sh`). Each run keeps the $3.00 stop and one resume relaunch for
+unscored calls. Outcomes are frozen as `results/ccrab-cis/<model>/E-outcomes.jsonl` and
+`CxE-outcomes.jsonl`. The analysis is `experiments/analyse_ccrab_cis.py`. Fed run 4's B as E and
+Cx as CxE, it reproduces the replication's B − Cx exactly: all paired defects −5.3%
+[−12.0, +0.8], exact line on the subset −13.8% [−24.7, −1.4].
+
+The OpenRouter balance on 6 November is still −$0.03; no model call is made before credit is
+added. The deadline is unchanged: the runs must be done by 12 November 2026.

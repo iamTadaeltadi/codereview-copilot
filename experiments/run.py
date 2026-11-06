@@ -55,6 +55,10 @@ NEEDS_GRAPH = {"B", "C", "D", "G"}
 # Condition E of paper/PREREG-E.md, recorded as "CIS" because "E" names the whole-file arm.
 # Its context is precomputed by experiments/cis_context.py and loaded with --external-context.
 CONDITION_CIS = "CIS"
+# CxE, its size-matched random control (second amendment), written by experiments/cxe_context.py.
+# Condition names are upper-cased on the command line, so it is recorded as "CXE".
+CONDITION_CXE = "CXE"
+EXTERNAL_CONDITIONS = (CONDITION_CIS, CONDITION_CXE)
 EXTERNAL_CONTEXT = {}
 GRAPH_VERSION = "-v2"
 ENTITY_TYPES = ("function", "class")
@@ -139,9 +143,9 @@ def build_context(task, condition, matrix, graph_cache, token, max_depth, sparse
                   plain_context=False, exclude_tests=False, callers_first=False,
                   drop_class_seeds=False):
     """Return (context text for the model, graph info, retrieval log fields)."""
-    if condition == CONDITION_CIS:
+    if condition in EXTERNAL_CONDITIONS:
         if task.task_id not in EXTERNAL_CONTEXT:
-            raise RepoError(f"{task.task_id}: no precomputed CIS context (--external-context)")
+            raise RepoError(f"{task.task_id}: no precomputed {condition} context (--external-context)")
         entry = EXTERNAL_CONTEXT[task.task_id]
         return entry.get("context_text") or "", None, dict(entry.get("retrieval") or {})
     if condition == CONDITION_NONE:
@@ -308,8 +312,9 @@ def main() -> int:
     parser.add_argument("--drop-class-seeds", action="store_true",
                         help="a class whose method is already a seed is not seeded as well")
     parser.add_argument("--external-context", default=None,
-                        help="JSON {task_id: {context_text, retrieval}} for condition CIS "
-                             "(paper/PREREG-E.md), written by experiments/cis_context.py")
+                        help="JSON {task_id: {context_text, retrieval}} for condition CIS or CXE "
+                             "(paper/PREREG-E.md), written by experiments/cis_context.py or "
+                             "experiments/cxe_context.py")
     parser.add_argument("--full-repo", action="store_true",
                         help="download whole repositories instead of the diff's files "
                              "and their imports; needs a fast connection")

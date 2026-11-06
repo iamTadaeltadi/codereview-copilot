@@ -1,0 +1,26 @@
+CxE: run 4's Cx draw, cut per task to E's delivered size (paper/PREREG-E.md, second amendment)
+
+tasks                                              195
+Cx rerun identical to the frozen gpt-4o-mini Cx context  194 of 194
+Cx rerun identical to the frozen deepseek-v3.2 Cx context  194 of 194
+tasks with a non-empty E context                   194
+tasks with no cached graph (CxE empty, like E)     1
+CxE header line identical to E's                   194 of 194
+
+delivered context, tokens of the text the model sees (tiktoken cl100k_base), all tasks
+  median E    1197
+  median CxE  1175
+  median Cx   1725
+  median CxE minus E, per task            0
+  median |CxE minus E|, per task          35
+  tasks where CxE is larger than E        83
+  tasks where CxE is smaller than E       84
+  tasks where CxE equals E                28
+  tasks where Cx's 3,000-token context is smaller than E's   60
+  tasks where CxE goes past Cx's 3,000-token cut (within Cx's draw)  32
+  tasks where CxE goes beyond Cx's own draw       1
+  tasks where CxE's payload, with at least one entity, is above 3,000 tokens  29
+  max CxE payload tokens with at least one entity  3502
+  tasks with no entity in CxE (header only or empty)  29
+  tasks where CxE is a prefix of Cx's delivered context  161
+  median entities, Cx 10.0  CxE 6.0
