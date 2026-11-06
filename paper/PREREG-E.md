@@ -157,3 +157,29 @@ repositories, with caller-edge precision and recall reported beside ours.
 
 No existing result file is changed. Run 4, the replication and every earlier record stay as
 frozen. Git history is not rewritten.
+
+## Amendment before any model call, 6 November 2026
+
+Written after the first extraction and its coverage count, and before any model call.
+
+**A rule of B's that the text above left out.** When a changed file has no function or class
+overlapping a changed hunk, B seeds that file's own node (`seed_queries` in `experiments/run.py`).
+In run 4, 28 of B's 194 tasks had a file-node seed, and 2 had only file-node seeds. E now does the
+same: a changed file with no function, method or class seed contributes its CIS file hub as a
+seed, and `get_callers` and `expand_context` are asked about it like any other seed. The
+extraction was rerun with this rule. The first extraction's records and coverage are kept in
+`results/ccrab-cis/superseded/`. Its counts were: 194 of 195 tasks indexed, 187 with a seed, 167
+with at least one delivered entity, median delivered context 1,098 tokens against 1,790 for B.
+
+**How the kind of a symbol is decided.** CIS's hits carry no kind field, and its Python index also
+holds module-level assignments. A symbol counts as a function when its source, after decorator
+lines, starts with `def` or `async def`, and as a class when it starts with `class`. Anything else
+is neither and is dropped, as B keeps only functions and classes. CIS names Python symbols
+`path::Class.method`, so the drop-class-seeds rule drops a seed whose qualified name, followed by
+a dot, begins another seed's name.
+
+**Coverage limits found, not changed.**
+- Four tasks change only JavaScript (three in ccxt, one in zulip). The pre-registered build has
+  the Python parser only, so CIS indexes no symbol there. They run with no CIS entity. Building
+  with the `ts-javascript` feature would change the pre-registered build and is not done.
+- In one sympy task the changed file, `bin/coverage_doctest.py`, has no symbol in CIS's index.

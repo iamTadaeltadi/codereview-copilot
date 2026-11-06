@@ -1,0 +1,23 @@
+Condition E (CIS) coverage, before any model call (paper/PREREG-E.md)
+CIS 4ea4bfe9e37b, cisd --mcp, python-ast + body-sqlite; files = run-4 cached sources per task
+
+tasks                                   195
+indexed OK                              194
+failed to index or query                1
+      1  no cached run-4 source files for this task
+indexed with a parse error reported     0
+tasks with at least one seed            187
+tasks with at least one raw CIS hit     187
+tasks with at least one entity delivered 167
+tasks run with no entity (header only or empty) 28
+
+raw hits, all tasks                     7156
+raw hits per task, median               25
+candidates offered after filter, median 6
+
+delivered context, tokens of the text the model sees (tiktoken cl100k_base)
+                 median all tasks   median non-empty   median entities kept   tasks
+  E (CIS)                       1098            1111.0                   4       195
+  B (graph)                   1790.0            1790.0                 7.0       194
+  D (lexical)                   1676              1676                   8       193
+  Cx (random other files)     1725.0            1725.0                10.0       194
