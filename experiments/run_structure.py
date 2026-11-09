@@ -36,7 +36,7 @@ from experiments.evidence import (ARM_DIFF_ONLY, ARM_HEADER, ARM_RANDOM, ARMS, E
                                   sources_for, with_noise)
 from experiments.llm import LLMError, client_from_env, load_env
 from experiments.matcher import ReportedFinding
-from experiments.review import OUTPUT_CONTRACT, SYSTEM_PROMPT, parse_findings
+from experiments.review import OUTPUT_CONTRACT, SYSTEM_PROMPT, _extract_json, parse_findings
 
 METADATA_HEADER = "Dependency information for the code above:"
 METADATA_NOTE = ("Each line states a relationship between two of the snippets above. "
@@ -79,13 +79,68 @@ NEUTRAL_OUTPUT_CONTRACT = OUTPUT_CONTRACT.replace(
     "list when nothing is wrong; an empty list is a correct answer.")
 assert NEUTRAL_SYSTEM_PROMPT != SYSTEM_PROMPT and NEUTRAL_OUTPUT_CONTRACT != OUTPUT_CONTRACT
 
+# paper/PREREG-F.md: graded confidence per finding, for an ROC per arm. The same two changes to the
+# output contract in every arm; off by default, so earlier runs are reproduced unchanged.
+CONFIDENCE_SHAPE = ('"message": "what is wrong"}', '"message": "what is wrong", "confidence": 70}')
+CONFIDENCE_NOTE = ('"confidence" is an integer from 0 to 100: how likely you think it is that the '
+                   'finding is a real defect (0 = almost certainly not, 100 = certain).')
+
+
+def with_confidence(contract: str) -> str:
+    out = contract.replace(*CONFIDENCE_SHAPE).replace(
+        "Never wrap the JSON in prose.", CONFIDENCE_NOTE + "\nNever wrap the JSON in prose.")
+    assert out.count('"confidence": 70') == 1 and CONFIDENCE_NOTE in out, "contract changed shape"
+    return out
+
+
+CONFIDENCE_NUMBER = re.compile(r"^\s*(\d+(?:\.\d+)?)\s*%?\s*$")
+
+
+def parse_confidence(value):
+    """An integer 0-100, or None. Numbers and numeric strings ("80", "80%") are accepted and
+    rounded; anything else, or a value outside 0-100, is missing."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        number = float(value)
+    elif isinstance(value, str) and CONFIDENCE_NUMBER.match(value):
+        number = float(CONFIDENCE_NUMBER.match(value).group(1))
+    else:
+        return None
+    return int(round(number)) if 0 <= number <= 100 else None
+
+
+def finding_confidences(text: str):
+    """Confidence per finding, in parse_findings' order (dict items of the findings list)."""
+    payload = _extract_json(text)
+    raw = payload.get("findings") if isinstance(payload, dict) else payload
+    if not isinstance(raw, list):
+        return []
+    return [parse_confidence(item.get("confidence")) for item in raw if isinstance(item, dict)]
+
+
+def score_items(task, arm, findings, confidences):
+    """Per finding: line, hit on the mutated line (the existing matcher, tolerance 0) and
+    confidence. Item score: the highest confidence among hits, 0 with no hit; None when a hit
+    has no valid confidence (counted as confidence missing, never scored as 0)."""
+    rows = []
+    for f, conf in zip(findings, confidences):
+        hit = score_review(task, arm, [ReportedFinding(f.finding_id, f.path, f.line, f.message)],
+                           tolerance=0).hit
+        rows.append({"line": f.line, "hit": hit, "confidence": conf})
+    hits = [r["confidence"] for r in rows if r["hit"]]
+    if any(c is None for c in hits):
+        return rows, None, True
+    return rows, (max(hits) if hits else 0), False
+
+
 AUTHORITATIVE = ("The related code shown below is every place in the repository that uses "
                  "the changed function. Judge the change against that code only: if it is "
                  "compatible with every use shown, it is not a defect.")
 
 
 def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = False,
-                 neutral: bool = False):
+                 neutral: bool = False, confidence: bool = False):
     parts = [f"Repository: {task.repo}", "", "Pull request diff:",
              "```diff", task.diff, "```"]
     # Without this, "safe for the shown caller" is not "safe", and a reviewer
@@ -104,7 +159,8 @@ def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = Fals
             # so that "evidence vs diff only" can be separated from "the
             # presence of a dependency section vs none".
             parts += ["", METADATA_HEADER, METADATA_NOTE, block]
-    parts += ["", NEUTRAL_OUTPUT_CONTRACT if neutral else OUTPUT_CONTRACT]
+    contract = NEUTRAL_OUTPUT_CONTRACT if neutral else OUTPUT_CONTRACT
+    parts += ["", with_confidence(contract) if confidence else contract]
     return [{"role": "system", "content": NEUTRAL_SYSTEM_PROMPT if neutral else SYSTEM_PROMPT},
             {"role": "user", "content": "\n".join(parts)}]
 
@@ -150,10 +206,18 @@ def main() -> int:
                     help="window the caller above the evidence line so the call is "
                          "visible and the relation is not; only exception and None kinds")
     ap.add_argument("--benchmark", default=str(Path(_ROOT) / "data" / "crossfile-v2.jsonl"))
+    ap.add_argument("--confidence", action="store_true",
+                    help="ask for an integer confidence 0-100 per finding (paper/PREREG-F.md) and "
+                         "record it per finding with the item score; identical across arms")
+    ap.add_argument("--kinds", default="",
+                    help="comma-separated defect kinds to keep (e.g. default_flip); default all")
     a = ap.parse_args()
 
     arms = [x.strip() for x in a.arms.split(",") if x.strip()]
     tasks = load_crossfile(a.benchmark)[: a.limit]
+    kinds = {k.strip() for k in a.kinds.split(",") if k.strip()}
+    if kinds:
+        tasks = [t for t in tasks if t.metadata.get("kind") in kinds]
     env = load_env(); client = client_from_env(env); token = env.get("GITHUB_TOKEN", "")
 
     out = Path(_ROOT) / "runs" / a.name; out.mkdir(parents=True, exist_ok=True)
@@ -198,7 +262,7 @@ def main() -> int:
             # is said about it.
             shown = decoy_ev if arm == ARM_RANDOM else ev
             messages = build_prompt(task, shown, arm, a.encoding, task.task_id, authoritative=a.authoritative,
-                                    neutral=a.neutral_prompt)
+                                    neutral=a.neutral_prompt, confidence=a.confidence)
             try:
                 c = client.complete(model=a.model, messages=messages,
                                     max_tokens=2048, temperature=0.1)
@@ -217,6 +281,16 @@ def main() -> int:
             mech = mechanism_correct(task.metadata.get("kind", ""), task.metadata.get("argument", ""),
                                      on_defect) if sc.hit else (False if findings else None)
             spent += c.usage.cost_usd
+            extra = {}
+            if a.confidence:
+                per, item_score, missing = score_items(task, arm, findings,
+                                                       [] if failed else finding_confidences(c.text))
+                extra = {"confidence": True, "finding_scores": per,
+                         "item_score": None if failed else item_score,
+                         "confidence_missing": (not failed) and missing,
+                         "raw_text": (c.text or "")[:6000]}
+                if failed or missing:
+                    print(f"  [{i}] {arm} {'PARSE FAILED' if failed else 'CONFIDENCE MISSING on a hit'}")
             with path.open("a") as h:
                 h.write(json.dumps({
                     "task_id": task.task_id, "arm": arm, "encoding": a.encoding,
@@ -229,7 +303,7 @@ def main() -> int:
                     "is_defect": is_defect, "correct": correct, "correct_precise": correct_precise,
                     "finish_reason": getattr(c, "finish_reason", None),
                     "hide_evidence": a.hide_evidence, "noise": a.noise, "authoritative": a.authoritative, "neutral_prompt": a.neutral_prompt, "benchmark": os.path.basename(a.benchmark),
-                    "usage": c.usage.as_dict(),
+                    "usage": c.usage.as_dict(), **extra,
                 }) + "\n")
             print(f"  [{i}/{len(tasks)}] {arm:<14} hit={'Y' if sc.hit else 'n'} "
                   f"exact={'Y' if sc.precise else 'n'} mech={'Y' if mech else ('n' if mech is False else '-')} "
