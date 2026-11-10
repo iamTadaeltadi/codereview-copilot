@@ -6,13 +6,16 @@
 - max_tokens used: 16000 (2,048 unless a smoke reply showed reasoning using up the budget; see the smoke verdicts)
 - timing: six shards of 47 items, shuffled together (seed 0) from run 2c's items, so every shard holds defects and twins; each item's two arms in an order shuffled with seed 0 (`roc_tools.py prep_think`); the shards run in parallel
 - cap $2.30; run F limit $4.90 (raised from $4.00 by Amendment 4)
-- outcome: smoke test passed on gmicloud/fp8 at max_tokens 16000; projection within the cap; launched 10 Nov 21:00 EAT (this line is replaced when the run ends)
-- recorded cost of this run (smoke tests included): $0.0199; run F total: $2.6041
-- OpenRouter balance: $2.3814 before the first smoke call, $2.3614 now; run F recorded $2.5842 before
+- outcome: stopped by an Amendment 4 abort rule (not restarted)
+- recorded cost of this run (smoke tests included): $0.5304; run F total: $3.1146
+- OpenRouter balance: $2.3814 before the first smoke call, $1.8308 now; run F recorded $2.5842 before
 - log: 11-10 20:46:05 deepseek-think smoke roc-smoke-deepseek-think-atlas-cloud-2048: BUDGET review ::jobs_list_str::default_flip::745::safe cut off (finish_reason 'length', 2048 output tokens); review y::prepare_table_data::default_flip::157 cut off (finish_reason 'length', 2048 output tokens); review testation_token::default_flip::135::safe cut off (finish_reason 'length', 2048 output tokens)
 - log: 11-10 20:52:17 deepseek-think smoke roc-smoke-deepseek-think-atlas-cloud-16000: FAIL testation_token::default_flip::135::safe rated 3 of 4 hunks
 - log: 11-10 21:00:19 deepseek-think smoke roc-smoke-deepseek-think-gmicloud-16000: OK
 - log: 11-10 21:00:19 deepseek-think projection: WITHIN projected 0.9586 = 0.001110 mean per smoke review x 564 x 1.5 + smoke cost 0.0199; cap 2.30 (for information: manipulation check 0.000060 per call)
+- log: 11-10 22:20:54 ABORTED (Amendment 4 rule): deepseek-think ABORT output tokens 53234: roc-deepseek-think-mixed-shard1/structure.jsonl dask/bag/avro.py::to_avro::default_flip::182::safe 1-diff; cost 0.5304
+- run calls: calls 354 (reviews 330, manipulation checks 24, cut off 0); providers {'GMICloud': 354}; reasoning tokens max 53070, median 2400.5, zero on 0; output tokens max 53234, median 2600.0; finish reasons {'structure:stop': 330, 'manipulation:stop': 24}
+- abort rules at the end: ABORT output tokens 53234: roc-deepseek-think-mixed-shard1/structure.jsonl dask/bag/avro.py::to_avro::default_flip::182::safe 1-diff
 
 Smoke usage objects and finish reasons (raw; written before the run was launched):
 
