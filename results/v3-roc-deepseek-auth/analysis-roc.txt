@@ -1,0 +1,59 @@
+ROC on kind-matched default flips (paper/PREREG-F.md, Amendment 1): results/v3-roc-deepseek-auth
+model: deepseek/deepseek-v3.2; arms: 1-diff, 2b-snippets, 5-attributed; authoritative: True; hunk ratings on in every record: True
+records: 846; recorded cost: reviews $0.2882, manipulation checks $0.0009, smoke $0.0013
+repositories with a scored item in every arm: 36; bootstrap over repositories, 6000 draws, seed 0, defects and twins of a repository resampled together
+item score = the defect_probability of the mutated line's hunk; no-JSON replies and missing
+ratings are left out and counted, never scored 0
+
+1. Surface-match gate (diff only)
+  AUC 0.491 [0.421, 0.558]: includes 0.5
+
+2. Per arm, primary score (hunk rating)
+  arm                   def att/sc twin att/sc no JSON d/t missing d/t ambig unmat all rated   ties values    AUC  95%
+  1 diff only             139/139     143/143       0/0         0/0        0     0     95.7%  0.175     14  0.491  [0.421, 0.558]
+  2b caller, no block     139/139     143/143       0/0         0/0        0     1     97.5%  0.187     10  0.551  [0.477, 0.620]
+  5 attributed            139/139     143/143       0/0         0/0        0     2     98.2%  0.215     10  0.542  [0.485, 0.596]
+  att/sc: attempted / scored in the bootstrap repositories; ambig: replies rating a hunk twice with
+  different values; unmat: replies with entries for non-header lines or invalid entries; all rated:
+  share of parsed replies rating every hunk; ties: share of defect-twin pairs with equal scores;
+  values: distinct item scores
+
+3. AUC by score, per arm (primary hunk rating beside the secondary scores)
+  arm                     hunk  binary (1+H-F)/2  censored confidence
+  1 diff only            0.491             0.496                0.505
+  2b caller, no block    0.551             0.534                0.515
+  5 attributed           0.542             0.501                0.520
+
+4. dAUC vs 1-diff, hunk rating (primary: 5-attributed - 1-diff)
+  arm                      dAUC  95%               90%               reading at 0.10        reading at 0.05
+  2b caller, no block    +0.060  [-0.018, +0.137]  [-0.005, +0.125]  secondary inconclusive inconclusive
+  5 attributed           +0.051  [-0.024, +0.125]  [-0.013, +0.112]  PRIMARY inconclusive   inconclusive
+  equivalence: 90% interval inside the margin; gain: 95% interval above 0
+
+  secondary scores, dAUC vs 1-diff [95%]:
+  arm                                      binary           censored confidence
+  2b caller, no block     +0.039 [-0.031, +0.107]       +0.010 [-0.053, +0.071]
+  5 attributed            +0.005 [-0.061, +0.067]       +0.016 [-0.058, +0.083]
+
+5. Histogram of item scores (mutated hunk), defects (d) and twins (t)
+  arm                         0   1-9 10-19 20-29 30-39 40-49 50-59 60-69 70-79 80-89 90-99   100  median  most common values (d+t)
+  1 diff only           d    45     0     2     0     3     0     4     1     1    50    20    13    85.0  0:81, 85:68, 90:40, 100:28, 80:25
+                        t    36     2     7     1     1     0    10     1     1    43    26    15    80.0
+  2b caller, no block   d    18     0     1     0     0     0     0     0     0    52    50    18    85.0  90:80, 85:66, 0:50, 100:30, 80:26
+                        t    32     1     3     0     0     0     1     2     0    40    52    12    85.0
+  5 attributed          d    17     0     0     0     0     0     0     1     0    41    69    11    90.0  90:103, 85:56, 0:39, 80:33, 95:23
+                        t    22     0     0     0     0     1     0     1     2    48    57    12    85.0
+
+6. Secondary, binary hit (parse failures dropped), with Table 2 (old contract) for reference
+  arm                      H%    F% d-prime  95%                  c  95%             dd vs 1-diff          dc vs 1-diff          Table 2 H% F% d' c
+  1 diff only            43.9  44.8   -0.02  [-0.30, +0.26]    0.14  [-0.05, +0.35]  +0.00 [+0.00, +0.00]  +0.00 [+0.00, +0.00]  39.4 11.9 +0.91 +0.72
+  2b caller, no block    70.5  63.6    0.19  [-0.13, +0.52]   -0.44  [-0.67, -0.23]  +0.21 [-0.16, +0.59]  -0.59 [-0.77, -0.43]  -
+  5 attributed           79.1  79.0    0.00  [-0.36, +0.37]   -0.81  [-1.02, -0.62]  +0.03 [-0.37, +0.41]  -0.95 [-1.17, -0.76]  -
+
+7. zROC slope of the hunk rating (descriptive; least squares of z(H) on z(F) over thresholds)
+  1 diff only          0.98 (13 points)
+  2b caller, no block  1.16 (9 points)
+  5 attributed         1.10 (9 points)
+
+8. Multiplicity: one primary comparison per run (5-attributed - 1-diff, hunk rating). Every other
+  comparison, measure and run is reported without correction and read as secondary.
