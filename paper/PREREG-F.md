@@ -257,3 +257,26 @@ as above. Each is committed and pushed when its run ends.
 
 **Unchanged.** No run is repeated, extended or stopped early for a nicer result. A run stopped by
 its cap is analysed as recorded.
+
+## Amendment 2 (10 November 2026, 14:33 EAT; during run 2, before its cap was reached)
+
+**Reason.** Under the Amendment 1 contract, deepseek-v3.2 writes much longer replies than the
+projection assumed: 2,700–3,700 output tokens per call, against 900–2,100 in the earlier deepseek
+runs on the same items. A call costs about $0.0014 instead of about $0.0006. At the caps of
+Amendment 1, run 2 would stop at about 63% of its calls and run 4 at about 52%. This was seen only
+in the cost log and the token counts of the 413 calls recorded so far. No deepseek result has been
+analysed or looked at.
+
+**Changes.**
+- Run 2 (deepseek-v3.2, 4 arms): cap $1.85. Projected from the recorded calls: $1.58.
+- Run 4 (deepseek-v3.2 `--authoritative`, 3 arms): cap $1.45. Projected: $1.16.
+- Run 5 (gpt-4.1:batch, or kimi-k2-0905) is dropped.
+- The $4.00 total is unchanged. With every cap reached, the total would be $3.93 ($0.23 recorded
+  for run 1, plus $1.85, $0.40 and $1.45).
+
+**Mechanics.** Run 2 is stopped and restarted from its own records with the new cap. The runner
+skips every (item, arm) already recorded, so nothing is asked twice. The smoke test is not repeated:
+its 3 records exist and pass. Calls in flight at the restart (at most 6) are lost and asked again;
+they are billed but not recorded. The interrupted logs are kept as `run-*-interrupted.log`.
+
+Everything else in Amendment 1 stands.
