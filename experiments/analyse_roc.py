@@ -25,6 +25,7 @@ d', c and their changes (signal_detection.stats), beside Table 2's values for th
 and arm (results/twins-kind-matched/analysis.txt) where the prompt differs only in the output
 contract. Descriptive: tie fraction, distinct values, a histogram of item scores, zROC slope.
 """
+import collections
 import json
 import random
 import statistics
@@ -158,6 +159,12 @@ def main(folder):
            f"model: {', '.join(m for m in models if m)}; arms: {', '.join(arms)}; authoritative: "
            f"{'/'.join(map(str, authoritative))}; hunk ratings on in every record: "
            f"{all(r.get('hunk_ratings_on') for r in rows)}",
+           *([f"settings (Amendment 3): reasoning {rows[0].get('request_reasoning')}; provider "
+               f"{rows[0].get('request_provider')}; served by "
+               f"{dict(collections.Counter(str(r.get('served_provider')) for r in rows))}; max reasoning tokens "
+               f"{max((r.get('reasoning_tokens') or 0) for r in rows)}; max output tokens "
+               f"{max((r.get('usage') or {}).get('output_tokens') or 0 for r in rows)}"]
+             if any(r.get("request_provider") for r in rows) else []),
            f"records: {len(rows)}; recorded cost: reviews ${cost_of(sorted(folder.glob('structure*.jsonl'))):.4f}, "
            f"manipulation checks ${cost_of(manip):.4f}, smoke ${cost_of(smoke):.4f}",
            f"repositories with a scored item in every arm: {len(repos)}; bootstrap over repositories, "

@@ -5,10 +5,16 @@
     roc_tools.py smoke RUN                OK, NOREPLY or FAIL <reason> for runs/RUN/structure.jsonl
     roc_tools.py project RUN N CAP        OVER or WITHIN: smoke cost per call x N calls against CAP
     roc_tools.py remaining                $4.00 minus the recorded cost of every runs/roc-* run
+    roc_tools.py smoke_ctrl RUN NAME      smoke plus Amendment 3: no reasoning, < 600 output tokens, provider NAME
+    roc_tools.py guard NAME GLOB [...]    OK or ABORT <reason>: Amendment 3 abort rule over every recorded call
+    roc_tools.py usage GLOB [...]         raw usage object and served provider of every call (smoke display)
+    roc_tools.py ctrlstats GLOB [...]     calls, providers seen, max reasoning tokens, max output tokens
     roc_tools.py cost GLOB [GLOB ...]     summed recorded cost of structure and manipulation records
     roc_tools.py balance                  OpenRouter balance in dollars (the key is never printed)
 """
+import contextlib
 import glob
+import io
 import json
 import sys
 from pathlib import Path
@@ -101,6 +107,83 @@ def remaining():
     print(f"{4.0 - total():.4f}")
 
 
+def _norm(name):
+    return "".join(ch for ch in str(name).lower() if ch not in " -_")
+
+
+def _calls(patterns):
+    """Every recorded call (review and manipulation-check records) of the runs matching the globs."""
+    out = []
+    for pattern in patterns:
+        for d in sorted(glob.glob(str(ROOT / "runs" / pattern))):
+            for name in ("structure.jsonl", "manipulation.jsonl"):
+                p = Path(d) / name
+                if p.is_file():
+                    out += [(Path(d).name, name, json.loads(l)) for l in p.open() if l.strip()]
+    return out
+
+
+def _out_tokens(r):
+    return r.get("output_tokens", (r.get("usage") or {}).get("output_tokens"))
+
+
+def smoke_ctrl(run, name):
+    """paper/PREREG-F.md, Amendment 3: the smoke checks above, and on every call: the run's settings
+    present, reasoning_tokens 0 or absent, fewer than 600 output tokens, and the served provider
+    NAME (ignoring case, spaces, hyphens) or not reported."""
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        smoke(run)
+    base = buf.getvalue().strip()
+    bad = [] if base == "OK" else [base]
+    for _, kind, r in _calls([run]):
+        tid = f"{kind[:5]} {r['task_id'][-50:]}"
+        if not r.get("request_provider") or r.get("request_reasoning") is None:
+            bad.append(f"{tid} settings missing"); continue
+        if r.get("reasoning_tokens"):
+            bad.append(f"{tid} reasoning_tokens {r['reasoning_tokens']}")
+        if (_out_tokens(r) or 0) >= 600:
+            bad.append(f"{tid} output tokens {_out_tokens(r)}")
+        if r.get("served_provider") is not None and _norm(r["served_provider"]) != _norm(name):
+            bad.append(f"{tid} served by {r['served_provider']}")
+    print("OK" if not bad else "FAIL " + "; ".join(bad))
+
+
+def guard(name, *patterns):
+    """Amendment 3 abort rule: any call with reasoning_tokens > 0, more than 1,500 output tokens, a
+    reported provider other than NAME, or without the run's settings."""
+    calls = _calls(patterns)
+    for run, kind, r in calls:
+        where = f"{run}/{kind} {r['task_id'][-50:]} {r.get('arm', '')}"
+        if not r.get("request_provider") or r.get("request_reasoning") is None:
+            print(f"ABORT settings missing: {where}"); return
+        if (r.get("reasoning_tokens") or 0) > 0:
+            print(f"ABORT reasoning_tokens {r['reasoning_tokens']}: {where}"); return
+        if (_out_tokens(r) or 0) > 1500:
+            print(f"ABORT output tokens {_out_tokens(r)}: {where}"); return
+        if r.get("served_provider") is not None and _norm(r["served_provider"]) != _norm(name):
+            print(f"ABORT served by {r['served_provider']}: {where}"); return
+    reported = sum(1 for *_, r in calls if r.get("served_provider") is not None)
+    print(f"OK {len(calls)} calls, provider reported on {reported}")
+
+
+def usage(*patterns):
+    for run, kind, r in _calls(patterns):
+        print(f"{run}/{kind} {r['task_id'][-60:]} {r.get('arm', '')}: provider={r.get('served_provider')!r} "
+              f"reasoning_tokens={r.get('reasoning_tokens')!r} output_tokens={_out_tokens(r)} "
+              f"usage={json.dumps(r.get('usage_raw'), sort_keys=True)}")
+
+
+def ctrlstats(*patterns):
+    import collections
+    calls = [r for *_, r in _calls(patterns)]
+    prov = collections.Counter(str(r.get("served_provider")) for r in calls)
+    rt = [r.get("reasoning_tokens") for r in calls]
+    print(f"calls {len(calls)}; providers {dict(prov)}; reasoning_tokens max "
+          f"{max((x for x in rt if x is not None), default=None)} (absent on {sum(x is None for x in rt)}); "
+          f"output tokens max {max((_out_tokens(r) or 0 for r in calls), default=None)}")
+
+
 def cost(*patterns):
     total = 0.0
     for pattern in patterns:
@@ -129,4 +212,4 @@ def balance():
 
 if __name__ == "__main__":
     {"prep": prep, "smoke": smoke, "project": project, "remaining": remaining, "cost": cost,
-     "balance": balance}[sys.argv[1]](*sys.argv[2:])
+     "balance": balance, "smoke_ctrl": smoke_ctrl, "guard": guard, "usage": usage, "ctrlstats": ctrlstats}[sys.argv[1]](*sys.argv[2:])

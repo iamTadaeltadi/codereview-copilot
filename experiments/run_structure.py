@@ -247,6 +247,19 @@ def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = Fals
             {"role": "user", "content": "\n".join(parts)}]
 
 
+def call_meta(client, c) -> dict:
+    """paper/PREREG-F.md, Amendment 3: the served provider and the reasoning tokens of a call, kept
+    only when the client pins reasoning or provider, so records of default runs are unchanged."""
+    if getattr(client, "reasoning", None) is None and getattr(client, "provider", None) is None:
+        return {}
+    raw = getattr(c, "raw", None) or {}
+    usage = raw.get("usage") or {}
+    details = usage.get("completion_tokens_details") or {}
+    return {"served_provider": raw.get("provider"), "reasoning_tokens": details.get("reasoning_tokens"),
+            "output_tokens": c.usage.output_tokens, "usage_raw": usage,
+            "request_reasoning": client.reasoning, "request_provider": client.provider}
+
+
 def manipulation_check(client, model, evidence, arm, encoding, seed):
     """Can the model read the relation back out of the serialisation?
 
@@ -266,7 +279,7 @@ def manipulation_check(client, model, evidence, arm, encoding, seed):
         c = client.complete(model=model, messages=messages, max_tokens=48, temperature=0)
     except LLMError:
         return None
-    return {"answer": (c.text or "").strip(), "cost": c.usage.cost_usd}
+    return {"answer": (c.text or "").strip(), "cost": c.usage.cost_usd, **call_meta(client, c)}
 
 
 def main() -> int:
@@ -395,7 +408,7 @@ def main() -> int:
                     "is_defect": is_defect, "correct": correct, "correct_precise": correct_precise,
                     "finish_reason": getattr(c, "finish_reason", None),
                     "hide_evidence": a.hide_evidence, "noise": a.noise, "authoritative": a.authoritative, "neutral_prompt": a.neutral_prompt, "benchmark": os.path.basename(a.benchmark),
-                    "usage": c.usage.as_dict(), **extra,
+                    "usage": c.usage.as_dict(), **extra, **call_meta(client, c),
                 }) + "\n")
             print(f"  [{i}/{len(tasks)}] {arm:<14} hit={'Y' if sc.hit else 'n'} "
                   f"exact={'Y' if sc.precise else 'n'} mech={'Y' if mech else ('n' if mech is False else '-')} "

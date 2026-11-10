@@ -90,6 +90,7 @@ class OpenRouterClient:
         max_retries: int = DEFAULT_MAX_RETRIES,
         transport=None,
         reasoning: dict | None = None,
+        provider: dict | None = None,
     ):
         if not api_key:
             raise LLMError("no API key: set OPENROUTER_API_KEY in .env")
@@ -99,6 +100,9 @@ class OpenRouterClient:
         self.max_retries = max_retries
         self._transport = transport
         self.reasoning = reasoning
+        # OpenRouter provider routing (paper/PREREG-F.md, Amendment 3), e.g. {"order": [...],
+        # "allow_fallbacks": false}. Sent only when set, so default requests are unchanged.
+        self.provider = provider
 
     def _post(self, path: str, payload: dict) -> dict:
         if self._transport is not None:
@@ -132,6 +136,8 @@ class OpenRouterClient:
         }
         if self.reasoning is not None:
             payload["reasoning"] = self.reasoning
+        if self.provider is not None:
+            payload["provider"] = self.provider
         if tools:
             payload["tools"] = tools
         if seed is not None:
@@ -190,4 +196,5 @@ def client_from_env(env=None) -> OpenRouterClient:
         api_key=env.get("OPENROUTER_API_KEY", ""),
         base_url=env.get("OPENROUTER_API_BASE_URL") or "https://openrouter.ai/api/v1",
         reasoning=json.loads(env["OPENROUTER_REASONING"]) if env.get("OPENROUTER_REASONING") else None,
+        provider=json.loads(env["OPENROUTER_PROVIDER"]) if env.get("OPENROUTER_PROVIDER") else None,
     )
