@@ -280,3 +280,87 @@ its 3 records exist and pass. Calls in flight at the restart (at most 6) are los
 they are billed but not recorded. The interrupted logs are kept as `run-*-interrupted.log`.
 
 Everything else in Amendment 1 stands.
+
+## Amendment 3 (10 November 2026, 16:56 EAT; before any call of the controlled reruns)
+
+**What was found, and when.** After the results of runs 2 and 4 had been seen, the deepseek records
+were examined for reply length.
+- **Run 2:** 505 of 1,128 calls billed more than 1,500 output tokens (median 3,592, max 131,244),
+  while their visible replies stayed short (median 624 characters). The other 623 calls billed at
+  most 1,500 (median 183). The long calls are the first 60–75% of each shard, and the switch came at
+  about the same time in all six shards.
+- **Run 4:** at most 457 output tokens per call.
+- **What it indicates:** billed output above the 2,048 max_tokens with a short visible reply
+  indicates hidden reasoning tokens.
+- **Why it was not controlled:** OpenRouter serves deepseek/deepseek-v3.2 through seven providers
+  that differ in reasoning default and quantization (DeepInfra fp4; AtlasCloud, GMICloud,
+  SiliconFlow and Baidu fp8; DigitalOcean and Phala unknown). Run F's requests set neither reasoning
+  nor provider, so the reasoning mode and the weights were not controlled, and the records do not
+  name the provider.
+- **Table 2:** the deepseek records behind it (default flips, parsed) are 19.7% long by the same
+  threshold (485 of 2,460): 33.0% of defect records and 7.6% of twin records. Defects and twins
+  were run at different times, so this difference cannot be told apart from routing over time.
+
+**Status.** The two reruns below are post hoc: they were decided after seeing the results of runs 2
+and 4. They use exactly the analysis of Amendment 1:
+- the same 139 default-flip defects and 143 twins, arms and output contract;
+- temperature 0.1 and max_tokens 2,048;
+- the hunk-rating AUC, with ΔAUC 5-attributed − 1-diff as the primary comparison;
+- the ±0.10 margin (±0.05 secondary);
+- the repository bootstrap (6,000 draws, seed 0);
+- the surface-match gate.
+
+Runs 2 and 4 stay in the repository and are reported as recorded. The paper reports the reruns as
+"deepseek-v3.2, reasoning off, one fp8 provider", next to runs 2 and 4. No run is dropped or chosen
+by its result. Turning reasoning off makes the reruns a different condition from runs 2 and 4 and
+from Table 2; they are reported as a controlled condition, not as a replacement.
+
+**Fixed settings for every call of the reruns** (reviews, manipulation checks, smoke tests). The
+request adds:
+
+    "reasoning": {"enabled": false}
+    "provider": {"order": ["atlas-cloud/fp8"], "allow_fallbacks": false, "require_parameters": true}
+
+- **How they are set:** through `OPENROUTER_REASONING` and `OPENROUTER_PROVIDER` (code commit
+  8625a60). With both unset, requests are byte-identical to before.
+- **Fallback:** `gmicloud/fp8` with the same settings, used only if an AtlasCloud smoke test
+  fails. Both reruns use one provider, and providers are never mixed within a run.
+- **Recorded per call:** the response's provider field, `usage.completion_tokens_details.reasoning_tokens`,
+  output tokens and the raw usage object.
+
+**Runs.**
+
+| run | model | arms | flags | folder | cap |
+|---|---|---|---|---|---|
+| 2c | deepseek-v3.2 | 1-diff, 7-random, 2b-snippets, 5-attributed | neutral | `results/v3-roc-deepseek-ctrl/` | $0.70 |
+| 4c | deepseek-v3.2 | 1-diff, 2b-snippets, 5-attributed | `--authoritative` | `results/v3-roc-deepseek-auth-ctrl/` | $0.50 |
+
+- **Budget:** run F's $1.89 recorded plus $1.20 in caps = $3.09, within $4.00.
+- **Start rules:** as before (the balance covers the cap, the total stays within $4.00, and no run
+  starts after 12 November 2026, 18:00 EAT).
+
+**Smoke tests.** Both reruns get a smoke test before either is launched: 3 defect items ×
+5-attributed, with the run's exact flags and settings. A smoke test passes only if:
+- every reply parses with a rating for every hunk and no non-header lines;
+- every call has reasoning_tokens 0 or absent, and fewer than 600 output tokens;
+- the served provider is the pinned one (matched to OpenRouter's provider name for that endpoint,
+  ignoring case, spaces and hyphens), or is not reported, which is then stated in the README
+  (allow_fallbacks false still pins it).
+
+The raw usage objects and provider fields of the smoke calls are written to the run's log and
+README before the run is launched. If either AtlasCloud smoke test fails, both reruns switch to
+gmicloud/fp8 and both smoke tests are repeated (the failed smoke records are kept). If a GMICloud
+smoke test fails, nothing runs and this is reported.
+
+**Abort rule.** A watcher checks every recorded call of a running rerun every 30 seconds and at the
+end of each pass. It stops the run if any call has reasoning_tokens > 0, more than 1,500 output
+tokens, or a reported provider other than the pinned one. The stop is logged in the README, the run
+is not restarted, and if 2c is stopped, 4c does not start.
+
+**Unchanged.** No rerun, extension or early stop for a nicer result. A run stopped by its cap or by
+the abort rule is analysed as recorded.
+
+**Also post hoc (descriptive, no cost).** The Table 2 deepseek records split by reply length (more
+than 1,500 output tokens = long), with the share of long records per arm for defects and twins and
+n, H, F, d′, c per arm and split: `results/twins-kind-matched/posthoc-reply-length.txt`
+(`experiments/posthoc_table2_reply_length.py`).

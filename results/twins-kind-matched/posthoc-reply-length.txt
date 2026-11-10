@@ -1,0 +1,45 @@
+POST HOC, DESCRIPTIVE (paper/PREREG-F.md, Amendment 3). Table 2 deepseek-v3.2 records (default-flip defects vs twins, neutral prompt),
+split by billed output tokens per call: long > 1500, short <= 1500. Repositories 35. No intervals.
+
+Share of long records per arm
+  arm               defects long      twins long      all long
+  1-diff           31/132  23.5%     9/143   6.3%   40/275  14.5%
+  2-evidence       53/131  40.5%    14/143   9.8%   67/274  24.5%
+  2b-snippets      37/130  28.5%    10/143   7.0%   47/273  17.2%
+  3-topology       47/131  35.9%     9/143   6.3%   56/274  20.4%
+  4-typed          38/131  29.0%     8/143   5.6%   46/274  16.8%
+  5-attributed     33/130  25.4%    13/143   9.1%   46/273  16.8%
+  6-corrupted      53/130  40.8%    14/143   9.8%   67/273  24.5%
+  7-random         40/130  30.8%     7/143   4.9%   47/273  17.2%
+  8-header         55/128  43.0%    14/143   9.8%   69/271  25.5%
+  all arms        387/1173  33.0%    98/1287   7.6%  485/2460 19.7%
+
+Signal detection per arm and split
+  arm           split     nD   nT     H%     F%      d      c
+  1-diff        all      132  143   39.4   11.9   0.91   0.72
+  1-diff        long      31    9   98.4   88.9   0.92  -1.68
+  1-diff        short    101  134   20.8    6.7   0.68   1.16
+  2-evidence    all      131  143   56.5   14.7   1.21   0.44
+  2-evidence    long      53   14   98.1   71.4   1.51  -1.32
+  2-evidence    short     78  129   28.2    8.5   0.79   0.97
+  2b-snippets   all      130  143   55.4   21.7   0.92   0.32
+  2b-snippets   long      37   10   98.6   60.0   1.96  -1.23
+  2b-snippets   short     93  133   37.6   18.8   0.57   0.60
+  3-topology    all      131  143   58.8   20.3   1.05   0.30
+  3-topology    long      47    9   98.9   55.6   2.16  -1.22
+  3-topology    short     84  134   35.7   17.9   0.55   0.64
+  4-typed       all      131  143   60.3   24.5   0.95   0.21
+  4-typed       long      38    8   98.7   50.0   2.22  -1.11
+  4-typed       short     93  135   44.1   23.0   0.59   0.44
+  5-attributed  all      130  143   57.7   22.4   0.95   0.28
+  5-attributed  long      33   13   97.0   76.9   1.14  -1.31
+  5-attributed  short     97  130   44.3   16.9   0.81   0.55
+  6-corrupted   all      130  143   58.5   18.9   1.10   0.33
+  6-corrupted   long      53   14   99.1   71.4   1.78  -1.46
+  6-corrupted   short     77  129   29.9   13.2   0.59   0.82
+  7-random      all      130  143   43.8    9.8   1.14   0.72
+  7-random      long      40    7   95.0   92.9   0.18  -1.56
+  7-random      short     90  136   21.1    5.1   0.83   1.22
+  8-header      all      128  143   48.4   11.9   1.14   0.61
+  8-header      long      55   14   98.2   92.9   0.63  -1.78
+  8-header      short     73  129   11.0    3.1   0.64   1.55
