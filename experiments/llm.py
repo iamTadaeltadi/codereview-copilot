@@ -183,10 +183,13 @@ class OpenRouterClient:
             finish_reason=finish_reason,
         )
         if completion.truncated:
-            raise LLMError(
+            error = LLMError(
                 f"{model}: reply was cut off (finish_reason={finish_reason!r}, "
                 f"{usage.output_tokens} output tokens) — not scored"
             )
+            # Kept so a caller can record what the cut-off call cost (paper/PREREG-F.md, Amendment 4).
+            error.completion = completion
+            raise error
         return completion
 
 

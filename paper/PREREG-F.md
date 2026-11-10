@@ -364,3 +364,128 @@ the abort rule is analysed as recorded.
 than 1,500 output tokens = long), with the share of long records per arm for defects and twins and
 n, H, F, d′, c per arm and split: `results/twins-kind-matched/posthoc-reply-length.txt`
 (`experiments/posthoc_table2_reply_length.py`).
+
+## Amendment 4 (10 November 2026, 20:36 EAT; before any call of run 2t)
+
+**Status.** Post hoc: decided after seeing the results of runs 1–4, 2c and 4c.
+- **Why:** run 2c (reasoning off, AtlasCloud fp8) gave ΔAUC +0.081 [+0.017, +0.148]. In run 2,
+  where reasoning was not controlled, the calls with hidden reasoning seemed to drive a larger gain
+  (`results/v3-roc-deepseek/posthoc-reply-length.txt`).
+- **What it tests:** one run that changes only the reasoning mode, compared with 2c. It tests whether
+  reasoning lets the model use the caller to tell defects from twins, or only makes it flag more.
+
+**Run 2t.**
+- **Model and arms:** `deepseek/deepseek-v3.2`, neutral prompt, not authoritative, two arms only:
+  1-diff and 5-attributed.
+- **Items and contract:** the same 139 default-flip defects and 143 twins as 2c, the same output
+  contract (hunk ratings, per-finding confidence), temperature 0.1.
+- **Folder:** `results/v3-roc-deepseek-think/`.
+- **The only change from 2c** is `"reasoning": {"enabled": true}`.
+- **Provider:** pinned exactly as in 2c:
+  `{"order": ["atlas-cloud/fp8"], "allow_fallbacks": false, "require_parameters": true}`. GMICloud
+  fp8, with the same settings, is used only if the AtlasCloud smoke test fails.
+- **max_tokens:** 2,048 as before. If any smoke reply is cut off (finish_reason "length"), empty, or
+  without JSON at max_tokens because the reasoning used up the budget, the run uses 16,000 for
+  every call instead. This is decided from the smoke test only. Once 16,000 is chosen, it also
+  holds for any later smoke test, including GMICloud's. The value used is recorded in the README and
+  in every record.
+
+**Timing.** In Table 2 the defects and twins ran at different times, and routing changed between
+them. In 2t they run at the same time:
+- **Shards:** 2c's 282 items are shuffled together (`random.Random(0).shuffle` of the sorted task
+  ids) and dealt round-robin into six shards of 47. Each shard holds 21–26 defects and 21–26 twins.
+  The six shards run in parallel.
+- **Arm order:** each item's two arms are called back to back, in an order shuffled with
+  `random.Random("0:<task id>")`.
+- **Code and records:** `experiments/roc_tools.py prep_think`; `run_structure.py --arm-order-seed 0`.
+  Every record stores its arm position and call time.
+
+**Recorded per call:**
+- the served provider, `usage.completion_tokens_details.reasoning_tokens`, output tokens and
+  finish_reason;
+- the raw usage object;
+- the request's reasoning and provider settings.
+
+A reply cut off at max_tokens is billed but not scored. It is now written, with its cost, to
+`failed.jsonl`, and it counts toward the cost watcher and the abort rules.
+
+**Forced deviation: the manipulation check.** Runs 1–4, 2c and 4c gave the manipulation check
+max_tokens 48. With reasoning on, 48 tokens cannot hold the reasoning, so in 2t the check uses the
+review max_tokens (2,048 or 16,000). Its question and scoring are unchanged.
+
+**Budget.** Run F's limit is raised from $4.00 to $4.90. Reasoning replies are much longer than
+2c's: run 2's long replies had a median of 3,592 output tokens, against 2c's maximum of 447. This was
+decided before any 2t call.
+- **Cap:** $2.30, smoke tests included.
+- **Fit:** run F's recorded $2.5842 plus $2.30 is $4.8842, within $4.90.
+
+**Smoke test.** 3 defects (`runs/roc-items/smoke3.jsonl`) and 3 twins (the first three default-flip
+twins with at least 3 evidence snippets, the rule used for the defects), alternating, ×
+5-attributed. With the first item's manipulation check, that is 7 calls, with the run's exact flags
+and settings.
+- **Pass criteria:**
+  - every reply parses, with a rating for every hunk and no non-header lines;
+  - every call has reasoning_tokens > 0;
+  - the served provider is reported as AtlasCloud;
+  - no reply is cut off;
+  - the manipulation check is recorded.
+- **Resume:** missing replies with no cut-off record (a network failure) are asked once more.
+- **Projection:** the mean smoke review-call cost × 564 × 1.5, plus the cost of every smoke test so
+  far.
+- **Before the launch:** the smoke usage objects, finish reasons and projection are written to the
+  README and pushed.
+- **Launch:** if the smoke test passes, the projection is within $2.30 and the start rules hold, the
+  run starts without further approval. Otherwise the projection is reported and nothing runs. No
+  partial runs by design.
+
+**Start rules:**
+- the balance covers the cap;
+- run F's total before 2t plus the cap stays within $4.90;
+- no launch after Wednesday 11 November 2026, 15:00 EAT; the run is stopped at 18:00 that day.
+
+**Abort rules.** A watcher runs every 30 seconds and at the end of each pass, over the run's calls
+(reviews, manipulation checks and cut-off calls). It stops the run on:
+- a reported provider other than the pinned one;
+- more calls with reasoning_tokens 0 than 2% of the larger of the recorded calls and 564;
+- any call billing more than 40,000 output tokens;
+- a call without the run's settings.
+
+On an abort, the run stops, the stop is logged in the README, and the run is not restarted. The cap
+and the $4.90 limit also stop the run. As in runs 1–4c, a second pass asks the calls that have no
+record (network errors and cut-off replies) once more.
+
+**Primary analysis.** Identical to Amendment 1 (`results/v3-roc-deepseek-think/analysis-roc.txt`,
+`experiments/analyse_roc.py`):
+- the hunk-rating AUC, with ΔAUC 5-attributed − 1-diff;
+- the repository bootstrap, 6,000 draws, seed 0;
+- gain if the 95% interval lies above 0;
+- equivalence if the 90% interval lies inside ±0.10 (±0.05 secondary);
+- the surface-match gate.
+
+**Secondary, stated now.**
+- **H, F, d′, c and Δc for 2t:** section 6 of analysis-roc.txt.
+- **Between runs:** the difference on the same items, (5-attributed − 1-diff in 2t) −
+  (5-attributed − 1-diff in 2c), in hunk-rating AUC, with each cell over its scored items. The
+  repository bootstrap covers the repositories with a scored item in all four cells, with 6,000
+  draws, seed 0, and the same draw for both runs. It gives a 95% interval. Saved as
+  `results/v3-roc-deepseek-think/compare-2c.txt` (`experiments/compare_roc_runs.py`).
+- **Also in that file:**
+  - per arm, the change from 2c to 2t in H, F, d′ and c;
+  - per run, the change from 1-diff to 5-attributed in H, F, d′ and c, and its difference between
+    runs;
+  - all with 95% intervals from the same draws;
+  - descriptive: the difference of differences on the items scored in all four cells.
+
+**Reporting.** Runs 2c and 2t are both reported, 2t as "deepseek-v3.2, reasoning on, one fp8
+provider". Nothing is dropped or chosen by its result. A run stopped by its cap, the limit, the
+deadline or an abort rule is analysed as recorded.
+
+**Code.** All new or changed code is under `experiments/`:
+- `roc_run_think.sh` and `launch_roc_think.sh`;
+- `roc_tools.py`: prep_think, smoke_think, project_think, guard_think, usage_think, thinkstats; its
+  cost readers now also count `failed.jsonl`;
+- `run_structure.py`: `--max-tokens`, `--check-max-tokens`, `--arm-order-seed`, `failed.jsonl`;
+- `llm.py`: keeps a cut-off reply's usage;
+- `compare_roc_runs.py`.
+
+With the new flags unset, requests and records are as before.

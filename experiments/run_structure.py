@@ -18,7 +18,7 @@ relation back distinguishes them, and without it a null is uninterpretable.
 
 from __future__ import annotations
 
-import argparse, json, os, re, sys, time
+import argparse, json, os, random, re, sys, time
 from dataclasses import asdict
 from pathlib import Path
 
@@ -256,11 +256,21 @@ def call_meta(client, c) -> dict:
     usage = raw.get("usage") or {}
     details = usage.get("completion_tokens_details") or {}
     return {"served_provider": raw.get("provider"), "reasoning_tokens": details.get("reasoning_tokens"),
-            "output_tokens": c.usage.output_tokens, "usage_raw": usage,
+            "output_tokens": c.usage.output_tokens, "finish_reason": getattr(c, "finish_reason", None), "usage_raw": usage,
             "request_reasoning": client.reasoning, "request_provider": client.provider}
 
 
-def manipulation_check(client, model, evidence, arm, encoding, seed):
+def failed_record(client, error, task_id, arm, call) -> dict | None:
+    """paper/PREREG-F.md, Amendment 4: a reply cut off at max_tokens is billed but not scored. It is
+    kept, with its cost, in failed.jsonl so the run's cost watcher and abort rules see it."""
+    c = getattr(error, "completion", None)
+    if c is None:
+        return None
+    return {"task_id": task_id, "arm": arm, "call": call, "finish_reason": c.finish_reason,
+            "error": str(error)[:300], "usage": c.usage.as_dict(), **call_meta(client, c)}
+
+
+def manipulation_check(client, model, evidence, arm, encoding, seed, max_tokens=48, on_fail=None):
     """Can the model read the relation back out of the serialisation?
 
     A null in the structure comparison means nothing if the answer here is no.
@@ -276,8 +286,10 @@ def manipulation_check(client, model, evidence, arm, encoding, seed):
          f"which identifier does {relation.source} depend on? Reply with the identifier only."},
     ]
     try:
-        c = client.complete(model=model, messages=messages, max_tokens=48, temperature=0)
-    except LLMError:
+        c = client.complete(model=model, messages=messages, max_tokens=max_tokens, temperature=0)
+    except LLMError as e:
+        if on_fail is not None:
+            on_fail(e)
         return None
     return {"answer": (c.text or "").strip(), "cost": c.usage.cost_usd, **call_meta(client, c)}
 
@@ -307,6 +319,14 @@ def main() -> int:
     ap.add_argument("--hunk-ratings", action="store_true",
                     help="ask for a defect probability 0-100 for every hunk (paper/PREREG-F.md, "
                          "Amendment 1) and record the mutated hunk's rating; identical across arms")
+    ap.add_argument("--max-tokens", type=int, default=2048,
+                    help="max_tokens of every review call (paper/PREREG-F.md, Amendment 4)")
+    ap.add_argument("--check-max-tokens", type=int, default=48,
+                    help="max_tokens of every manipulation check (Amendment 4: the review value when "
+                         "reasoning is on, since 48 tokens cannot hold the reasoning)")
+    ap.add_argument("--arm-order-seed", type=int, default=None,
+                    help="call each item's arms in a random order fixed by this seed and the task id "
+                         "(Amendment 4); default: the order of --arms")
     ap.add_argument("--kinds", default="",
                     help="comma-separated defect kinds to keep (e.g. default_flip); default all")
     a = ap.parse_args()
@@ -319,7 +339,13 @@ def main() -> int:
     env = load_env(); client = client_from_env(env); token = env.get("GITHUB_TOKEN", "")
 
     out = Path(_ROOT) / "runs" / a.name; out.mkdir(parents=True, exist_ok=True)
-    path = out / "structure.jsonl"; checks = out / "manipulation.jsonl"
+    path = out / "structure.jsonl"; checks = out / "manipulation.jsonl"; failed_path = out / "failed.jsonl"
+
+    def log_failed(error, task_id, arm, call):
+        rec = failed_record(client, error, task_id, arm, call)
+        if rec is not None:
+            with failed_path.open("a") as h:
+                h.write(json.dumps(rec) + "\n")
     done = {(json.loads(l)["task_id"], json.loads(l)["arm"])
             for l in path.read_text().splitlines() if l.strip()} if path.is_file() else set()
     if done:
@@ -342,7 +368,9 @@ def main() -> int:
 
         if i % a.check_every == 1:
             for arm in (x for x in arms if x in EVIDENCE_ARMS):
-                r = manipulation_check(client, a.model, ev, arm, a.encoding, task.task_id)
+                r = manipulation_check(client, a.model, ev, arm, a.encoding, task.task_id,
+                                       max_tokens=a.check_max_tokens,
+                                       on_fail=lambda e, t=task.task_id, x=arm: log_failed(e, t, x, "check"))
                 if r:
                     spent += r["cost"]
                     with checks.open("a") as h:
@@ -352,7 +380,10 @@ def main() -> int:
 
         decoy_ev = random_evidence(task, src, ev, task.task_id)
 
-        for arm in arms:
+        order = list(arms)
+        if a.arm_order_seed is not None:
+            random.Random(f"{a.arm_order_seed}:{task.task_id}").shuffle(order)
+        for position, arm in enumerate(order):
             if (task.task_id, arm) in done:
                 continue
             t0 = time.time()
@@ -364,8 +395,9 @@ def main() -> int:
                                     hunk_ratings=a.hunk_ratings)
             try:
                 c = client.complete(model=a.model, messages=messages,
-                                    max_tokens=2048, temperature=0.1)
+                                    max_tokens=a.max_tokens, temperature=0.1)
             except LLMError as e:
+                log_failed(e, task.task_id, arm, "review")
                 print(f"  [{i}] {arm} ERROR {e}"); continue
             findings, failed = parse_findings(c.text, task.task_id, arm)
             reported = [ReportedFinding(f.finding_id, f.path, f.line, f.message) for f in findings]
@@ -396,6 +428,9 @@ def main() -> int:
                 if hr["json_failed"] or hr["rating_missing"]:
                     print(f"  [{i}] {arm} {'NO JSON' if hr['json_failed'] else 'RATING MISSING'} "
                           f"(rated {hr['hunks_rated']} of {hr['hunks_total']} hunks)")
+            if a.arm_order_seed is not None:
+                extra.update({"max_tokens": a.max_tokens, "check_max_tokens": a.check_max_tokens,
+                              "arm_position": position, "called_at": round(t0, 1)})
             with path.open("a") as h:
                 h.write(json.dumps({
                     "task_id": task.task_id, "arm": arm, "encoding": a.encoding,
