@@ -36,7 +36,7 @@ from experiments.evidence import (ARM_DIFF_ONLY, ARM_HEADER, ARM_RANDOM, ARMS, E
                                   sources_for, with_noise)
 from experiments.llm import LLMError, client_from_env, load_env
 from experiments.matcher import ReportedFinding
-from experiments.review import OUTPUT_CONTRACT, SYSTEM_PROMPT, _extract_json, parse_findings
+from experiments.review import HUNK_HEADER, OUTPUT_CONTRACT, SYSTEM_PROMPT, _extract_json, parse_findings
 
 METADATA_HEADER = "Dependency information for the code above:"
 METADATA_NOTE = ("Each line states a relationship between two of the snippets above. "
@@ -134,13 +134,91 @@ def score_items(task, arm, findings, confidences):
     return rows, (max(hits) if hits else 0), False
 
 
+# paper/PREREG-F.md, Amendment 1: a rating for every hunk, so that every item has a score and the
+# ROC needs no threshold. The same two changes to the output contract in every arm; off by default,
+# so earlier runs are reproduced unchanged. Placeholders, not example numbers, to avoid anchoring.
+HUNK_FIELD = '"hunk_ratings": [{"line": <hunk start line>, "defect_probability": <integer 0-100>}, ...]'
+HUNK_NOTE = ('"hunk_ratings" is required, also when "findings" is empty: one entry for every hunk in the '
+             'diff, in diff order. "line" is the new-file start line from that hunk\'s @@ header (the '
+             'number after "+"); "defect_probability" is an integer from 0 to 100: how likely you think '
+             'it is that the change in that hunk is a defect (0 = almost certainly not, 100 = certain).')
+
+
+def with_hunk_ratings(contract: str) -> str:
+    lines = contract.split("\n")
+    shape = [i for i, l in enumerate(lines) if l.startswith('{"findings": [')]
+    assert len(shape) == 1 and lines[shape[0]].endswith("}]}"), "contract changed shape"
+    assert contract.count("Never wrap the JSON in prose.") == 1, "contract changed shape"
+    lines[shape[0]] = lines[shape[0]][:-1] + ", " + HUNK_FIELD + "}"
+    out = "\n".join(lines).replace("Never wrap the JSON in prose.",
+                                   HUNK_NOTE + "\nNever wrap the JSON in prose.")
+    assert out.count(HUNK_FIELD) == 1 and out.count(HUNK_NOTE) == 1, "contract changed shape"
+    return out
+
+
+def hunk_headers(diff: str):
+    """New-file start line of every hunk, in diff order (the number after "+" in @@ headers)."""
+    return [int(m.group(1)) for m in (HUNK_HEADER.match(l) for l in diff.split("\n")) if m]
+
+
+LINE_NUMBER = re.compile(r"^\s*\+?(\d+)(?:\.0+)?\s*$")
+
+
+def parse_line(value):
+    """A line number: an int, an integral float or a numeric string ("57", "+57"); else None."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    if isinstance(value, str) and LINE_NUMBER.match(value):
+        return int(LINE_NUMBER.match(value).group(1))
+    return None
+
+
+def parse_hunk_ratings(text: str, headers, mutated_line: int) -> dict:
+    """Ratings of the reply's hunk_ratings list, matched to the diff's hunk header lines.
+
+    A rating counts when "line" equals a header line and "defect_probability" is a number in 0-100
+    (parse_confidence: "70", 70.0 and "70%" are accepted and rounded). Entries whose line is not a
+    header line are counted as unmatched and ignored; entries without a valid line or value are
+    counted as invalid. A header line rated twice with different values is ambiguous and has no
+    rating. The item score is the rating of the mutated line's hunk; when it has none the rating
+    is missing (counted, never scored as 0). json_failed: the reply holds no JSON object."""
+    payload = _extract_json(text)
+    if not isinstance(payload, dict):
+        return {"json_failed": True, "hunk_score": None, "rating_missing": False, "hunk_ratings": {},
+                "ratings_ambiguous": [], "unmatched_rating_lines": [], "invalid_rating_entries": 0,
+                "hunks_total": len(headers), "hunks_rated": 0, "ratings_present": False}
+    raw = payload.get("hunk_ratings")
+    entries = raw if isinstance(raw, list) else []
+    values, unmatched, invalid = {}, [], 0
+    for entry in entries:
+        line = parse_line(entry.get("line")) if isinstance(entry, dict) else None
+        if line is not None and line not in headers:
+            unmatched.append(line); continue
+        value = parse_confidence(entry.get("defect_probability")) if isinstance(entry, dict) else None
+        if line is None or value is None:
+            invalid += 1; continue
+        values.setdefault(line, set()).add(value)
+    ratings = {line: next(iter(v)) for line, v in values.items() if len(v) == 1}
+    score = ratings.get(mutated_line)
+    return {"json_failed": False, "hunk_score": score, "rating_missing": score is None,
+            "hunk_ratings": {str(k): v for k, v in sorted(ratings.items())},
+            "ratings_ambiguous": sorted(line for line, v in values.items() if len(v) > 1),
+            "unmatched_rating_lines": unmatched, "invalid_rating_entries": invalid,
+            "hunks_total": len(headers), "hunks_rated": sum(1 for h in set(headers) if h in ratings),
+            "ratings_present": isinstance(raw, list)}
+
+
 AUTHORITATIVE = ("The related code shown below is every place in the repository that uses "
                  "the changed function. Judge the change against that code only: if it is "
                  "compatible with every use shown, it is not a defect.")
 
 
 def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = False,
-                 neutral: bool = False, confidence: bool = False):
+                 neutral: bool = False, confidence: bool = False, hunk_ratings: bool = False):
     parts = [f"Repository: {task.repo}", "", "Pull request diff:",
              "```diff", task.diff, "```"]
     # Without this, "safe for the shown caller" is not "safe", and a reviewer
@@ -160,7 +238,11 @@ def build_prompt(task, evidence, arm, encoding, seed, authoritative: bool = Fals
             # presence of a dependency section vs none".
             parts += ["", METADATA_HEADER, METADATA_NOTE, block]
     contract = NEUTRAL_OUTPUT_CONTRACT if neutral else OUTPUT_CONTRACT
-    parts += ["", with_confidence(contract) if confidence else contract]
+    if confidence:
+        contract = with_confidence(contract)
+    if hunk_ratings:
+        contract = with_hunk_ratings(contract)
+    parts += ["", contract]
     return [{"role": "system", "content": NEUTRAL_SYSTEM_PROMPT if neutral else SYSTEM_PROMPT},
             {"role": "user", "content": "\n".join(parts)}]
 
@@ -209,6 +291,9 @@ def main() -> int:
     ap.add_argument("--confidence", action="store_true",
                     help="ask for an integer confidence 0-100 per finding (paper/PREREG-F.md) and "
                          "record it per finding with the item score; identical across arms")
+    ap.add_argument("--hunk-ratings", action="store_true",
+                    help="ask for a defect probability 0-100 for every hunk (paper/PREREG-F.md, "
+                         "Amendment 1) and record the mutated hunk's rating; identical across arms")
     ap.add_argument("--kinds", default="",
                     help="comma-separated defect kinds to keep (e.g. default_flip); default all")
     a = ap.parse_args()
@@ -262,7 +347,8 @@ def main() -> int:
             # is said about it.
             shown = decoy_ev if arm == ARM_RANDOM else ev
             messages = build_prompt(task, shown, arm, a.encoding, task.task_id, authoritative=a.authoritative,
-                                    neutral=a.neutral_prompt, confidence=a.confidence)
+                                    neutral=a.neutral_prompt, confidence=a.confidence,
+                                    hunk_ratings=a.hunk_ratings)
             try:
                 c = client.complete(model=a.model, messages=messages,
                                     max_tokens=2048, temperature=0.1)
@@ -291,6 +377,12 @@ def main() -> int:
                          "raw_text": (c.text or "")[:6000]}
                 if failed or missing:
                     print(f"  [{i}] {arm} {'PARSE FAILED' if failed else 'CONFIDENCE MISSING on a hit'}")
+            if a.hunk_ratings:
+                hr = parse_hunk_ratings(c.text, hunk_headers(task.diff), task.defects[0].line)
+                extra.update({"hunk_ratings_on": True, **hr, "raw_text": (c.text or "")[:6000]})
+                if hr["json_failed"] or hr["rating_missing"]:
+                    print(f"  [{i}] {arm} {'NO JSON' if hr['json_failed'] else 'RATING MISSING'} "
+                          f"(rated {hr['hunks_rated']} of {hr['hunks_total']} hunks)")
             with path.open("a") as h:
                 h.write(json.dumps({
                     "task_id": task.task_id, "arm": arm, "encoding": a.encoding,

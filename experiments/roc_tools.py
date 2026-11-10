@@ -3,6 +3,8 @@
 
     roc_tools.py prep                     item shards and the 3 smoke items under runs/roc-items/
     roc_tools.py smoke RUN                OK, NOREPLY or FAIL <reason> for runs/RUN/structure.jsonl
+    roc_tools.py project RUN N CAP        OVER or WITHIN: smoke cost per call x N calls against CAP
+    roc_tools.py remaining                $4.00 minus the recorded cost of every runs/roc-* run
     roc_tools.py cost GLOB [GLOB ...]     summed recorded cost of structure and manipulation records
     roc_tools.py balance                  OpenRouter balance in dollars (the key is never printed)
 """
@@ -40,20 +42,63 @@ def prep():
 
 
 def smoke(run):
+    """paper/PREREG-F.md, Amendment 1: the run does not start if any of the 3 replies fails to
+    parse, lacks a valid rating for any hunk, or rates a line that is not a hunk header. A missing
+    per-finding confidence (now secondary) is reported on stderr but does not stop the run."""
     path = ROOT / "runs" / run / "structure.jsonl"
     rows = [json.loads(l) for l in path.open() if l.strip()] if path.is_file() else []
     if not rows:
         print("NOREPLY"); return
-    bad = []
+    bad, notes = [], []
     for r in rows:
-        if r.get("parse_failed"):
-            bad.append(f"{r['task_id'][-40:]} parse failed")
+        tid = r["task_id"][-60:]
+        if r.get("parse_failed") or r.get("json_failed"):
+            bad.append(f"{tid} reply did not parse")
+            continue
+        if not r.get("hunk_ratings_on"):
+            bad.append(f"{tid} record has no hunk ratings (flag missing)")
+            continue
+        if r.get("hunks_rated") != r.get("hunks_total") or r.get("ratings_ambiguous"):
+            bad.append(f"{tid} rated {r.get('hunks_rated')} of {r.get('hunks_total')} hunks"
+                       + (f", ambiguous {r['ratings_ambiguous']}" if r.get("ratings_ambiguous") else ""))
+        if r.get("unmatched_rating_lines") or r.get("invalid_rating_entries"):
+            bad.append(f"{tid} rated non-header lines {r.get('unmatched_rating_lines')}"
+                       f" / invalid entries {r.get('invalid_rating_entries')}")
         for f in r.get("finding_scores") or []:
             if f.get("confidence") is None:
-                bad.append(f"{r['task_id'][-40:]} finding without valid confidence")
+                notes.append(f"{tid} finding without valid confidence")
     if len(rows) < 3:
         bad.append(f"only {len(rows)} of 3 replies")
+    if notes:
+        print("smoke note (does not stop the run): " + "; ".join(notes), file=sys.stderr)
     print("OK" if not bad else "FAIL " + "; ".join(bad))
+
+
+def project(run, calls, cap):
+    """Projected cost of a run: mean recorded cost per smoke reply x the run's calls."""
+    path = ROOT / "runs" / run / "structure.jsonl"
+    rows = [json.loads(l) for l in path.open() if l.strip()] if path.is_file() else []
+    per = sum((r.get("usage") or {}).get("cost_usd") or 0 for r in rows) / max(len(rows), 1)
+    projected = per * int(calls)
+    print(("OVER" if projected > float(cap) else "WITHIN") + f" projected {projected:.4f} "
+          f"({per:.6f} per call x {calls}) cap {float(cap):.4f}")
+
+
+def total():
+    t = 0.0
+    for d in glob.glob(str(ROOT / "runs" / "roc-*")):
+        for name in ("structure.jsonl", "manipulation.jsonl"):
+            p = Path(d) / name
+            if p.is_file():
+                for l in p.open():
+                    if l.strip():
+                        r = json.loads(l)
+                        t += ((r.get("usage") or {}).get("cost_usd") if "usage" in r else r.get("cost")) or 0
+    return t
+
+
+def remaining():
+    print(f"{4.0 - total():.4f}")
 
 
 def cost(*patterns):
@@ -83,4 +128,5 @@ def balance():
 
 
 if __name__ == "__main__":
-    {"prep": prep, "smoke": smoke, "cost": cost, "balance": balance}[sys.argv[1]](*sys.argv[2:])
+    {"prep": prep, "smoke": smoke, "project": project, "remaining": remaining, "cost": cost,
+     "balance": balance}[sys.argv[1]](*sys.argv[2:])
