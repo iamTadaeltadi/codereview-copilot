@@ -1,0 +1,5 @@
+{"task_id": "xf::OpenMined__PySyft::packages/syft-job/src/syft_job/job_repr.py::jobs_list_repr_html::default_flip::857::safe", "arm": "5-attributed", "expected": "job_repr.jobs_list_repr_html", "answer": "has_do_role", "cost": 1.41e-05}
+{"task_id": "xf::frappe__frappe::frappe/utils/background_jobs.py::start_worker::default_flip::404::safe", "arm": "5-attributed", "expected": "background_jobs.start_worker", "answer": "background_jobs.start_worker", "cost": 1.365e-05}
+{"task_id": "xf::pandas-dev__pandas::pandas/core/algorithms.py::factorize_array::default_flip::729::safe", "arm": "5-attributed", "expected": "algorithms.factorize_array", "answer": "algorithms.factorize_array", "cost": 1.485e-05}
+{"task_id": "xf::reflex-dev__reflex::reflex/utils/exec.py::run_backend::default_flip::498::safe", "arm": "5-attributed", "expected": "exec.run_backend", "answer": "exec.run_backend", "cost": 1.35e-05}
+{"task_id": "xf::sympy__sympy::sympy/polys/euclidtools.py::dup_cancel::default_flip::1889::safe", "arm": "5-attributed", "expected": "euclidtools.dup_cancel", "answer": "euclidtools.dup_cancel", "cost": 1.56e-05}
