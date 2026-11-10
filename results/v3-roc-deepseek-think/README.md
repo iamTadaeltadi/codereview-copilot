@@ -48,3 +48,30 @@ manipulation-mixed-shard*.jsonl, failed-mixed-shard*.jsonl (calls cut off at max
 run-mixed-shard*.log, smoke-*/ (each smoke test), items/ (the six shards and the smoke items, as run), cost.log, analysis-roc.txt
 (`python3 experiments/analyse_roc.py results/v3-roc-deepseek-think`), compare-2c.txt
 (`python3 experiments/compare_roc_runs.py results/v3-roc-deepseek-think results/v3-roc-deepseek-ctrl`).
+
+## Notes (added after the run, 10 November 2026)
+
+- **Pre-launch README:** the README with the smoke usage objects, finish reasons and projection was
+  committed at 21:00:23 EAT (01abde7), before the launch at 21:05:19. Its push failed (GitHub
+  returned HTTP 408 on all five tries), so it was pushed by hand at about 21:08, after the launch.
+- **Provider:** the AtlasCloud smoke test at 16,000 failed one criterion: one twin reply rated 3 of 4
+  hunks. By Amendment 4's fallback rule, the run used GMICloud fp8. Run 2c ran on AtlasCloud fp8,
+  so 2t and 2c differ in reasoning mode and also in the serving provider.
+- **max_tokens:** GMICloud did not enforce max_tokens 16,000 on reasoning. 7 replies billed more than
+  16,000 output tokens, all with finish_reason "stop".
+- **The abort:** it came from one 1-diff twin call (`dask/bag/avro.py::to_avro::default_flip::182::safe`)
+  with 53,070 reasoning tokens (53,234 output tokens, $0.0166).
+- **Partial run:**
+  - 330 of 564 review calls were recorded: 165 per arm (81 defects, 84 twins), 164 items with both
+    arms and 2 with one.
+  - 24 manipulation checks were recorded, all answered correctly.
+  - Each shard ran 52–59 of its 94 calls, in an order fixed before the run (seeded shuffle), so the
+    recorded items were not chosen by result.
+- **Unrecorded spend:** the OpenRouter balance fell $0.5506 (2.3814 → 1.8308), against $0.5304
+  recorded. The $0.0202 difference is not in the records. It is likely calls in flight when the
+  shards were stopped (billed, never returned), or billing delay.
+- **Labels in analysis-roc.txt:**
+  - its header says "Amendment 1" and its settings line says "Amendment 3", which are fixed labels in
+    analyse_roc.py; the method is Amendment 1's and the settings are Amendment 4's;
+  - its "smoke $0.0000" counts only a folder named smoke/; this run's smoke tests are in smoke-*/
+    and cost $0.0199.
