@@ -1,0 +1,33 @@
+### results/v3-roc-deepseek
+  mean output tokens per call, by quarter of each shard file (call order):
+    structure-defects-shard0.jsonl     3296   3976   1769    172
+    structure-defects-shard1.jsonl     2963   3782   5128    166
+    structure-defects-shard2.jsonl     4103   3484   2786    176
+    structure-twins-shard0.jsonl       3315   3214   2604    170
+    structure-twins-shard1.jsonl       4036   3599   2376    161
+    structure-twins-shard2.jsonl       4014   5049    149    176
+  items: long 173, short 109
+  replies arm             nD   nT  hunk AUC     H%     F%
+  long    1-diff          89   84     0.488   88.8   92.9
+  long    7-random        89   84     0.504   88.8   85.7
+  long    2b-snippets     89   84     0.620   96.6   84.5
+  long    5-attributed    89   84     0.698   97.8   79.8
+  short   1-diff          50   59     0.589   54.0   50.8
+  short   7-random        50   59     0.526   66.0   59.3
+  short   2b-snippets     50   59     0.574   82.0   81.4
+  short   5-attributed    50   59     0.589   94.0   76.3
+
+### results/v3-roc-deepseek-auth
+  mean output tokens per call, by quarter of each shard file (call order):
+    structure-defects-shard0.jsonl      143    165    150    146
+    structure-defects-shard1.jsonl      142    156    165    153
+    structure-defects-shard2.jsonl      148    166    160    158
+    structure-twins-shard0.jsonl        157    143    146    161
+    structure-twins-shard1.jsonl        153    161    175    166
+    structure-twins-shard2.jsonl        130    144    157    169
+  items: long 0, short 282
+  replies arm             nD   nT  hunk AUC     H%     F%
+  short   1-diff         139  143     0.491   43.9   44.8
+  short   2b-snippets    139  143     0.551   70.5   63.6
+  short   5-attributed   139  143     0.542   79.1   79.0
+
