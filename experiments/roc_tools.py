@@ -19,6 +19,9 @@ Amendment 4 (run 2t, reasoning on):
     roc_tools.py guard_think NAME PLANNED GLOB [...]      OK or ABORT <reason>: Amendment 4 abort rules
     roc_tools.py usage_think GLOB [...]   per call: kind, finish reason, provider, tokens, raw usage
     roc_tools.py thinkstats GLOB [...]    providers, reasoning tokens (max, median, zeros), output max, cut-offs
+Amendment 5 (run 2t completed, with 7-random added):
+    roc_tools.py guard_a5 NAME MAXRUNAWAY GLOB [...]   OK or ABORT <reason>: Amendment 5 abort rules
+    roc_tools.py daysplit GLOB [...]      review calls per arm and calendar day (EAT), from called_at
 Every reader counts failed.jsonl (calls cut off at max_tokens, billed but not scored) beside the
 structure and manipulation records.
 """
@@ -353,9 +356,45 @@ def guard_think(name, planned, *patterns):
     print(f"OK {len(calls)} calls, provider reported on {reported}, reasoning_tokens 0 on {zeros} (limit {limit:.2f})")
 
 
+def guard_a5(name, maxrun, *patterns):
+    """Amendment 5 abort rules, the only ones: more than MAXRUNAWAY calls logged over the runaway limit;
+    a reported provider other than NAME, or a call without the pinned settings (reasoning on, the
+    provider NAME's endpoint first, no fallbacks). Calls with reasoning_tokens 0 are counted, not acted on."""
+    slug = {v: k for k, v in PIN.items()}[name]
+    calls = _calls(patterns)
+    for run, kind, r in calls:
+        where = f"{run}/{kind} {r['task_id'][-50:]} {r.get('arm', '')}"
+        prov = r.get("request_provider") or {}
+        if r.get("request_reasoning") != THINK or prov.get("order", [None])[0] != slug or prov.get("allow_fallbacks") is not False:
+            print(f"ABORT settings missing or different: {where}"); return
+        if r.get("served_provider") is not None and _norm(r["served_provider"]) != _norm(name):
+            print(f"ABORT served by {r['served_provider']}: {where}"); return
+    runaway = [r for *_, r in calls if r.get("runaway") is True]
+    if len(runaway) > int(maxrun):
+        print(f"ABORT {len(runaway)} calls over the runaway limit, more than {maxrun}"); return
+    zeros = sum(1 for *_, r in calls if not (r.get("reasoning_tokens") or 0) > 0)
+    reported = sum(1 for *_, r in calls if r.get("served_provider") is not None)
+    print(f"OK {len(calls)} calls, provider reported on {reported}, over the runaway limit {len(runaway)}, "
+          f"reasoning_tokens 0 on {zeros}")
+
+
+def daysplit(*patterns):
+    import collections
+    import time
+    n = collections.Counter()
+    for _, kind, r in _calls(patterns):
+        if kind == "structure.jsonl":
+            day = time.strftime("%a %d %b", time.localtime(r["called_at"])) if r.get("called_at") else "unknown"
+            n[r["arm"], day] += 1
+    for arm in ("1-diff", "7-random", "5-attributed"):
+        cells = ", ".join(f"{d} {c}" for (a, d), c in sorted(n.items()) if a == arm)
+        print(f"{arm}: {cells or 'none'}")
+
+
 def usage_think(*patterns):
     for run, kind, r in _calls(patterns):
-        what = {"structure.jsonl": "review", "manipulation.jsonl": "check", "failed.jsonl": f"CUT-OFF {r.get('call')}"}[kind]
+        what = {"structure.jsonl": "review", "manipulation.jsonl": "check",
+                "failed.jsonl": f"{'RUNAWAY' if r.get('runaway') else 'CUT-OFF'} {r.get('call')}"}[kind]
         print(f"{run} {what} {r['task_id'][-60:]} {r.get('arm', '')}: finish_reason={r.get('finish_reason')!r} "
               f"provider={r.get('served_provider')!r} reasoning_tokens={r.get('reasoning_tokens')!r} "
               f"output_tokens={_out_tokens(r)} usage={json.dumps(r.get('usage_raw'), sort_keys=True)}")
@@ -371,7 +410,9 @@ def thinkstats(*patterns):
     rt = [r.get("reasoning_tokens") or 0 for r in rs]
     out = [_out_tokens(r) or 0 for r in rs]
     print(f"calls {len(rs)} (reviews {sum(k == 'structure.jsonl' for _, k, _ in calls)}, manipulation checks "
-          f"{sum(k == 'manipulation.jsonl' for _, k, _ in calls)}, cut off {sum(k == 'failed.jsonl' for _, k, _ in calls)}); "
+          f"{sum(k == 'manipulation.jsonl' for _, k, _ in calls)}, cut off "
+          f"{sum(k == 'failed.jsonl' and not r.get('runaway') for _, k, r in calls)}, over the runaway limit "
+          f"{sum(bool(r.get('runaway')) for _, k, r in calls)}); "
           f"providers {dict(prov)}; reasoning tokens max {max(rt, default=None)}, median "
           f"{statistics.median(rt) if rt else None}, zero on {sum(x == 0 for x in rt)}; output tokens max "
           f"{max(out, default=None)}, median {statistics.median(out) if out else None}; finish reasons {dict(fin)}")
@@ -393,4 +434,5 @@ if __name__ == "__main__":
     {"prep": prep, "smoke": smoke, "project": project, "remaining": remaining, "cost": cost,
      "balance": balance, "smoke_ctrl": smoke_ctrl, "guard": guard, "usage": usage, "ctrlstats": ctrlstats,
      "prep_think": prep_think, "smoke_think": smoke_think, "project_think": project_think,
-     "guard_think": guard_think, "usage_think": usage_think, "thinkstats": thinkstats}[sys.argv[1]](*sys.argv[2:])
+     "guard_think": guard_think, "usage_think": usage_think, "thinkstats": thinkstats,
+     "guard_a5": guard_a5, "daysplit": daysplit}[sys.argv[1]](*sys.argv[2:])

@@ -260,17 +260,16 @@ def call_meta(client, c) -> dict:
             "request_reasoning": client.reasoning, "request_provider": client.provider}
 
 
-def failed_record(client, error, task_id, arm, call) -> dict | None:
-    """paper/PREREG-F.md, Amendment 4: a reply cut off at max_tokens is billed but not scored. It is
-    kept, with its cost, in failed.jsonl so the run's cost watcher and abort rules see it."""
-    c = getattr(error, "completion", None)
-    if c is None:
-        return None
+def failed_record(client, c, task_id, arm, call, why) -> dict:
+    """paper/PREREG-F.md, Amendments 4 and 5: a call that is billed but not scored (a reply cut off at
+    max_tokens, or one over the runaway limit) is kept, with its cost, in failed.jsonl so the run's
+    cost watcher and abort rules see it."""
     return {"task_id": task_id, "arm": arm, "call": call, "finish_reason": c.finish_reason,
-            "error": str(error)[:300], "usage": c.usage.as_dict(), **call_meta(client, c)}
+            "error": why[:300], "usage": c.usage.as_dict(), **call_meta(client, c)}
 
 
-def manipulation_check(client, model, evidence, arm, encoding, seed, max_tokens=48, on_fail=None):
+def manipulation_check(client, model, evidence, arm, encoding, seed, max_tokens=48, on_fail=None,
+                       runaway=None, on_runaway=None):
     """Can the model read the relation back out of the serialisation?
 
     A null in the structure comparison means nothing if the answer here is no.
@@ -290,6 +289,9 @@ def manipulation_check(client, model, evidence, arm, encoding, seed, max_tokens=
     except LLMError as e:
         if on_fail is not None:
             on_fail(e)
+        return None
+    if runaway is not None and c.usage.output_tokens > runaway:
+        on_runaway(c)
         return None
     return {"answer": (c.text or "").strip(), "cost": c.usage.cost_usd, **call_meta(client, c)}
 
@@ -327,6 +329,11 @@ def main() -> int:
     ap.add_argument("--arm-order-seed", type=int, default=None,
                     help="call each item's arms in a random order fixed by this seed and the task id "
                          "(Amendment 4); default: the order of --arms")
+    ap.add_argument("--runaway-tokens", type=int, default=None,
+                    help="a call billing more output tokens than this is written to failed.jsonl with "
+                         "its cost and not scored (paper/PREREG-F.md, Amendment 5); default: no limit")
+    ap.add_argument("--no-repeat-checks", action="store_true",
+                    help="skip a manipulation check already recorded for the item and arm (Amendment 5)")
     ap.add_argument("--kinds", default="",
                     help="comma-separated defect kinds to keep (e.g. default_flip); default all")
     a = ap.parse_args()
@@ -342,10 +349,19 @@ def main() -> int:
     path = out / "structure.jsonl"; checks = out / "manipulation.jsonl"; failed_path = out / "failed.jsonl"
 
     def log_failed(error, task_id, arm, call):
-        rec = failed_record(client, error, task_id, arm, call)
-        if rec is not None:
+        c = getattr(error, "completion", None)
+        if c is not None:
             with failed_path.open("a") as h:
-                h.write(json.dumps(rec) + "\n")
+                h.write(json.dumps(failed_record(client, c, task_id, arm, call, str(error))) + "\n")
+
+    def log_runaway(c, task_id, arm, call):
+        why = f"runaway: {c.usage.output_tokens} output tokens > {a.runaway_tokens} (Amendment 5); not scored"
+        with failed_path.open("a") as h:
+            h.write(json.dumps({**failed_record(client, c, task_id, arm, call, why), "runaway": True}) + "\n")
+        print(f"  {arm} {call} RUNAWAY {c.usage.output_tokens} output tokens: logged as failed, not scored")
+
+    checked = {(json.loads(l)["task_id"], json.loads(l)["arm"]) for l in checks.read_text().splitlines()
+               if l.strip()} if a.no_repeat_checks and checks.is_file() else set()
     done = {(json.loads(l)["task_id"], json.loads(l)["arm"])
             for l in path.read_text().splitlines() if l.strip()} if path.is_file() else set()
     if done:
@@ -367,10 +383,12 @@ def main() -> int:
             print(f"  [{i}] SKIP no evidence set"); continue
 
         if i % a.check_every == 1:
-            for arm in (x for x in arms if x in EVIDENCE_ARMS):
+            for arm in (x for x in arms if x in EVIDENCE_ARMS and (task.task_id, x) not in checked):
                 r = manipulation_check(client, a.model, ev, arm, a.encoding, task.task_id,
                                        max_tokens=a.check_max_tokens,
-                                       on_fail=lambda e, t=task.task_id, x=arm: log_failed(e, t, x, "check"))
+                                       on_fail=lambda e, t=task.task_id, x=arm: log_failed(e, t, x, "check"),
+                                       runaway=a.runaway_tokens,
+                                       on_runaway=lambda c, t=task.task_id, x=arm: log_runaway(c, t, x, "check"))
                 if r:
                     spent += r["cost"]
                     with checks.open("a") as h:
@@ -399,6 +417,9 @@ def main() -> int:
             except LLMError as e:
                 log_failed(e, task.task_id, arm, "review")
                 print(f"  [{i}] {arm} ERROR {e}"); continue
+            if a.runaway_tokens is not None and c.usage.output_tokens > a.runaway_tokens:
+                spent += c.usage.cost_usd
+                log_runaway(c, task.task_id, arm, "review"); continue
             findings, failed = parse_findings(c.text, task.task_id, arm)
             reported = [ReportedFinding(f.finding_id, f.path, f.line, f.message) for f in findings]
             sc = score_review(task, arm, reported, tolerance=0)
@@ -431,6 +452,8 @@ def main() -> int:
             if a.arm_order_seed is not None:
                 extra.update({"max_tokens": a.max_tokens, "check_max_tokens": a.check_max_tokens,
                               "arm_position": position, "called_at": round(t0, 1)})
+                if a.runaway_tokens is not None:
+                    extra["runaway_tokens"] = a.runaway_tokens
             with path.open("a") as h:
                 h.write(json.dumps({
                     "task_id": task.task_id, "arm": arm, "encoding": a.encoding,

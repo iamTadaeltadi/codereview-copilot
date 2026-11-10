@@ -2,6 +2,7 @@
 """ROC per arm on kind-matched default flips (paper/PREREG-F.md, Amendment 1).
 
     python3 experiments/analyse_roc.py results/v3-roc-gpt4omini [> .../analysis-roc.txt]
+    python3 experiments/analyse_roc.py FOLDER 5-attributed:7-random   (adds section 4b, Amendment 5)
 
 Reads every structure*.jsonl in the folder (records of run_structure.py --confidence
 --hunk-ratings; the smoke/ subfolder is not read). Arms are those present, in the order
@@ -116,8 +117,9 @@ def cost_of(paths):
     return total
 
 
-def main(folder):
+def main(folder, *pairs):
     folder = Path(folder)
+    pairs = [tuple(x.split(":")) for x in pairs]
     rows = load(folder)
     arms = [a for a in ORDER if any(r["arm"] == a for r in rows)]
     models = sorted({r.get("model") or "" for r in rows})
@@ -232,6 +234,24 @@ def main(folder):
                 lo, hi = ci(boot[m, a] - boot[m, BASE], 0.95)
                 cells.append(f"{point[m, a] - point[m, BASE]:+.3f} [{lo:+.3f}, {hi:+.3f}]")
             out.append(f"  {LABEL[a]:<21}{cells[0]:>26}{cells[1]:>30}")
+        out.append("")
+
+    if pairs:
+        out += ["4b. Further dAUC comparisons, hunk rating (paper/PREREG-F.md, Amendment 5; secondary)",
+                f"  {'comparison':<31}{'dAUC':>8}  {'95%':<18}{'90%':<18}{'reading at 0.10':<23}reading at 0.05"]
+        for x, y in pairs:
+            d = boot["hunk", x] - boot["hunk", y]
+            lo95, hi95 = ci(d, 0.95); lo90, hi90 = ci(d, 0.90)
+            out.append(f"  {LABEL[x] + ' - ' + LABEL[y]:<31}{point['hunk', x] - point['hunk', y]:>+8.3f}  "
+                       f"[{lo95:+.3f}, {hi95:+.3f}]  [{lo90:+.3f}, {hi90:+.3f}]  "
+                       f"{'secondary ' + reading(lo95, lo90, hi90, MARGINS[0]):<23}{reading(lo95, lo90, hi90, MARGINS[1])}")
+        out += ["  secondary scores [95%]:", f"  {'comparison':<31}{'binary':>26}{'censored confidence':>30}"]
+        for x, y in pairs:
+            cells = []
+            for m in ("binary", "censored"):
+                lo, hi = ci(boot[m, x] - boot[m, y], 0.95)
+                cells.append(f"{point[m, x] - point[m, y]:+.3f} [{lo:+.3f}, {hi:+.3f}]")
+            out.append(f"  {LABEL[x] + ' - ' + LABEL[y]:<31}{cells[0]:>26}{cells[1]:>30}")
         out.append("")
 
     out += ["5. Histogram of item scores (mutated hunk), defects (d) and twins (t)",

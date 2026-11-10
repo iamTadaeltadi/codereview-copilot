@@ -489,3 +489,83 @@ deadline or an abort rule is analysed as recorded.
 - `compare_roc_runs.py`.
 
 With the new flags unset, requests and records are as before.
+
+## Amendment 5 (10 November 2026, 22:48 EAT; before any call under it)
+
+**Status.** Post hoc: decided after seeing the partial results of run 2t. Amendment 4's run was
+stopped at 22:20 on 10 November by its 40,000-token abort rule, after 330 of 564 review calls. Its
+partial results:
+- ΔAUC 5-attributed − 1-diff: +0.156 [+0.062, +0.254];
+- difference from run 2c: +0.074 [−0.055, +0.201];
+- 1-diff AUC: 0.593 [0.519, 0.668], so the surface-match gate excludes 0.5.
+
+These partial results stay in `results/v3-roc-deepseek-think/` as committed, and are reported beside
+the complete run.
+
+**What runs.** Two parts, both in run 2t's six seeded shards (`runs/roc-items/think-mixed-shard*.jsonl`,
+unchanged).
+1. **Completion of run 2t:** the 234 calls of arms 1-diff and 5-attributed that have no record. They
+   use the same settings as Amendment 4's run:
+   - reasoning on;
+   - GMICloud fp8 pinned: `{"order": ["gmicloud/fp8"], "allow_fallbacks": false, "require_parameters": true}`;
+   - max_tokens 16,000 for reviews and manipulation checks;
+   - temperature 0.1 and the same flags.
+2. **A third arm, 7-random** (foreign code), on the same 282 items, with the same settings, mixed
+   into the same shards.
+
+**How the calls are ordered:**
+- Each shard is walked in its fixed order.
+- An item's missing arms are called back to back, in an order shuffled with
+  `random.Random("0:<task id>")` over (1-diff, 7-random, 5-attributed).
+
+**What is not asked again:**
+- Calls already recorded are kept as recorded. This includes the 1-diff twin call that billed 53,234
+  output tokens (`dask/bag/avro.py::to_avro::default_flip::182::safe`), which was scored and stays
+  scored.
+- Manipulation checks already recorded are not repeated. 7-random has no manipulation check (no
+  dependency block), as in runs 1–4c.
+- There is no new smoke test.
+
+**Timing.** All 7-random calls run on Wednesday. For the 164 items finished on Tuesday, 1-diff and
+5-attributed ran on Tuesday, so for those items the arm coincides with the day. The README reports
+the review calls per arm and day.
+
+**Runaway rule** (replaces Amendment 4's 40,000-token abort):
+- A call billing more than 40,000 output tokens is written to `failed.jsonl` with its cost, and it is
+  not scored.
+- Like a reply cut off at max_tokens, it is asked once more in the resume pass.
+
+**Abort rules (only these).** The run stops on:
+- more than 3 calls over the runaway limit, among the calls made under this amendment;
+- a served provider other than GMICloud, or a call without the pinned settings;
+- the cap.
+
+Amendment 4's zero-reasoning rule no longer stops the run; calls with zero reasoning tokens are
+counted and reported. On a stop, the run is logged, not restarted, and analysed as recorded.
+
+**Budget.**
+- **Cap:** $1.40 for the spend under this amendment.
+- **Fit:** run F's recorded $3.1146 plus $1.40 is $4.5146, within the $4.90 limit.
+- **Expected:** about $0.80 (516 review calls at run 2t's mean of $0.00154).
+
+**Timing of the run.** It starts at 08:00 EAT on Wednesday 11 November 2026, with no start after
+12:00. It is stopped at 15:00.
+
+**Analysis.**
+- **Complete run:** `results/v3-roc-deepseek-think-complete/analysis-roc.txt`, with all three arms
+  and Amendment 1's method.
+  - The primary comparison is unchanged: ΔAUC 5-attributed − 1-diff.
+  - Secondary: ΔAUC 7-random − 1-diff (section 4, as for every arm), and ΔAUC 5-attributed −
+    7-random (new section 4b, with the same bootstrap and readings).
+- **`compare-2c.txt`** for the complete run: Amendment 4's between-run secondary, arms 1-diff and
+  5-attributed.
+- **The 330-call partial analysis** is reported beside the complete one.
+
+Nothing is dropped or chosen by its result.
+
+**Code.** All new or changed code is under `experiments/`:
+- `run_structure.py`: `--runaway-tokens`, `--no-repeat-checks`;
+- `analyse_roc.py`: optional `A:B` pairs for section 4b; without them the output is unchanged
+  (checked on runs 1, 2, 2c, 4c and 2t);
+- `roc_tools.py`: guard_a5, daysplit;
+- `roc_run_think_a5.sh` and `launch_roc_think_a5.sh`.
