@@ -43,3 +43,33 @@ compare-2t.txt (`python3 experiments/compare_roc_runs.py results/v3-roc-deepseek
 A = 2t, reasoning on; B = 2g, reasoning off; same provider),
 compare-2c.txt (`python3 experiments/compare_roc_runs.py results/v3-roc-deepseek-nothink-gmi results/v3-roc-deepseek-ctrl --amendment 6`; A = 2g on GMICloud,
 B = 2c on AtlasCloud, both reasoning off; descriptive).
+
+## Probes of other reasoning-off settings (Amendment 6 addendum; written 11 Nov 2026 15:13 EAT)
+
+- on GMICloud fp8, same pin, no fallback; 5-attributed, the run's flags, no manipulation check; items: the defect `create_html_repr::94`, then the twin `jobs_list_str::745::safe` (runs/roc-items/probe2.jsonl)
+- a setting passes only if both calls report reasoning_tokens 0, served by GMICloud with the settings sent; the second call is made only if the first reports 0; probe cap $0.01
+- setting 0 `{"enabled": false}` (the smoke test above): reasoning_tokens 120, 5444, 3076, 1651, 5654, 1887, 7983 on its 7 calls
+- setting 1 `{"effort": "none"}`: FAIL struc r.py::create_html_repr::default_flip::94 reasoning_tokens 1350
+- setting 2 no reasoning field: FAIL struc r.py::create_html_repr::default_flip::94 reasoning_tokens 2292
+- setting 3 `{"max_tokens": 0}`: FAIL struc r.py::create_html_repr::default_flip::94 reasoning_tokens 2159
+- outcome: no setting passed: GMICloud ignored every reasoning-off setting tried; run 2g is not run
+- recorded cost of the probes: $0.0025; run 2g so far (smoke test and probes): $0.0128; run F total: $3.8971; OpenRouter balance $1.0260 before the probes, $1.0252 now
+
+Probe calls (raw usage objects):
+
+```
+s1:
+    struc r.py::create_html_repr::default_flip::94: provider='GMICloud' reasoning_tokens=1350 output_tokens=1578 finish_reason='stop' usage={"completion_tokens": 1578, "completion_tokens_details": {"audio_tokens": 0, "image_tokens": 0, "reasoning_tokens": 1350}, "cost": 0.0007967376, "cost_details": {"upstream_inference_completions_cost": 0.0004885488, "upstream_inference_cost": 0.0007967376, "upstream_inference_prompt_cost": 0.0003081888}, "is_byok": false, "prompt_tokens": 1476, "prompt_tokens_details": {"audio_tokens": 0, "cache_write_tokens": 0, "cached_tokens": 0, "video_tokens": 0}, "total_tokens": 3054}
+s2:
+    struc r.py::create_html_repr::default_flip::94: provider='GMICloud' reasoning_tokens=2292 output_tokens=2530 finish_reason='stop' usage={"completion_tokens": 2530, "completion_tokens_details": {"audio_tokens": 0, "image_tokens": 0, "reasoning_tokens": 2292}, "cost": 0.000899784, "cost_details": {"upstream_inference_completions_cost": 0.000783288, "upstream_inference_cost": 0.000899784, "upstream_inference_prompt_cost": 0.000116496}, "is_byok": false, "prompt_tokens": 1476, "prompt_tokens_details": {"audio_tokens": 0, "cache_write_tokens": 0, "cached_tokens": 1024, "video_tokens": 0}, "total_tokens": 4006}
+s3:
+    struc r.py::create_html_repr::default_flip::94: provider='GMICloud' reasoning_tokens=2159 output_tokens=2331 finish_reason='stop' usage={"completion_tokens": 2331, "completion_tokens_details": {"audio_tokens": 0, "image_tokens": 0, "reasoning_tokens": 2159}, "cost": 0.0008381736, "cost_details": {"upstream_inference_completions_cost": 0.0007216776, "upstream_inference_cost": 0.0008381736, "upstream_inference_prompt_cost": 0.000116496}, "is_byok": false, "prompt_tokens": 1476, "prompt_tokens_details": {"audio_tokens": 0, "cache_write_tokens": 0, "cached_tokens": 1024, "video_tokens": 0}, "total_tokens": 3807}
+```
+
+HTTP and other call errors in the probe logs:
+
+```
+none
+```
+
+Files: probe-s{1,2,3}/ (records and logs of each probe made), items/probe2.jsonl, cost.log; commands: experiments/probe_nothink_gmi.sh.
