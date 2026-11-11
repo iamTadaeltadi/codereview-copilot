@@ -14,7 +14,16 @@ analyse_roc.py), one draw applied to all four cells, so both runs resample the s
 signal_detection.stats), the change from B to A per arm, and dc (5-attributed - 1-diff) per run and
 its difference between runs, with 95% intervals from the same draws; and, descriptive, the
 difference of differences on the items scored in all four cells.
+
+Amendment 6 (runs 2t vs 2g): --arms 1-diff,7-random,5-attributed reads three arms. The contrasts
+are then 5-attributed - 1-diff and 5-attributed - 7-random, each as above (sections 2a, 2b, 5a, 5b),
+over the repositories with a scored item in all six cells; sections 1, 3 and 4 list all three arms.
+--amendment N only changes the amendment named in the header and footer. Without these flags the
+output is unchanged.
+    python3 experiments/compare_roc_runs.py results/v3-roc-deepseek-think-complete \
+        results/v3-roc-deepseek-nothink-gmi --arms 1-diff,7-random,5-attributed --amendment 6
 """
+import argparse
 import random
 import sys
 from pathlib import Path
@@ -29,7 +38,12 @@ from experiments.signal_detection import stats  # noqa: E402
 TRIALS, SEED, ARMS = 6000, 0, ("1-diff", "5-attributed")
 
 
-def main(folder_a, folder_b):
+def main(folder_a, folder_b, arms=ARMS, amendment="4"):
+    ARMS = tuple(arms)
+    top = ARMS[-1]
+    contrasts = [(top, a) for a in ARMS[:-1]]
+    tag = {1: [""], 2: ["a", "b"]}[len(contrasts)]
+    ncells = {4: "four", 6: "six"}[2 * len(ARMS)]
     runs = {"A": [r for r in load(folder_a) if r["arm"] in ARMS], "B": [r for r in load(folder_b) if r["arm"] in ARMS]}
     cells = [(x, a) for x in runs for a in ARMS]
     scored = {(x, a): [r for r in runs[x] if r["arm"] == a and r.get("hunk_score") is not None] for x, a in cells}
@@ -53,14 +67,14 @@ def main(folder_a, folder_b):
     common = set.intersection(*[{r["task_id"] for r in scored[c]} for c in cells])
     res_c = {c: auc([r for r in scored[c] if r["task_id"] in common]) for c in cells}
 
-    def did(rs):
-        point = (rs["A", ARMS[1]][0] - rs["A", ARMS[0]][0]) - (rs["B", ARMS[1]][0] - rs["B", ARMS[0]][0])
-        boot = (rs["A", ARMS[1]][1] - rs["A", ARMS[0]][1]) - (rs["B", ARMS[1]][1] - rs["B", ARMS[0]][1])
+    def did(rs, hi_arm, lo_arm):
+        point = (rs["A", hi_arm][0] - rs["A", lo_arm][0]) - (rs["B", hi_arm][0] - rs["B", lo_arm][0])
+        boot = (rs["A", hi_arm][1] - rs["A", lo_arm][1]) - (rs["B", hi_arm][1] - rs["B", lo_arm][1])
         return point, ci(boot, 0.95)
 
-    out = [f"Between-run comparison (paper/PREREG-F.md, Amendment 4, secondary)",
+    out = [f"Between-run comparison (paper/PREREG-F.md, Amendment {amendment}, secondary)",
            f"A = {folder_a}", f"B = {folder_b}",
-           f"arms {', '.join(ARMS)}; repositories with a scored item in all four cells: {len(repos)}; "
+           f"arms {', '.join(ARMS)}; repositories with a scored item in all {ncells} cells: {len(repos)}; "
            f"bootstrap over repositories, {TRIALS} draws, seed {SEED}, the same draw for both runs", "",
            "1. Hunk-rating AUC per run and arm (each cell over its scored items)",
            f"  {'run':<5}{'arm':<15}{'defects':>8}{'twins':>7}{'AUC':>8}  95%"]
@@ -68,18 +82,21 @@ def main(folder_a, folder_b):
         p, b, nd, nt = res[x, a]
         lo, hi = ci(b, 0.95)
         out.append(f"  {x:<5}{a:<15}{nd:>8}{nt:>7}{p:>8.3f}  [{lo:.3f}, {hi:.3f}]")
-    out += ["", "2. dAUC (5-attributed - 1-diff) per run, and the difference between runs"]
-    for x in runs:
-        d = res[x, ARMS[1]][1] - res[x, ARMS[0]][1]
-        lo, hi = ci(d, 0.95)
-        out.append(f"  {x}: {res[x, ARMS[1]][0] - res[x, ARMS[0]][0]:+.3f} [{lo:+.3f}, {hi:+.3f}]")
-    p, (lo, hi) = did(res)
-    out += [f"  difference of differences, A - B: {p:+.3f} [{lo:+.3f}, {hi:+.3f}]  "
-            + ("(95% interval above 0)" if lo > 0 else "(95% interval below 0)" if hi < 0 else "(95% interval includes 0)"),
-            f"  descriptive, the {len(common)} items scored in all four cells "
-            f"({sum(1 for r in scored['A', ARMS[0]] if r['task_id'] in common and r['is_defect'])} defects, "
-            f"{sum(1 for r in scored['A', ARMS[0]] if r['task_id'] in common and not r['is_defect'])} twins): "
-            f"{did(res_c)[0]:+.3f} [{did(res_c)[1][0]:+.3f}, {did(res_c)[1][1]:+.3f}]", ""]
+    for t, (hi_arm, lo_arm) in zip(tag, contrasts):
+        out += ["", f"2{t}. dAUC ({hi_arm} - {lo_arm}) per run, and the difference between runs"]
+        for x in runs:
+            d = res[x, hi_arm][1] - res[x, lo_arm][1]
+            lo, hi = ci(d, 0.95)
+            out.append(f"  {x}: {res[x, hi_arm][0] - res[x, lo_arm][0]:+.3f} [{lo:+.3f}, {hi:+.3f}]")
+        p, (lo, hi) = did(res, hi_arm, lo_arm)
+        pc, (lc, hc) = did(res_c, hi_arm, lo_arm)
+        out += [f"  difference of differences, A - B: {p:+.3f} [{lo:+.3f}, {hi:+.3f}]  "
+                + ("(95% interval above 0)" if lo > 0 else "(95% interval below 0)" if hi < 0 else "(95% interval includes 0)"),
+                f"  descriptive, the {len(common)} items scored in all {ncells} cells "
+                f"({sum(1 for r in scored['A', ARMS[0]] if r['task_id'] in common and r['is_defect'])} defects, "
+                f"{sum(1 for r in scored['A', ARMS[0]] if r['task_id'] in common and not r['is_defect'])} twins): "
+                f"{pc:+.3f} [{lc:+.3f}, {hc:+.3f}]"]
+    out += [""]
 
     by = {c: {g: [] for g in repos} for c in cells}
     for x, a in cells:
@@ -110,21 +127,22 @@ def main(folder_a, folder_b):
             boot = [x[k] - y[k] if x and y else None for x, y in zip(sb["A", a], sb["B", a])]
             row.append(fmt(k, sp["A", a][k] - sp["B", a][k], boot))
         out.append(f"  {a:<15}" + "".join(f"{v:>24}" for v in row))
-    out += ["", "5. Change from 1-diff to 5-attributed per run, and its difference between runs [95%]",
-            f"  {'':<15}" + "".join(f"{n:>24}" for n in ("dH%", "dF%", "dd'", "dc"))]
-
-    def delta(x, k):
-        return [b5[k] - b1[k] if b5 and b1 else None for b5, b1 in zip(sb[x, ARMS[1]], sb[x, ARMS[0]])]
-    for x in runs:
-        out.append(f"  {'run ' + x:<15}" + "".join(
-            f"{fmt(k, sp[x, ARMS[1]][k] - sp[x, ARMS[0]][k], delta(x, k)):>24}" for k in range(4)))
-    row = []
-    for k in range(4):
-        point = (sp["A", ARMS[1]][k] - sp["A", ARMS[0]][k]) - (sp["B", ARMS[1]][k] - sp["B", ARMS[0]][k])
-        boot = [p - q if p is not None and q is not None else None for p, q in zip(delta("A", k), delta("B", k))]
-        row.append(fmt(k, point, boot))
-    out.append(f"  {'A - B':<15}" + "".join(f"{v:>24}" for v in row))
-    out += ["", "Secondary and post hoc (Amendment 4): one comparison of two runs, read with the primary result of",
+    def delta(x, k, hi_arm, lo_arm):
+        return [b5[k] - b1[k] if b5 and b1 else None for b5, b1 in zip(sb[x, hi_arm], sb[x, lo_arm])]
+    for t, (hi_arm, lo_arm) in zip(tag, contrasts):
+        out += ["", f"5{t}. Change from {lo_arm} to {hi_arm} per run, and its difference between runs [95%]",
+                f"  {'':<15}" + "".join(f"{n:>24}" for n in ("dH%", "dF%", "dd'", "dc"))]
+        for x in runs:
+            out.append(f"  {'run ' + x:<15}" + "".join(
+                f"{fmt(k, sp[x, hi_arm][k] - sp[x, lo_arm][k], delta(x, k, hi_arm, lo_arm)):>24}" for k in range(4)))
+        row = []
+        for k in range(4):
+            point = (sp["A", hi_arm][k] - sp["A", lo_arm][k]) - (sp["B", hi_arm][k] - sp["B", lo_arm][k])
+            boot = [p - q if p is not None and q is not None else None
+                    for p, q in zip(delta("A", k, hi_arm, lo_arm), delta("B", k, hi_arm, lo_arm))]
+            row.append(fmt(k, point, boot))
+        out.append(f"  {'A - B':<15}" + "".join(f"{v:>24}" for v in row))
+    out += ["", f"Secondary and post hoc (Amendment {amendment}): one comparison of two runs, read with the primary result of",
             "each run; no correction for multiplicity."]
     text = "\n".join(out) + "\n"
     sys.stdout.write(text)
@@ -132,4 +150,10 @@ def main(folder_a, folder_b):
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:])
+    ap = argparse.ArgumentParser()
+    ap.add_argument("folder_a")
+    ap.add_argument("folder_b")
+    ap.add_argument("--arms", default=",".join(ARMS))
+    ap.add_argument("--amendment", default="4")
+    a = ap.parse_args()
+    main(a.folder_a, a.folder_b, a.arms.split(","), a.amendment)

@@ -22,6 +22,9 @@ Amendment 4 (run 2t, reasoning on):
 Amendment 5 (run 2t completed, with 7-random added):
     roc_tools.py guard_a5 NAME MAXRUNAWAY GLOB [...]   OK or ABORT <reason>: Amendment 5 abort rules
     roc_tools.py daysplit GLOB [...]      review calls per arm and calendar day (EAT), from called_at
+Amendment 6 (run 2g, reasoning off on GMICloud):
+    roc_tools.py smoke_nothink RUN NAME   OK or FAIL <reason>: Amendment 6 smoke criteria
+    roc_tools.py guard_g NAME GLOB [...]  OK or ABORT <reason>: Amendment 6 abort rules
 Every reader counts failed.jsonl (calls cut off at max_tokens, billed but not scored) beside the
 structure and manipulation records.
 """
@@ -378,6 +381,72 @@ def guard_a5(name, maxrun, *patterns):
           f"reasoning_tokens 0 on {zeros}")
 
 
+OFF = {"enabled": False}
+
+
+def _pinned(r, reasoning, name):
+    """The call was sent with REASONING and the provider NAME's endpoint first, without fallbacks."""
+    prov = r.get("request_provider") or {}
+    return (r.get("request_reasoning") == reasoning and prov.get("order", [None])[0] == {v: k for k, v in PIN.items()}[name]
+            and prov.get("allow_fallbacks") is False)
+
+
+def smoke_nothink(run, name):
+    """Amendment 6 smoke test (6 replies, 3 defects + 3 twins x 5-attributed, plus the manipulation
+    check). OK only if every reply parses with a rating for every hunk and no non-header lines, no call
+    was cut off, the manipulation check is recorded, and every call has the run's settings (reasoning
+    off, NAME pinned, no fallbacks), reasoning_tokens reported as 0, fewer than 600 output tokens and
+    the served provider NAME (reported; ignoring case, spaces, hyphens)."""
+    rows, failed = _review_rows(run), _failed_rows(run)
+    bad = [f"{f['call']} {f['task_id'][-40:]} cut off (finish_reason {f.get('finish_reason')!r}, "
+           f"{(f.get('usage') or {}).get('output_tokens')} output tokens)" for f in failed]
+    for r in rows:
+        tid = r["task_id"][-40:]
+        if r.get("parse_failed") or r.get("json_failed"):
+            bad.append(f"{tid} reply did not parse")
+        elif r.get("hunks_rated") != r.get("hunks_total") or r.get("ratings_ambiguous"):
+            bad.append(f"{tid} rated {r.get('hunks_rated')} of {r.get('hunks_total')} hunks")
+        if r.get("unmatched_rating_lines") or r.get("invalid_rating_entries"):
+            bad.append(f"{tid} non-header or invalid rating entries")
+    if len(rows) < 6:
+        bad.append(f"only {len(rows)} of 6 replies")
+    if not [r for *_, r in _calls([run]) if "answer" in r]:
+        bad.append("no manipulation check recorded")
+    for _, kind, r in _calls([run]):
+        tid = f"{kind[:5]} {r['task_id'][-40:]}"
+        if not _pinned(r, OFF, name):
+            bad.append(f"{tid} settings missing or different"); continue
+        if r.get("reasoning_tokens") != 0:
+            bad.append(f"{tid} reasoning_tokens {r.get('reasoning_tokens')!r}")
+        if (_out_tokens(r) or 0) >= 600:
+            bad.append(f"{tid} output tokens {_out_tokens(r)}")
+        if r.get("served_provider") is None or _norm(r["served_provider"]) != _norm(name):
+            bad.append(f"{tid} served by {r.get('served_provider')!r}")
+    print("OK" if not bad else "FAIL " + "; ".join(bad))
+
+
+def guard_g(name, *patterns):
+    """Amendment 6 abort rules over every recorded call (reviews, manipulation checks, cut-off calls):
+    a call without the run's settings (reasoning off, NAME pinned, no fallbacks); a reported provider
+    other than NAME; reasoning_tokens > 0; more than 1,500 output tokens. Calls with no reported
+    provider or no reported reasoning_tokens are counted, not acted on."""
+    calls = _calls(patterns)
+    for run, kind, r in calls:
+        where = f"{run}/{kind} {r['task_id'][-50:]} {r.get('arm', '')}"
+        if not _pinned(r, OFF, name):
+            print(f"ABORT settings missing or different: {where}"); return
+        if r.get("served_provider") is not None and _norm(r["served_provider"]) != _norm(name):
+            print(f"ABORT served by {r['served_provider']}: {where}"); return
+        if (r.get("reasoning_tokens") or 0) > 0:
+            print(f"ABORT reasoning_tokens {r['reasoning_tokens']}: {where}"); return
+        if (_out_tokens(r) or 0) > 1500:
+            print(f"ABORT output tokens {_out_tokens(r)}: {where}"); return
+    reported = sum(1 for *_, r in calls if r.get("served_provider") is not None)
+    rt = sum(1 for *_, r in calls if r.get("reasoning_tokens") is not None)
+    print(f"OK {len(calls)} calls, provider reported on {reported}, reasoning_tokens reported on {rt}, "
+          f"max output tokens {max((_out_tokens(r) or 0 for *_, r in calls), default=None)}")
+
+
 def daysplit(*patterns):
     import collections
     import time
@@ -435,4 +504,4 @@ if __name__ == "__main__":
      "balance": balance, "smoke_ctrl": smoke_ctrl, "guard": guard, "usage": usage, "ctrlstats": ctrlstats,
      "prep_think": prep_think, "smoke_think": smoke_think, "project_think": project_think,
      "guard_think": guard_think, "usage_think": usage_think, "thinkstats": thinkstats,
-     "guard_a5": guard_a5, "daysplit": daysplit}[sys.argv[1]](*sys.argv[2:])
+     "guard_a5": guard_a5, "daysplit": daysplit, "smoke_nothink": smoke_nothink, "guard_g": guard_g}[sys.argv[1]](*sys.argv[2:])

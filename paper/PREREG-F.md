@@ -586,3 +586,112 @@ Request` on 42 calls, and pass 2 got 38 of them back. Four calls still have no r
 - Replies are recorded as they come. A call that fails again stays missing, and this is reported.
 - `analysis-roc.txt` and `compare-2c.txt` are rerun on the complete folder. The 09:53 versions stay
   in git history.
+
+## Amendment 6 (11 November 2026, 13:02 EAT; before any call of run 2g)
+
+**Status.** Post hoc: decided after seeing runs 2c and 2t.
+
+**Why.** Run 2t (reasoning on) ran on GMICloud, and run 2c (reasoning off) ran on AtlasCloud, so
+2t vs 2c differs in two things: reasoning and provider. Run 2g repeats reasoning off on GMICloud. Then:
+- 2t vs 2g differs in reasoning only;
+- 2g vs 2c differs in provider only.
+
+**Run 2g.**
+- **Model:** `deepseek/deepseek-v3.2`, neutral prompt, not authoritative.
+- **Arms:** 1-diff, 7-random, 5-attributed.
+- **Items:** the same 282 items (139 default-flip defects and 143 twins), in run 2t's six seeded
+  shards (`runs/roc-items/think-mixed-shard0..5.jsonl`, unchanged).
+- **Order and timing:**
+  - Defects, twins and all three arms are mixed in every shard.
+  - Each item's three arms run back to back, in an order shuffled with `random.Random("0:<task id>")`
+    over (1-diff, 7-random, 5-attributed).
+  - The six shards run in parallel, so all arms run at the same time.
+- **Output contract and flags:** hunk ratings, as in 2c and 2t; `--limit 400 --encoding tag
+  --neutral-prompt --confidence --hunk-ratings --kinds default_flip --max-tokens 2048
+  --check-max-tokens 2048 --arm-order-seed 0 --no-repeat-checks`; temperature 0.1.
+- **Max tokens:** 2,048 for reviews and for the manipulation check. Run 2c used 48 for the check;
+  with reasoning off, the check reply is a few tokens.
+- **Settings on every call:** `"reasoning": {"enabled": false}`; `"provider": {"order":
+  ["gmicloud/fp8"], "allow_fallbacks": false, "require_parameters": true}`.
+- **No fallback provider.** If GMICloud cannot serve reasoning-off calls, the run stops and this is
+  reported. The provider is not switched.
+
+**Record per call** (as in 2c and 2t): served provider, reasoning_tokens, output tokens, finish_reason,
+the raw usage object, and the request settings. HTTP error text is written to the run logs
+(`experiments/llm.py`, Amendment 5 addendum) and listed in the README.
+
+**Smoke test** (`runs/roc-smoke-deepseek-nothink-gmi`).
+- **Calls:** 3 defects + 3 twins × 5-attributed (`runs/roc-items/smoke6.jsonl`, as in 2t), plus the
+  manipulation check.
+- **It passes only if:**
+  - every reply parses with a rating for every hunk;
+  - every call reports reasoning_tokens 0;
+  - every call has under 600 output tokens;
+  - every call is served by GMICloud;
+  - every call has the settings above.
+- The smoke usage objects go into the README, which is pushed before the launch.
+- On a pass, the run launches without waiting. On a fail, it stops and this is reported.
+
+**Run** → `results/v3-roc-deepseek-nothink-gmi/`.
+- **Cap:** $0.60, smoke test included.
+- **Passes:** two. The second asks once more every call with no record (HTTP or network error,
+  reply cut off).
+
+**Abort rules** (a watcher every 30 s, and at the end of each pass), over every recorded call:
+- a served provider other than GMICloud, or a call without the settings above (a call with no
+  reported provider is counted and reported);
+- any call with reasoning_tokens > 0;
+- any call over 1,500 output tokens.
+
+On an abort, the run stops and is logged in the README. It is not restarted, and it is analysed as
+recorded.
+
+**Other stops:**
+- the cap;
+- run F's recorded total over $4.90;
+- no start after Thursday 12 November 2026, 15:00 EAT, and a hard stop at 18:00.
+
+**Budget.**
+- **Fit:** run F's recorded $3.8843 plus the $0.60 cap is $4.4843, within the $4.90 limit.
+- **Expected:** about $0.25. This is 2c's mean cost per call on AtlasCloud, scaled to GMICloud's
+  lower price ($0.2088 per million input tokens and $0.3096 per million output tokens, against
+  AtlasCloud's $0.26 and $0.38).
+
+**Primary analysis (2g)**, in `analysis-roc.txt`. It follows Amendment 1:
+- hunk-rating AUC;
+- ΔAUC 5-attributed − 1-diff;
+- a repository bootstrap with 6,000 draws, seed 0;
+- a gain if the 95% interval is above 0, and equivalence if the 90% interval is inside ±0.10;
+- the surface-match gate.
+
+It also reports 5-attributed − 7-random (section 4b, as in Amendment 5).
+
+**Secondary analyses (stated now).**
+1. **2t vs 2g** (`compare-2t.txt`). A = 2t, B = 2g; A − B is the effect of reasoning.
+   - **Items:** the repositories with a scored item in all six cells (2 runs × 3 arms), with one set
+     of bootstrap draws (6,000, seed 0) for both runs.
+   - **(a)** The difference of differences for 5-attributed − 1-diff.
+   - **(b)** The difference of differences for 5-attributed − 7-random.
+   - **(c)** Per arm, the between-run change in H, F, d′ and c. Also, in each run, the change in H,
+     F, d′ and c from 1-diff to 5-attributed and from 7-random to 5-attributed, and the difference
+     between the runs. All with 95% intervals.
+   - **Descriptive:** (a) and (b) on the items scored in all six cells.
+2. **2g vs 2c** (`compare-2c.txt`), descriptive. A = 2g, B = 2c; both have reasoning off, so A − B is
+   the effect of the provider. It uses the same method as compare-2c (Amendment 4: arms 1-diff and
+   5-attributed).
+
+Both runs are reported, and nothing is dropped or chosen by its result. There is no correction for
+multiplicity: every comparison other than the primary one is read as secondary.
+
+**Code.** All new or changed code is under `experiments/`:
+- `roc_tools.py`: smoke_nothink, guard_g.
+- `compare_roc_runs.py`: optional `--arms` and `--amendment`.
+  - `--arms 1-diff,7-random,5-attributed` adds (b), the 7-random rows and the 7-random → 5-attributed
+    change.
+  - `--amendment` changes only the label.
+  - Without them, the output is unchanged (checked on both compare-2c files of 2t).
+- `roc_run_nothink.sh` and `launch_roc_nothink_gmi.sh`.
+- Tested before any call with a fake model (no network) in three scenarios:
+  - a full run, with one HTTP 400 logged with its text and recovered in pass 2;
+  - an abort on output tokens;
+  - a failed smoke test, after which nothing ran.
