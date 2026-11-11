@@ -151,7 +151,11 @@ class OpenRouterClient:
             except urllib.error.HTTPError as error:
                 last_error = error
                 if error.code in (400, 401, 403, 404):
-                    raise LLMError(f"{model}: HTTP {error.code} {error.reason}") from error
+                    try:
+                        detail = error.read().decode("utf-8", "replace")[:300]
+                    except Exception:
+                        detail = ""
+                    raise LLMError(f"{model}: HTTP {error.code} {error.reason} {detail}".rstrip()) from error
                 time.sleep(min(30, 2 ** attempt))
             except Exception as error:
                 last_error = error

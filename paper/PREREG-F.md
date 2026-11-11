@@ -569,3 +569,20 @@ Nothing is dropped or chosen by its result.
   (checked on runs 1, 2, 2c, 4c and 2t);
 - `roc_tools.py`: guard_a5, daysplit;
 - `roc_run_think_a5.sh` and `launch_roc_think_a5.sh`.
+
+**Addendum (11 November 2026, 12:10 EAT; before the retry calls).** Decided by the author after
+seeing the complete results. The run finished at 09:53 (commit f4d6e7b). Pass 1 got `HTTP 400 Bad
+Request` on 42 calls, and pass 2 got 38 of them back. Four calls still have no record: 1-diff and
+5-attributed of two defect items in shard 3 (`dask/delayed.py::delayed::default_flip::414` and
+`numba/core/cgutils.py::get_item_pointer2::default_flip::739`).
+- The error text was not logged. The errors were not billed: the balance fell $0.7596, against
+  $0.7612 recorded.
+- These 4 calls are asked once more, with the same settings and flags, on shard 3 only. No
+  manipulation check falls on these items.
+- This starts after the 12:00 rule, with the author's approval, and ends by 15:00. The expected cost
+  is about $0.005, within the $1.40 cap.
+- `experiments/llm.py` now writes the first 300 characters of an HTTP error's body into the error
+  message. Nothing else changes.
+- Replies are recorded as they come. A call that fails again stays missing, and this is reported.
+- `analysis-roc.txt` and `compare-2c.txt` are rerun on the complete folder. The 09:53 versions stay
+  in git history.
