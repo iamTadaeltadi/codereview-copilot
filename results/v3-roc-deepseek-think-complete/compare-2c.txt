@@ -5,34 +5,34 @@ arms 1-diff, 5-attributed; repositories with a scored item in all four cells: 36
 
 1. Hunk-rating AUC per run and arm (each cell over its scored items)
   run  arm             defects  twins     AUC  95%
-  A    1-diff              137    143   0.562  [0.507, 0.615]
-  A    5-attributed        137    143   0.748  [0.698, 0.799]
+  A    1-diff              139    143   0.561  [0.506, 0.616]
+  A    5-attributed        139    143   0.749  [0.699, 0.798]
   B    1-diff              139    143   0.518  [0.448, 0.586]
   B    5-attributed        139    143   0.599  [0.551, 0.649]
 
 2. dAUC (5-attributed - 1-diff) per run, and the difference between runs
-  A: +0.187 [+0.121, +0.257]
+  A: +0.188 [+0.122, +0.259]
   B: +0.081 [+0.017, +0.148]
-  difference of differences, A - B: +0.105 [+0.003, +0.207]  (95% interval above 0)
-  descriptive, the 280 items scored in all four cells (137 defects, 143 twins): +0.104 [+0.003, +0.205]
+  difference of differences, A - B: +0.107 [+0.004, +0.209]  (95% interval above 0)
+  descriptive, the 282 items scored in all four cells (139 defects, 143 twins): +0.107 [+0.004, +0.209]
 
 3. Binary hit (parse failures dropped): H, F, d', c per run and arm
   run  arm               nD   nT     H%     F%  d-prime      c
-  A    1-diff           137  143   97.1   91.6     0.51  -1.64
-  A    5-attributed     137  143   98.5   80.4     1.32  -1.52
+  A    1-diff           139  143   97.1   91.6     0.52  -1.64
+  A    5-attributed     139  143   98.6   80.4     1.33  -1.52
   B    1-diff           139  143   79.9   70.6     0.29  -0.69
   B    5-attributed     139  143   97.8   93.7     0.49  -1.78
 
 4. Change from B to A per arm (A - B) [95%]
   arm                                  H%                      F%                      d'                       c
-  1-diff             +17.2 [+11.3, +23.9]     +21.0 [+9.6, +32.3]    +0.22 [-0.25, +0.84]    -0.95 [-1.48, -0.61]
-  5-attributed          +0.7 [-2.6, +3.6]     -13.3 [-19.3, -7.8]    +0.83 [+0.03, +1.62]    +0.26 [-0.13, +0.71]
+  1-diff             +17.3 [+11.3, +23.9]     +21.0 [+9.6, +32.3]    +0.23 [-0.25, +0.85]    -0.95 [-1.49, -0.62]
+  5-attributed          +0.7 [-2.5, +3.6]     -13.3 [-19.3, -7.8]    +0.84 [+0.04, +1.62]    +0.25 [-0.14, +0.71]
 
 5. Change from 1-diff to 5-attributed per run, and its difference between runs [95%]
                                       dH%                     dF%                     dd'                      dc
-  run A                 +1.5 [-2.3, +5.8]     -11.2 [-16.8, -5.4]    +0.81 [+0.12, +1.49]    +0.12 [-0.33, +0.70]
+  run A                 +1.4 [-2.3, +5.8]     -11.2 [-16.8, -5.4]    +0.81 [+0.12, +1.49]    +0.12 [-0.33, +0.70]
   run B              +18.0 [+11.5, +25.7]    +23.1 [+14.5, +31.8]    +0.20 [-0.24, +0.76]    -1.09 [-1.50, -0.82]
-  A - B               -16.5 [-25.0, -9.8]    -34.3 [-46.2, -22.7]    +0.61 [-0.33, +1.46]    +1.20 [+0.64, +2.01]
+  A - B               -16.5 [-25.0, -9.9]    -34.3 [-46.2, -22.7]    +0.61 [-0.33, +1.45]    +1.20 [+0.64, +2.01]
 
 Secondary and post hoc (Amendment 4): one comparison of two runs, read with the primary result of
 each run; no correction for multiplicity.

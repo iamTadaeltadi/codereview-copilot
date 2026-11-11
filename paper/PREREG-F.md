@@ -570,7 +570,7 @@ Nothing is dropped or chosen by its result.
 - `roc_tools.py`: guard_a5, daysplit;
 - `roc_run_think_a5.sh` and `launch_roc_think_a5.sh`.
 
-**Addendum (11 November 2026, 12:10 EAT; before the retry calls).** Decided by the author after
+**Addendum (11 November 2026, 12:06 EAT; before the retry calls).** Decided by the author after
 seeing the complete results. The run finished at 09:53 (commit f4d6e7b). Pass 1 got `HTTP 400 Bad
 Request` on 42 calls, and pass 2 got 38 of them back. Four calls still have no record: 1-diff and
 5-attributed of two defect items in shard 3 (`dask/delayed.py::delayed::default_flip::414` and

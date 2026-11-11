@@ -25,3 +25,39 @@ run-mixed-shard*-amendment5-pass{1,2}.log, items/ (the six shards as run), cost.
 analysis-roc.txt (`python3 experiments/analyse_roc.py results/v3-roc-deepseek-think-complete 5-attributed:7-random`),
 compare-2c.txt (`python3 experiments/compare_roc_runs.py results/v3-roc-deepseek-think-complete results/v3-roc-deepseek-ctrl`).
 The smoke tests of run 2t are in results/v3-roc-deepseek-think/smoke-*/.
+
+## Notes (added 11 November 2026, after the retry)
+
+The lines above were written when the run ended at 09:53 (commit f4d6e7b). The records, `cost.log`,
+`analysis-roc.txt` and `compare-2c.txt` now include the retry below.
+
+**HTTP 400 errors.**
+- Pass 1 got `HTTP 400 Bad Request` on 42 calls, in shards 1 to 5, mostly at their last items.
+- Pass 2 asked them again. 38 came back, and 4 got HTTP 400 again: arms 1-diff and 5-attributed of
+  two defect items in shard 3 (`xf::dask__dask::dask/delayed.py::delayed::default_flip::414` and
+  `xf::numba__numba::numba/core/cgutils.py::get_item_pointer2::default_flip::739`).
+- At 09:53 the run therefore had 842 of 846 review records.
+- The error text was not logged, so the cause is unknown. The errors were not billed.
+- These calls are not in `failed.jsonl`, which holds only billed calls (cut off or over the runaway
+  limit).
+
+**Retry** (`paper/PREREG-F.md`, Amendment 5 addendum, committed 12:06 before the first retry call).
+- The 4 calls were asked once more, from 12:06 to 12:13, with the same settings and flags, on shard 3
+  only (log: `run-mixed-shard3-amendment5-retry.log`). This started after Amendment 5's 12:00 rule,
+  with the author's approval.
+- All 4 came back: finish reason stop, served by GMICloud, 2,579 to 12,023 output tokens, $0.0085 in
+  total. No manipulation check falls on these items.
+- `experiments/llm.py` now logs the body of an HTTP error, but no call failed during the retry.
+
+**After the retry.**
+- Calls: 882 (846 reviews, 36 manipulation checks). 0 cut off, 0 over the runaway limit, all served
+  by GMICloud, 0 with zero reasoning tokens.
+- Review calls per arm and day:
+  - 1-diff: 165 on Tuesday 10 November, 117 on Wednesday 11 November;
+  - 7-random: 282 on Wednesday;
+  - 5-attributed: 165 on Tuesday, 117 on Wednesday.
+- Spend under Amendment 5: $0.7697 ($0.7612 + $0.0085), against the $1.40 cap.
+- Run 2t: $1.3001 recorded. Run F total: $3.8843, against the $4.90 limit.
+- OpenRouter balance: $1.0374.
+- The first `analysis-roc.txt` and `compare-2c.txt` (842 records) are in git history at commit
+  f4d6e7b.
