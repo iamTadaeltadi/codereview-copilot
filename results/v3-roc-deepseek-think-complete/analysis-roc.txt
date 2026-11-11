@@ -1,0 +1,67 @@
+ROC on kind-matched default flips (paper/PREREG-F.md, Amendment 1): results/v3-roc-deepseek-think-complete
+model: deepseek/deepseek-v3.2; arms: 1-diff, 7-random, 5-attributed; authoritative: False; hunk ratings on in every record: True
+settings (Amendment 3): reasoning {'enabled': True}; provider {'order': ['gmicloud/fp8'], 'allow_fallbacks': False, 'require_parameters': True}; served by {'GMICloud': 842}; max reasoning tokens 53070; max output tokens 53234
+records: 842; recorded cost: reviews $1.2692, manipulation checks $0.0026, smoke $0.0000
+repositories with a scored item in every arm: 36; bootstrap over repositories, 6000 draws, seed 0, defects and twins of a repository resampled together
+item score = the defect_probability of the mutated line's hunk; no-JSON replies and missing
+ratings are left out and counted, never scored 0
+
+1. Surface-match gate (diff only)
+  AUC 0.562 [0.507, 0.615]: excludes 0.5: twins are distinguishable from the diff alone for this model; dAUC is read relative to this baseline
+
+2. Per arm, primary score (hunk rating)
+  arm                   def att/sc twin att/sc no JSON d/t missing d/t ambig unmat all rated   ties values    AUC  95%
+  1 diff only             137/137     143/143       0/0         0/0        0     0     98.9%  0.168     19  0.562  [0.507, 0.615]
+  7 foreign code          139/139     143/143       0/0         0/0        0     0     99.6%  0.177     17  0.508  [0.446, 0.566]
+  5 attributed            137/137     143/143       0/0         0/0        0     0    100.0%  0.117     23  0.748  [0.698, 0.799]
+  att/sc: attempted / scored in the bootstrap repositories; ambig: replies rating a hunk twice with
+  different values; unmat: replies with entries for non-header lines or invalid entries; all rated:
+  share of parsed replies rating every hunk; ties: share of defect-twin pairs with equal scores;
+  values: distinct item scores
+
+3. AUC by score, per arm (primary hunk rating beside the secondary scores)
+  arm                     hunk  binary (1+H-F)/2  censored confidence
+  1 diff only            0.562             0.527                0.530
+  7 foreign code         0.508             0.503                0.552
+  5 attributed           0.748             0.591                0.755
+
+4. dAUC vs 1-diff, hunk rating (primary: 5-attributed - 1-diff)
+  arm                      dAUC  95%               90%               reading at 0.10        reading at 0.05
+  7 foreign code         -0.054  [-0.125, +0.016]  [-0.114, +0.005]  secondary inconclusive inconclusive
+  5 attributed           +0.187  [+0.121, +0.257]  [+0.133, +0.245]  PRIMARY gain           gain
+  equivalence: 90% interval inside the margin; gain: 95% interval above 0
+
+  secondary scores, dAUC vs 1-diff [95%]:
+  arm                                      binary           censored confidence
+  7 foreign code          -0.025 [-0.057, +0.007]       +0.021 [-0.046, +0.084]
+  5 attributed            +0.063 [+0.035, +0.092]       +0.225 [+0.160, +0.291]
+
+4b. Further dAUC comparisons, hunk rating (paper/PREREG-F.md, Amendment 5; secondary)
+  comparison                         dAUC  95%               90%               reading at 0.10        reading at 0.05
+  5 attributed - 7 foreign code    +0.240  [+0.184, +0.299]  [+0.194, +0.290]  secondary gain         gain
+  secondary scores [95%]:
+  comparison                                         binary           censored confidence
+  5 attributed - 7 foreign code     +0.088 [+0.053, +0.126]       +0.204 [+0.154, +0.258]
+
+5. Histogram of item scores (mutated hunk), defects (d) and twins (t)
+  arm                         0   1-9 10-19 20-29 30-39 40-49 50-59 60-69 70-79 80-89 90-99   100  median  most common values (d+t)
+  1 diff only           d     0     1     2     0     1     0     1    10    58    56     8     0    75.0  80:68, 70:59, 75:58, 85:38, 65:14
+                        t     3     1     5     1     1     1     1    10    63    50     7     0    75.0
+  7 foreign code        d     0     0     6     2     0     0     0    12    54    56     9     0    75.0  80:78, 70:62, 75:50, 85:33, 65:18
+                        t     0     0     3     5     1     0     2     8    60    56     8     0    75.0
+  5 attributed          d     2     0     0     0     0     0     0     2    27    62    42     2    85.0  80:66, 85:44, 70:41, 75:27, 90:27
+                        t     2     3    14     8     1     0     0     6    47    54     8     0    75.0
+
+6. Secondary, binary hit (parse failures dropped), with Table 2 (old contract) for reference
+  arm                      H%    F% d-prime  95%                  c  95%             dd vs 1-diff          dc vs 1-diff          Table 2 H% F% d' c
+  1 diff only            97.1  91.6    0.51  [+0.14, +1.07]   -1.64  [-2.19, -1.28]  +0.00 [+0.00, +0.00]  +0.00 [+0.00, +0.00]  39.4 11.9 +0.91 +0.72
+  7 foreign code         94.2  93.7    0.05  [-0.42, +0.57]   -1.55  [-1.98, -1.22]  -0.47 [-1.12, +0.12]  +0.08 [-0.14, +0.41]  43.8 9.8 +1.14 +0.72
+  5 attributed           98.5  80.4    1.32  [+0.87, +1.92]   -1.52  [-1.83, -1.28]  +0.81 [+0.12, +1.49]  +0.12 [-0.33, +0.70]  57.7 22.4 +0.95 +0.28
+
+7. zROC slope of the hunk rating (descriptive; least squares of z(H) on z(F) over thresholds)
+  1 diff only          1.14 (17 points)
+  7 foreign code       0.95 (16 points)
+  5 attributed         0.94 (20 points)
+
+8. Multiplicity: one primary comparison per run (5-attributed - 1-diff, hunk rating). Every other
+  comparison, measure and run is reported without correction and read as secondary.
