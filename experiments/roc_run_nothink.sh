@@ -3,6 +3,9 @@
 # arms 1-diff, 7-random and 5-attributed, the 282 items of run 2c in run 2t's six seeded mixed shards
 # (each item's arms back to back, in an order shuffled with seed 0); all shards in parallel. The
 # caller exports OPENROUTER_REASONING, OPENROUTER_PROVIDER and CTRL_NAME (the served provider name).
+# Amendment 6 addendum: the caller also exports G_REASONING, the setting the checks expect (JSON; null
+# for no reasoning field); the cap covers both smoke tests, the probes and the run; a smoke test with
+# hunks missing a rating passes (they are counted, not scored).
 #   roc_run_nothink.sh smoke TAG SMOKEDIR   6 smoke replies (3 defects + 3 twins x 5-attributed) and
 #                                           1 manipulation check; exit 0 OK, 3 FAIL
 #   roc_run_nothink.sh run TAG CAP LIMIT    two passes over the shards (the second asks once more every
@@ -24,7 +27,7 @@ gt() { $PY -c "import sys; print(1 if float(sys.argv[1]) > float(sys.argv[2]) el
 
 if [ $PHASE = smoke ]; then
   SMOKE=$3; mkdir -p runs/$SMOKE
-  echo "$(stamp) $TAG smoke $SMOKE flags=${SET[*]} OPENROUTER_REASONING=$OPENROUTER_REASONING OPENROUTER_PROVIDER=$OPENROUTER_PROVIDER CTRL_NAME=$CTRL_NAME" >> $LOG
+  echo "$(stamp) $TAG smoke $SMOKE flags=${SET[*]} OPENROUTER_REASONING=$OPENROUTER_REASONING G_REASONING=${G_REASONING-} OPENROUTER_PROVIDER=$OPENROUTER_PROVIDER CTRL_NAME=$CTRL_NAME" >> $LOG
   # One resume, only for replies missing without a cut-off record (an HTTP or network error).
   for attempt in 1 2; do
     [ "$(cat runs/$SMOKE/structure.jsonl 2>/dev/null | grep -c .)" -ge 6 ] && break
@@ -38,12 +41,12 @@ if [ $PHASE = smoke ]; then
   verdict=$(T smoke_nothink $SMOKE $CTRL_NAME)
   { echo "$(stamp) $TAG smoke $SMOKE usage objects:"; T usage_think $SMOKE | sed 's/^/    /'; } >> $LOG
   echo "$(stamp) $TAG smoke $SMOKE: $verdict" | tee -a $LOG
-  case $verdict in OK) exit 0;; *) exit 3;; esac
+  case $verdict in OK*) exit 0;; *) exit 3;; esac
 fi
 
 CAP=$3 LIMIT=$4
-RUNCOST=("roc-smoke-$TAG" "roc-$TAG-mixed-shard*")
-echo "$(stamp) $TAG run start model=$MODEL arms=$ARMS cap=$CAP limit=$LIMIT flags=${SET[*]} OPENROUTER_REASONING=$OPENROUTER_REASONING OPENROUTER_PROVIDER=$OPENROUTER_PROVIDER CTRL_NAME=$CTRL_NAME" >> $LOG
+RUNCOST=("roc-smoke-$TAG*" "roc-probe-$TAG-s*" "roc-$TAG-mixed-shard*")
+echo "$(stamp) $TAG run start model=$MODEL arms=$ARMS cap=$CAP limit=$LIMIT flags=${SET[*]} OPENROUTER_REASONING=$OPENROUTER_REASONING G_REASONING=${G_REASONING-} OPENROUTER_PROVIDER=$OPENROUTER_PROVIDER CTRL_NAME=$CTRL_NAME" >> $LOG
 for pass in 1 2; do
   pids=()
   for s in 0 1 2 3 4 5; do

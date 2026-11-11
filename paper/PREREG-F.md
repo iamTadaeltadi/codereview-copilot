@@ -695,3 +695,55 @@ multiplicity: every comparison other than the primary one is read as secondary.
   - a full run, with one HTTP 400 logged with its text and recovered in pass 2;
   - an abort on output tokens;
   - a failed smoke test, after which nothing ran.
+
+**Addendum (11 November 2026, 15:11 EAT; after the failed smoke test, before any probe call).** Decided
+by the author after the smoke test.
+
+- **What happened.** The smoke test failed at 13:11, and the run did not start.
+  - GMICloud served all 7 calls, but it reasoned on every one (reasoning_tokens 120 to 7,983),
+    despite `"reasoning": {"enabled": false}`.
+  - It did not enforce max_tokens 2,048 (up to 8,107 output tokens).
+  - Cost: $0.0103. The usage objects are in `results/v3-roc-deepseek-nothink-gmi/README.md`.
+- **Probes.** Up to three other ways to turn reasoning off are tried, on GMICloud with the same pin
+  and no fallback, in this order:
+  1. `"reasoning": {"effort": "none"}`, which OpenRouter documents as turning reasoning off;
+  2. no `reasoning` field, since OpenRouter lists reasoning as off by default for this model;
+  3. `"reasoning": {"max_tokens": 0}`, a reasoning budget of 0 (not documented).
+- **Each probe:**
+  - 2 review calls, 5-attributed, with the run's flags and no manipulation check;
+  - the defect `create_html_repr::94` first, then the twin `jobs_list_str::745::safe`. Both are smoke
+    items, chosen before any probe call (`runs/roc-items/probe2.jsonl`);
+  - the second call is made only if the first reports reasoning_tokens 0;
+  - an HTTP error is logged with its text and fails the probe, with no retry.
+- **Pass.** A setting passes only if both calls are served by GMICloud with the settings sent and both
+  report reasoning_tokens 0. The first setting that passes is used, and the later ones are not tried.
+- **Probe cap.** $0.01 in total. No probe call starts if the probes' recorded cost plus $0.003 (about
+  the most one smoke call cost) would be over $0.01.
+- **If a setting passes,** run 2g goes ahead as planned above, with that setting in place of
+  `{"enabled": false}`: a new smoke test (`runs/roc-smoke-deepseek-nothink-gmi-2`), then the run.
+  - One change to the smoke test: hunks without a rating are counted and reported, and are not
+    scored, as in every other run. A missing rating is not a smoke failure.
+  - Every other smoke criterion, abort rule, stop and analysis is unchanged.
+  - The $0.60 cap now covers all of run 2g: both smoke tests, the probes and the run. Run F's
+    recorded total is $3.8946; with the cap, that is $4.4946, within the $4.90 limit.
+- **If none passes,** the work stops. The README records that GMICloud ignored every reasoning-off
+  setting tried, with each setting and its reasoning tokens. No other provider is used under this
+  amendment.
+- **Deadline:** unchanged (no start after Thursday 12 November 2026, 15:00 EAT).
+- **Code** (under `experiments/`):
+  - `probe_nothink_gmi.sh` (new): runs the probes, then the launch if a setting passes.
+  - `roc_tools.py`:
+    - `probe_g` (new);
+    - `smoke_nothink` and `guard_g` check the setting in `G_REASONING`;
+    - `smoke_nothink` counts missing hunk ratings.
+  - `roc_run_nothink.sh`: the cap counts both smoke tests and the probes.
+  - `launch_roc_nothink_gmi.sh`:
+    - takes the setting from the probe script;
+    - keeps the first smoke test's files (`smoke/`, `launch.sh`, and the README as
+      `README-smoke1-and-probes.md`);
+    - writes the new ones to `smoke-2/` and `launch-2.sh`.
+  - Tested with a fake model (no network) in three scenarios:
+    - no setting passes;
+    - the probe cap stops the probes;
+    - setting 2 passes, a smoke reply misses one hunk rating and passes, and the run finishes with
+      all three analysis files.

@@ -25,6 +25,9 @@ Amendment 5 (run 2t completed, with 7-random added):
 Amendment 6 (run 2g, reasoning off on GMICloud):
     roc_tools.py smoke_nothink RUN NAME   OK or FAIL <reason>: Amendment 6 smoke criteria
     roc_tools.py guard_g NAME GLOB [...]  OK or ABORT <reason>: Amendment 6 abort rules
+    roc_tools.py probe_g RUN NAME CALLS   PASS or FAIL <reason>: Amendment 6 addendum reasoning-off probe
+    (smoke_nothink, guard_g and probe_g check the reasoning setting in G_REASONING, a JSON value, null
+    for no reasoning field; {"enabled": false} when it is unset)
 Every reader counts failed.jsonl (calls cut off at max_tokens, billed but not scored) beside the
 structure and manipulation records.
 """
@@ -32,6 +35,7 @@ import contextlib
 import glob
 import io
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -384,6 +388,11 @@ def guard_a5(name, maxrun, *patterns):
 OFF = {"enabled": False}
 
 
+def _off():
+    """Run 2g's reasoning setting: G_REASONING (Amendment 6 addendum), else {"enabled": false}."""
+    return json.loads(os.environ["G_REASONING"]) if os.environ.get("G_REASONING") else OFF
+
+
 def _pinned(r, reasoning, name):
     """The call was sent with REASONING and the provider NAME's endpoint first, without fallbacks."""
     prov = r.get("request_provider") or {}
@@ -393,19 +402,24 @@ def _pinned(r, reasoning, name):
 
 def smoke_nothink(run, name):
     """Amendment 6 smoke test (6 replies, 3 defects + 3 twins x 5-attributed, plus the manipulation
-    check). OK only if every reply parses with a rating for every hunk and no non-header lines, no call
+    check). OK only if every reply parses with no ambiguous ratings and no non-header lines, no call
     was cut off, the manipulation check is recorded, and every call has the run's settings (reasoning
     off, NAME pinned, no fallbacks), reasoning_tokens reported as 0, fewer than 600 output tokens and
-    the served provider NAME (reported; ignoring case, spaces, hyphens)."""
+    the served provider NAME (reported; ignoring case, spaces, hyphens). Amendment 6 addendum: hunks
+    without a rating are counted and reported after OK, not scored, and are not a failure."""
     rows, failed = _review_rows(run), _failed_rows(run)
+    missing = total = 0
     bad = [f"{f['call']} {f['task_id'][-40:]} cut off (finish_reason {f.get('finish_reason')!r}, "
            f"{(f.get('usage') or {}).get('output_tokens')} output tokens)" for f in failed]
     for r in rows:
         tid = r["task_id"][-40:]
         if r.get("parse_failed") or r.get("json_failed"):
             bad.append(f"{tid} reply did not parse")
-        elif r.get("hunks_rated") != r.get("hunks_total") or r.get("ratings_ambiguous"):
-            bad.append(f"{tid} rated {r.get('hunks_rated')} of {r.get('hunks_total')} hunks")
+        else:
+            total += r.get("hunks_total") or 0
+            missing += max(0, (r.get("hunks_total") or 0) - (r.get("hunks_rated") or 0))
+            if r.get("ratings_ambiguous"):
+                bad.append(f"{tid} ambiguous ratings")
         if r.get("unmatched_rating_lines") or r.get("invalid_rating_entries"):
             bad.append(f"{tid} non-header or invalid rating entries")
     if len(rows) < 6:
@@ -414,7 +428,7 @@ def smoke_nothink(run, name):
         bad.append("no manipulation check recorded")
     for _, kind, r in _calls([run]):
         tid = f"{kind[:5]} {r['task_id'][-40:]}"
-        if not _pinned(r, OFF, name):
+        if not _pinned(r, _off(), name):
             bad.append(f"{tid} settings missing or different"); continue
         if r.get("reasoning_tokens") != 0:
             bad.append(f"{tid} reasoning_tokens {r.get('reasoning_tokens')!r}")
@@ -422,7 +436,30 @@ def smoke_nothink(run, name):
             bad.append(f"{tid} output tokens {_out_tokens(r)}")
         if r.get("served_provider") is None or _norm(r["served_provider"]) != _norm(name):
             bad.append(f"{tid} served by {r.get('served_provider')!r}")
-    print("OK" if not bad else "FAIL " + "; ".join(bad))
+    print((f"OK; hunks without a rating (counted, not scored): {missing} of {total}" if missing else "OK")
+          if not bad else "FAIL " + "; ".join(bad))
+
+
+def probe_g(run, name, calls):
+    """Amendment 6 addendum: a reasoning-off probe passes only if it has CALLS replies and every
+    recorded call (cut-off calls included) was sent with G_REASONING and NAME pinned without fallbacks,
+    was served by NAME (reported) and reports reasoning_tokens 0. Its calls are listed either way."""
+    rows, bad = _calls([run]), []
+    for _, kind, r in rows:
+        tid = f"{kind[:5]} {r['task_id'][-40:]}"
+        print(f"    {tid}: provider={r.get('served_provider')!r} reasoning_tokens={r.get('reasoning_tokens')!r} "
+              f"output_tokens={_out_tokens(r)} finish_reason={r.get('finish_reason')!r} "
+              f"usage={json.dumps(r.get('usage_raw'), sort_keys=True)}", file=sys.stderr)
+        if not _pinned(r, _off(), name):
+            bad.append(f"{tid} settings missing or different"); continue
+        if r.get("reasoning_tokens") != 0:
+            bad.append(f"{tid} reasoning_tokens {r.get('reasoning_tokens')!r}")
+        if r.get("served_provider") is None or _norm(r["served_provider"]) != _norm(name):
+            bad.append(f"{tid} served by {r.get('served_provider')!r}")
+    n = sum(k == "structure.jsonl" for _, k, _ in rows)
+    if n < int(calls):
+        bad.append(f"{n} of {calls} replies recorded")
+    print("PASS" if not bad else "FAIL " + "; ".join(bad))
 
 
 def guard_g(name, *patterns):
@@ -433,7 +470,7 @@ def guard_g(name, *patterns):
     calls = _calls(patterns)
     for run, kind, r in calls:
         where = f"{run}/{kind} {r['task_id'][-50:]} {r.get('arm', '')}"
-        if not _pinned(r, OFF, name):
+        if not _pinned(r, _off(), name):
             print(f"ABORT settings missing or different: {where}"); return
         if r.get("served_provider") is not None and _norm(r["served_provider"]) != _norm(name):
             print(f"ABORT served by {r['served_provider']}: {where}"); return
@@ -504,4 +541,5 @@ if __name__ == "__main__":
      "balance": balance, "smoke_ctrl": smoke_ctrl, "guard": guard, "usage": usage, "ctrlstats": ctrlstats,
      "prep_think": prep_think, "smoke_think": smoke_think, "project_think": project_think,
      "guard_think": guard_think, "usage_think": usage_think, "thinkstats": thinkstats,
-     "guard_a5": guard_a5, "daysplit": daysplit, "smoke_nothink": smoke_nothink, "guard_g": guard_g}[sys.argv[1]](*sys.argv[2:])
+     "guard_a5": guard_a5, "daysplit": daysplit, "smoke_nothink": smoke_nothink, "guard_g": guard_g,
+     "probe_g": probe_g}[sys.argv[1]](*sys.argv[2:])
