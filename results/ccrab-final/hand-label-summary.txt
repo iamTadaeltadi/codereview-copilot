@@ -3,11 +3,11 @@ Human labels: labels-tadael.csv (Tadael Shewarega, blind). LLM labels: labels-ll
 Generated 2026-11-06. Labelling by one author only; no second human labeller.
 
 Rows with a human label: 50 of 50. Missing: none.
-Pending recheck (human 'explains' with ai_point_valid = no, self-contradictory): 2, 34. Kept as labelled below.
+Rechecked on 2026-11-14 (after the agreement figures below were computed): rows 2 and 34 were labelled 'explains' with ai_point_valid = no. Row 2 was set to ai_point_valid = yes; row 34 was kept at ai_point_valid = no, with the note 'redundant, not wrong.' The 'explains' labels and labels-tadael-raw.csv are unchanged, so the agreement and rate figures below do not change.
 Rows with a label but no ai_point_valid: none.
 
 Human label counts: explains 6, partial 2, wrong-reason 42
-ai_point_valid counts: no 40, yes 10
+ai_point_valid counts: no 39, yes 11
 
 (1) Agreement, human 'explains' vs LLM 1  (n = 50)
   agreement 96.0%  Cohen's kappa 0.834

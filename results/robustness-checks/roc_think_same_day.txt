@@ -1,0 +1,21 @@
+item day pattern (diff+attr): Counter({('Tue',): 164, ('Wed',): 116, ('Tue', 'Wed'): 2})
+## Tue items: defects 80 twins 84
+   1-diff        AUC 0.597
+   7-random      AUC 0.489
+   5-attributed  AUC 0.750
+   5-attributed-1-diff: +0.154 [+0.060,+0.251]
+   5-attributed-7-random: +0.262 [+0.177,+0.356]
+   7-random-1-diff: -0.108 [-0.206,-0.016]
+   1-diff        H 96.2  F 88.1
+   7-random      H 91.2  F 91.7
+   5-attributed  H 98.8  F 75.0
+## Wed items: defects 57 twins 59
+   1-diff        AUC 0.515
+   7-random      AUC 0.523
+   5-attributed  AUC 0.749
+   5-attributed-1-diff: +0.234 [+0.135,+0.336]
+   5-attributed-7-random: +0.226 [+0.148,+0.313]
+   7-random-1-diff: +0.008 [-0.097,+0.120]
+   1-diff        H 98.2  F 96.6
+   7-random      H 98.2  F 96.6
+   5-attributed  H 98.2  F 88.1

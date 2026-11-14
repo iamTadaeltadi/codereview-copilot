@@ -1,0 +1,2 @@
+twins: n=143  flagged diff-only 131 (91.6%)  flagged attributed 115 (80.4%)  flag -> no flag 19  no flag -> flag 3
+defects: n=139  flagged diff-only 135 (97.1%)  flagged attributed 137 (98.6%)  flag -> no flag 2  no flag -> flag 4

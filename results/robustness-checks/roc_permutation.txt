@@ -1,0 +1,7 @@
+v3-roc-gpt4omini                   n=281 dAUC +0.065  item-level paired permutation p=0.0597
+v3-roc-gpt4omini-auth              n=279 dAUC +0.133  item-level paired permutation p=0.0020
+v3-roc-deepseek-ctrl               n=282 dAUC +0.081  item-level paired permutation p=0.0375
+v3-roc-deepseek-auth-ctrl          n=280 dAUC +0.032  item-level paired permutation p=0.4605
+v3-roc-deepseek                    n=282 dAUC +0.118  item-level paired permutation p=0.0018
+v3-roc-deepseek-auth               n=282 dAUC +0.051  item-level paired permutation p=0.2253
+v3-roc-deepseek-think-complete     n=282 dAUC +0.188  item-level paired permutation p=0.0000

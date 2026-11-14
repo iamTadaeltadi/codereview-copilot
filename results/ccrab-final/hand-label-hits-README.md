@@ -23,3 +23,5 @@ the reviewed hunk for context. Fill `label` with one of:
 
 `note` is free text. Report: the share `explains` over the 50, with a Wilson interval, and the split
 by condition; this becomes the "right line, right reason" rate the paper lacks (4.5, limitations).
+
+Recheck (2026-11-14): rows 2 and 34 were labelled `explains` but `ai_point_valid = no`. Row 2 (ray) was set to `ai_point_valid = yes`: the test's `except Exception: pass` means it can never fail, so the model's point holds. Row 34 (pandas) was kept at `ai_point_valid = no` with the note "redundant, not wrong.": `np.isnan` on booleans is always False, so the check is pointless, but the output is still correct. `labels-tadael-raw.csv` keeps the labels as first submitted.
